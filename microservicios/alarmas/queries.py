@@ -1,10 +1,6 @@
-"""Consultas Flux del dominio de alarmas.
-
-El esquema definitivo aun no esta documentado. Las consultas reales deben vivir
-en este modulo cuando se confirmen measurement, fields y tags.
-"""
-
 """Consultas Flux del dominio de alarmas."""
+
+from microservicios.config import settings
 
 
 def obtener_alarmas_flux(
@@ -27,7 +23,7 @@ def obtener_alarmas_flux(
     del tipo, estado
 
     return f"""
-from(bucket: "trafico_temperatura_olts")
+from(bucket: "{settings.influx_temp_bucket}")
   |> range(start: -10m)
   |> filter(fn: (r) => r._measurement == "trafico_olt")
   |> filter(fn: (r) =>

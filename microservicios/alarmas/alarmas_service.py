@@ -3,7 +3,7 @@
 from collections import Counter
 from datetime import datetime, timezone
 
-from microservicios.influx import consultar_flux
+from microservicios.influx import consultar_flux_temp
 
 from .models import Alarma
 from .queries import obtener_alarmas_flux
@@ -88,7 +88,7 @@ def obtener_alarmas(
         limit=limit,
     )
 
-    rows = consultar_flux(flux)
+    rows = consultar_flux_temp(flux)
 
     alarmas = [fila_a_alarma(row) for row in rows]
 

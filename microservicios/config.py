@@ -1,4 +1,4 @@
-"""Configuracion comun de los microservicios, cargada desde el entorno."""
+"""Configuracion comun de los microservicios."""
 
 from functools import lru_cache
 
@@ -6,12 +6,32 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    influx_url: str = "http://127.0.0.1:8086"
-    influx_token: str = ""
-    influx_org: str = ""
-    influx_bucket: str = ""
-    influx_timeout_ms: int = 10000
-    influx_verify_ssl: bool = False
+
+    # ==========================================
+    # Influx - Trafico Temperatura OLTs
+    # ==========================================
+
+    influx_temp_url: str = ""
+    influx_temp_verify_ssl: bool = False
+    influx_temp_org: str = ""
+    influx_temp_token: str = ""
+    influx_temp_bucket: str = ""
+    influx_temp_timeout_ms: int = 10000
+
+    # ==========================================
+    # MySQL
+    # ==========================================
+
+    mysql_host: str = "127.0.0.1"
+    mysql_port: int = 3306
+    mysql_user: str = ""
+    mysql_password: str = ""
+    mysql_database: str = ""
+    mysql_connect_timeout: int = 10
+
+    # ==========================================
+    # Microservicio alarmas
+    # ==========================================
 
     alarmas_service_host: str = "127.0.0.1"
     alarmas_service_port: int = 8001
