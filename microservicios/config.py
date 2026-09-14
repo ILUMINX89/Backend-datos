@@ -1,21 +1,20 @@
+"""Configuracion comun de los microservicios, cargada desde el entorno."""
+
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "Backend Datos API"
-    app_env: str = "development"
-    app_host: str = "0.0.0.0"
-    app_port: int = 8000
-
-    influx_url: str = "http://localhost:8086"
+    influx_url: str = "http://127.0.0.1:8086"
     influx_token: str = ""
     influx_org: str = ""
     influx_bucket: str = ""
     influx_timeout_ms: int = 10000
+    influx_verify_ssl: bool = False
 
-    cors_origins: str = "*"
-    allow_raw_flux: bool = False
+    alarmas_service_host: str = "127.0.0.1"
+    alarmas_service_port: int = 8001
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -24,14 +23,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    @property
-    def cors_origins_list(self) -> list[str]:
-        value = self.cors_origins.strip()
-        if value == "*":
-            return ["*"]
-        return [origin.strip() for origin in value.split(",") if origin.strip()]
-
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+settings = get_settings()
