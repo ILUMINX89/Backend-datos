@@ -6,7 +6,10 @@ from datetime import datetime, timezone
 from microservicios.influx import consultar_flux_temp
 
 from .models import Alarma
-from .queries import obtener_alarmas_flux
+from .queries import (
+    obtener_alarmas_flux,
+    obtener_saturacion_flux,
+)
 
 
 def clasificar_alarma_por_estado(estado_equipo) -> int:
@@ -70,6 +73,37 @@ def fila_a_alarma(row: dict) -> Alarma:
     )
 
 
+def fila_saturacion_a_alarma(row: dict) -> Alarma:
+    olt = str(row.get("OLT") or "")
+    puerto = str(row.get("PUERTO") or "")
+
+    saturacion = float(row.get("SATURACION") or 0)
+    input_kbps = row.get("INPUT")
+    output_kbps = row.get("OUTPUT")
+
+    fecha_hora = row.get("_time") or row.get("_stop") or datetime.now(timezone.utc)
+
+    alarma_id = f"saturacion:{olt}:{puerto}"
+
+    return Alarma(
+        id=alarma_id,
+        fecha_hora=fecha_hora,
+        tipo=2,
+        estado="ACTIVA",
+        olt=olt,
+        puerto=puerto,
+        descripcion=(
+            f"Puerto superó el 25% de utilización. " f"Máximo: {saturacion:.2f}%"
+        ),
+        sitio="",
+        valor={
+            "saturacion": round(saturacion, 2),
+            "input_kbps": input_kbps,
+            "output_kbps": output_kbps,
+        },
+    )
+
+
 def obtener_alarmas(
     *,
     tipo: int | None = None,
@@ -78,9 +112,16 @@ def obtener_alarmas(
     limit: int = 100,
 ) -> list[Alarma]:
     """
-    Obtiene las anomalías reales desde InfluxDB
-    y las convierte en alarmas.
+    Obtiene alarmas reales desde InfluxDB.
+
+    Incluye:
+    - Tipo 1: ESTADO != 6
+    - Tipo 2: Saturación > 25% en las últimas 24 horas
     """
+
+    # ==========================================
+    # Alarmas por estado anómalo
+    # ==========================================
 
     flux = obtener_alarmas_flux(
         tipo=tipo,
@@ -92,16 +133,37 @@ def obtener_alarmas(
 
     alarmas = [fila_a_alarma(row) for row in rows]
 
-    # Filtro Tipo 1 / 2 / 3.
-    # Por ahora todas serán Tipo 1 hasta conocer
-    # el significado real de cada ESTADO.
+    # ==========================================
+    # Alarmas por saturación
+    # ==========================================
+
+    flux_saturacion = obtener_saturacion_flux()
+
+    rows_saturacion = consultar_flux_temp(flux_saturacion)
+
+    alarmas_saturacion = [fila_saturacion_a_alarma(row) for row in rows_saturacion]
+
+    alarmas.extend(alarmas_saturacion)
+
+    # ==========================================
+    # Filtro por tipo
+    # ==========================================
+
     if tipo is not None:
         alarmas = [alarma for alarma in alarmas if alarma.tipo == tipo]
+
+    # ==========================================
+    # Filtro por estado
+    # ==========================================
 
     if estado:
         alarmas = [
             alarma for alarma in alarmas if alarma.estado.upper() == estado.upper()
         ]
+
+    # ==========================================
+    # Búsqueda
+    # ==========================================
 
     if q:
         termino = q.casefold()
@@ -120,6 +182,15 @@ def obtener_alarmas(
                 ]
             ).casefold()
         ]
+
+    # ==========================================
+    # Ordenar por fecha más reciente
+    # ==========================================
+
+    alarmas.sort(
+        key=lambda alarma: alarma.fecha_hora,
+        reverse=True,
+    )
 
     return alarmas[:limit]
 
