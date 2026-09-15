@@ -78,26 +78,42 @@ def fila_saturacion_a_alarma(row: dict) -> Alarma:
     puerto = str(row.get("PUERTO") or "")
 
     saturacion = float(row.get("SATURACION") or 0)
+
     input_kbps = row.get("INPUT")
     output_kbps = row.get("OUTPUT")
 
     fecha_hora = row.get("_time") or row.get("_stop") or datetime.now(timezone.utc)
+
+    # ==========================================
+    # Clasificación por porcentaje
+    # ==========================================
+
+    if saturacion >= 90:
+        tipo = 1
+    elif saturacion >= 80:
+        tipo = 2
+    else:
+        tipo = 3
 
     alarma_id = f"saturacion:{olt}:{puerto}"
 
     return Alarma(
         id=alarma_id,
         fecha_hora=fecha_hora,
-        tipo=2,
+        tipo=tipo,
         estado="ACTIVA",
         olt=olt,
         puerto=puerto,
         descripcion=(
-            f"Puerto superó el 25% de utilización. " f"Máximo: {saturacion:.2f}%"
+            f"Puerto alcanzó {saturacion:.2f}% "
+            f"de utilización en las últimas 24 horas"
         ),
         sitio="",
         valor={
-            "saturacion": round(saturacion, 2),
+            "saturacion": round(
+                saturacion,
+                2,
+            ),
             "input_kbps": input_kbps,
             "output_kbps": output_kbps,
         },
@@ -119,10 +135,6 @@ def obtener_alarmas(
     - Tipo 2: Saturación > 25% en las últimas 24 horas
     """
 
-    # ==========================================
-    # Alarmas por estado anómalo
-    # ==========================================
-
     flux = obtener_alarmas_flux(
         tipo=tipo,
         estado=estado,
@@ -133,10 +145,6 @@ def obtener_alarmas(
 
     alarmas = [fila_a_alarma(row) for row in rows]
 
-    # ==========================================
-    # Alarmas por saturación
-    # ==========================================
-
     flux_saturacion = obtener_saturacion_flux()
 
     rows_saturacion = consultar_flux_temp(flux_saturacion)
@@ -145,25 +153,13 @@ def obtener_alarmas(
 
     alarmas.extend(alarmas_saturacion)
 
-    # ==========================================
-    # Filtro por tipo
-    # ==========================================
-
     if tipo is not None:
         alarmas = [alarma for alarma in alarmas if alarma.tipo == tipo]
-
-    # ==========================================
-    # Filtro por estado
-    # ==========================================
 
     if estado:
         alarmas = [
             alarma for alarma in alarmas if alarma.estado.upper() == estado.upper()
         ]
-
-    # ==========================================
-    # Búsqueda
-    # ==========================================
 
     if q:
         termino = q.casefold()
@@ -183,16 +179,30 @@ def obtener_alarmas(
             ).casefold()
         ]
 
-    # ==========================================
-    # Ordenar por fecha más reciente
-    # ==========================================
+    alarmas_tipo2 = [alarma for alarma in alarmas if alarma.tipo == 2]
 
-    alarmas.sort(
+    otras_alarmas = [alarma for alarma in alarmas if alarma.tipo != 2]
+
+    alarmas_tipo2.sort(
         key=lambda alarma: alarma.fecha_hora,
         reverse=True,
     )
 
-    return alarmas[:limit]
+    otras_alarmas.sort(
+        key=lambda alarma: alarma.fecha_hora,
+        reverse=True,
+    )
+
+    resultado = alarmas_tipo2.copy()
+
+    espacio_restante = max(
+        limit - len(resultado),
+        0,
+    )
+
+    resultado.extend(otras_alarmas[:espacio_restante])
+
+    return resultado[:limit]
 
 
 def obtener_resumen() -> dict[str, int]:

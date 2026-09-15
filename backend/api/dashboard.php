@@ -102,6 +102,6 @@ try {
 
     jsonResponse([
         'ok' => false,
-        'error' => 'Datos temporalmente no disponibles',
+        'error' => $exception->getMessage(),
     ], 503);
 }
