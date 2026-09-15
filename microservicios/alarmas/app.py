@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import APIRouter, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -6,6 +6,7 @@ from . import alarmas_service
 from .models import ApiResponse, ErrorResponse, ReconocerAlarmaRequest
 
 app = FastAPI(title="NOC BOA - Alarmas", version="0.1.0")
+router = APIRouter()
 
 
 @app.exception_handler(Exception)
@@ -36,7 +37,7 @@ def health() -> dict:
     return {"ok": True, "service": "alarmas"}
 
 
-@app.get("/alarmas", response_model=ApiResponse)
+@router.get("/alarmas", response_model=ApiResponse)
 def listar_alarmas(
     tipo: int | None = Query(default=None, ge=1, le=3),
     estado: str | None = Query(default=None, max_length=30),
@@ -53,22 +54,22 @@ def listar_alarmas(
     )
 
 
-@app.get("/alarmas/resumen", response_model=ApiResponse)
+@router.get("/alarmas/resumen", response_model=ApiResponse)
 def resumen() -> ApiResponse:
     return ApiResponse(data=alarmas_service.obtener_resumen())
 
 
-@app.get("/alarmas/tendencia", response_model=ApiResponse)
+@router.get("/alarmas/tendencia", response_model=ApiResponse)
 def tendencia(horas: int = Query(default=24, ge=1, le=168)) -> ApiResponse:
     return ApiResponse(data=alarmas_service.obtener_tendencia(horas))
 
 
-@app.get("/alarmas/top", response_model=ApiResponse)
+@router.get("/alarmas/top", response_model=ApiResponse)
 def top(limit: int = Query(default=5, ge=1, le=100)) -> ApiResponse:
     return ApiResponse(data=alarmas_service.obtener_top(limit))
 
 
-@app.get(
+@router.get(
     "/alarmas/{alarma_id}",
     response_model=ApiResponse,
     responses={404: {"model": ErrorResponse}},
@@ -80,7 +81,7 @@ def detalle(alarma_id: str) -> ApiResponse:
     return ApiResponse(data=alarma)
 
 
-@app.post(
+@router.post(
     "/alarmas/{alarma_id}/reconocer",
     response_model=ApiResponse,
     responses={404: {"model": ErrorResponse}},
@@ -90,3 +91,6 @@ def reconocer(alarma_id: str, body: ReconocerAlarmaRequest) -> ApiResponse:
     if not alarma:
         raise HTTPException(status_code=404, detail="Alarma no encontrada")
     return ApiResponse(data=alarma)
+
+
+app.include_router(router)

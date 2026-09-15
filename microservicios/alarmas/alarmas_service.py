@@ -185,7 +185,7 @@ def obtener_alarmas(
     )
 
 
-return alarmas[:limit]
+    return alarmas[:limit]
 
 
 def obtener_resumen() -> dict[str, int]:
