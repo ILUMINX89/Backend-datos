@@ -65,3 +65,10 @@ function optionalInt(string $name, int $min, int $max): ?int
     }
     return $value;
 }
+
+function datosClient(): MicroserviceClient
+{
+    $services = require __DIR__ . '/../config/microservices.php';
+    $config = $services['datos'];
+    return new MicroserviceClient($config['base_url'], (int) $config['timeout'], (int) $config['connect_timeout']);
+}
