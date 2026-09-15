@@ -7,39 +7,94 @@ require_once __DIR__ . '/../lib/bootstrap.php';
 requireMethod('GET');
 
 try {
-    $response = datosClient()->get('/api/olt/temperatura/actual');
+    $response = datosClient()->get(
+        '/api/olt/temperatura/actual'
+    );
+
     $body = $response['body'];
 
     if (
         $response['status'] < 200
         || $response['status'] >= 300
         || ($body['ok'] ?? false) !== true
-        || !is_array($body['data']['datos'] ?? null)
+        || !is_array(
+            $body['data']['datos'] ?? null
+        )
     ) {
-        throw new RuntimeException('Respuesta inválida de temperatura');
+        throw new RuntimeException(
+            'Respuesta inválida de temperatura'
+        );
     }
 
     $rows = [];
-    foreach ($body['data']['datos'] as $row) {
+
+    foreach (
+        $body['data']['datos'] as $row
+    ) {
         if (
-            !is_string($row['olt'] ?? null)
-            || !is_string($row['tarjeta'] ?? null)
-            || !is_numeric($row['temperatura'] ?? null)
-            || !is_finite((float) $row['temperatura'])
+            !is_string(
+                $row['olt'] ?? null
+            )
+            || !is_string(
+                $row['tarjeta'] ?? null
+            )
+            || !is_numeric(
+                $row['temperatura'] ?? null
+            )
+            || !is_finite(
+                (float) $row['temperatura']
+            )
         ) {
-            throw new RuntimeException('Lectura inválida de temperatura');
+            throw new RuntimeException(
+                'Lectura inválida de temperatura'
+            );
         }
+
+        $temperatura = (float) (
+            $row['temperatura']
+        );
+
+        /*
+         * Protección adicional.
+         * No mostrar valores menores a 70 °C.
+         */
+        if ($temperatura < 70.0) {
+            continue;
+        }
+
         $rows[] = [
             'equipo' => $row['olt'],
             'tarjeta' => $row['tarjeta'],
             'nombre' => $row['nombre'] ?? null,
             'zona' => null,
-            'temperatura' => (float) $row['temperatura'],
+            'temperatura' => $temperatura,
+            'estado' => $row['estado'] ?? 'Advertencia',
+            'nivel' => $row['nivel'] ?? 'amarillo',
         ];
     }
 
-    jsonResponse(['ok' => true, 'data' => ['temperaturas' => $rows]]);
+    jsonResponse(
+        [
+            'ok' => true,
+            'data' => [
+                'temperaturas' => $rows,
+            ],
+        ]
+    );
 } catch (Throwable $error) {
-    error_log('Temperatura OLT: ' . $error->getMessage());
-    jsonResponse(['ok' => false, 'error' => 'Servicio de temperatura no disponible'], 503);
+    error_log(
+        'Temperatura OLT: '
+        . $error->getMessage()
+    );
+
+    jsonResponse(
+        [
+            'ok' => false,
+            'error' => (
+                'Servicio de temperatura '
+                . 'no disponible'
+            ),
+        ],
+        503
+    );
 }

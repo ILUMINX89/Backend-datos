@@ -1,62 +1,257 @@
 (() => {
     'use strict';
 
-    const panel = document.getElementById('temperatura-panel');
-    const rows = document.getElementById('temperatura-rows');
-    const status = document.getElementById('temperatura-status');
-    const updated = document.getElementById('temperatura-updated');
-    const number = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 });
+    const panel = document.getElementById(
+        'temperatura-panel'
+    );
+
+    const rows = document.getElementById(
+        'temperatura-rows'
+    );
+
+    const status = document.getElementById(
+        'temperatura-status'
+    );
+
+    const updated = document.getElementById(
+        'temperatura-updated'
+    );
+
     let busy = false;
 
-    function temperatureState(value) {
-        // Estado provisional hasta confirmar los umbrales operativos.
-        return 'Normal';
+    function formatTemperature(value) {
+        const temperatura = Number(value);
+
+        if (!Number.isFinite(temperatura)) {
+            return 'N/D';
+        }
+
+        return `${temperatura.toFixed(2)} °C`;
+    }
+
+    function badgeStyle(
+        badge,
+        nivel
+    ) {
+        badge.style.display = 'inline-block';
+        badge.style.padding = '7px 14px';
+        badge.style.borderRadius = '4px';
+        badge.style.whiteSpace = 'nowrap';
+        badge.style.fontWeight = '600';
+
+        if (nivel === 'rojo') {
+            badge.style.background = '#ff303a';
+            badge.style.color = '#ffffff';
+            return;
+        }
+
+        if (nivel === 'naranja') {
+            badge.style.background = '#ff8c00';
+            badge.style.color = '#ffffff';
+            return;
+        }
+
+        badge.style.background = '#ffe331';
+        badge.style.color = '#111111';
+    }
+
+    function renderTemperature(
+        temperatures
+    ) {
+        const fragment =
+            document.createDocumentFragment();
+
+        for (const item of temperatures) {
+            const temperatura = Number(
+                item.temperatura
+            );
+
+            if (
+                !Number.isFinite(temperatura)
+            ) {
+                continue;
+            }
+
+            /*
+             * Protección adicional:
+             * no mostrar temperaturas normales.
+             */
+            if (temperatura < 70) {
+                continue;
+            }
+
+            const row =
+                document.createElement('tr');
+
+            /*
+             * EQUIPO
+             */
+            const equipo =
+                document.createElement('td');
+
+            equipo.textContent =
+                item.equipo || 'N/D';
+
+            equipo.title =
+                `Tarjeta: ${item.tarjeta || 'N/D'}`;
+
+            /*
+             * ZONA
+             */
+            const zona =
+                document.createElement('td');
+
+            zona.textContent =
+                item.zona || 'N/D';
+
+            /*
+             * TEMPERATURA
+             */
+            const valor =
+                document.createElement('td');
+
+            valor.textContent =
+                formatTemperature(
+                    temperatura
+                );
+
+            /*
+             * ESTADO
+             */
+            const estado =
+                document.createElement('td');
+
+            const badge =
+                document.createElement('span');
+
+            badge.textContent =
+                item.estado || 'Advertencia';
+
+            badgeStyle(
+                badge,
+                item.nivel || 'amarillo'
+            );
+
+            estado.appendChild(badge);
+
+            row.append(
+                equipo,
+                zona,
+                valor,
+                estado
+            );
+
+            fragment.appendChild(row);
+        }
+
+        rows.replaceChildren(fragment);
     }
 
     async function loadTemperature() {
-        if (busy) return;
+        if (busy) {
+            return;
+        }
+
         busy = true;
-        panel.setAttribute('aria-busy', 'true');
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 20000);
+
+        panel.setAttribute(
+            'aria-busy',
+            'true'
+        );
+
+        const controller =
+            new AbortController();
+
+        const timeout = setTimeout(
+            () => controller.abort(),
+            20000
+        );
+
         try {
-            const response = await fetch('../backend/api/temperatura.php', {
-                cache: 'no-store',
-                signal: controller.signal
-            });
-            if (!response.ok) throw new Error('HTTP inválido');
-            const payload = await response.json();
-            if (payload.ok !== true || !Array.isArray(payload.data?.temperaturas)) {
-                throw new Error('Respuesta inválida');
-            }
-            const fragment = document.createDocumentFragment();
-            for (const item of payload.data.temperaturas) {
-                if (typeof item.temperatura !== 'number' || !Number.isFinite(item.temperatura)) {
-                    throw new Error('Temperatura inválida');
+            const response = await fetch(
+                '../backend/api/temperatura.php',
+                {
+                    cache: 'no-store',
+                    signal: controller.signal,
                 }
-                const row = document.createElement('tr');
-                for (const value of [item.equipo, 'N/D', `${number.format(item.temperatura)} °C`, temperatureState(item.temperatura)]) {
-                    const cell = document.createElement('td');
-                    cell.textContent = value;
-                    row.appendChild(cell);
-                }
-                row.firstElementChild.title = `Tarjeta: ${item.tarjeta}`;
-                fragment.appendChild(row);
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    'HTTP inválido'
+                );
             }
-            rows.replaceChildren(fragment);
-            status.textContent = payload.data.temperaturas.length ? '' : 'Sin lecturas de temperatura en los últimos 10 minutos.';
-            updated.textContent = `Última actualización: ${new Date().toLocaleString('es-CO')}`;
+
+            const payload =
+                await response.json();
+
+            if (
+                payload.ok !== true
+                || !Array.isArray(
+                    payload.data?.temperaturas
+                )
+            ) {
+                throw new Error(
+                    'Respuesta inválida'
+                );
+            }
+
+            const temperaturas =
+                payload.data.temperaturas;
+
+            renderTemperature(
+                temperaturas
+            );
+
+            status.textContent =
+                temperaturas.length
+                    ? ''
+                    : (
+                        'Sin alarmas de temperatura. ' +
+                        'Todas las lecturas actuales ' +
+                        'están por debajo de 70 °C.'
+                    );
+
+            updated.textContent =
+                'Última actualización: ' +
+                new Date().toLocaleString(
+                    'es-CO'
+                );
         } catch (error) {
             rows.replaceChildren();
-            status.textContent = 'No se pudo consultar la temperatura OLT. Se reintentará automáticamente.';
+
+            status.textContent =
+                'No se pudo consultar la ' +
+                'temperatura OLT. Se reintentará ' +
+                'automáticamente.';
         } finally {
             clearTimeout(timeout);
+
             busy = false;
-            panel.setAttribute('aria-busy', 'false');
+
+            panel.setAttribute(
+                'aria-busy',
+                'false'
+            );
         }
     }
 
-    document.getElementById('gkp-refresh').addEventListener('click', loadTemperature);
+    const refresh =
+        document.getElementById(
+            'gkp-refresh'
+        );
+
+    if (refresh) {
+        refresh.addEventListener(
+            'click',
+            loadTemperature
+        );
+    }
+
     loadTemperature();
-    setInterval(loadTemperature, 30000);
+
+    setInterval(
+        loadTemperature,
+        30000
+    );
 })();
