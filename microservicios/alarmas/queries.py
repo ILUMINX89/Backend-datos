@@ -83,7 +83,7 @@ from(bucket: "{settings.influx_temp_bucket}")
         else
           (r.OUTPUT / 10000000.0) * 100.0
   }}))
-  |> filter(fn: (r) => r.SATURACION > 25.0)
+  |> filter(fn: (r) => r.SATURACION > 70.0)
   |> group(columns: ["OLT", "PUERTO"])
   |> max(column: "SATURACION")
   |> group(columns: [])

@@ -179,30 +179,13 @@ def obtener_alarmas(
             ).casefold()
         ]
 
-    alarmas_tipo2 = [alarma for alarma in alarmas if alarma.tipo == 2]
-
-    otras_alarmas = [alarma for alarma in alarmas if alarma.tipo != 2]
-
-    alarmas_tipo2.sort(
+    alarmas.sort(
         key=lambda alarma: alarma.fecha_hora,
         reverse=True,
     )
 
-    otras_alarmas.sort(
-        key=lambda alarma: alarma.fecha_hora,
-        reverse=True,
-    )
 
-    resultado = alarmas_tipo2.copy()
-
-    espacio_restante = max(
-        limit - len(resultado),
-        0,
-    )
-
-    resultado.extend(otras_alarmas[:espacio_restante])
-
-    return resultado[:limit]
+return alarmas[:limit]
 
 
 def obtener_resumen() -> dict[str, int]:
