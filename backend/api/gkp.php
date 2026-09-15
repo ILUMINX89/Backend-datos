@@ -1,63 +1,206 @@
 <?php
+
 declare(strict_types=1);
+
 require_once __DIR__ . '/../lib/bootstrap.php';
+
 requireMethod('GET');
 
 $definitions = [
-    'caidas' => ['/api/olt/caidas/actuales', 'Caída actual', 'min'],
-    'saturacion' => ['/api/olt/saturacion/actual', 'Saturación uplink', '%'],
-    'crc' => ['/api/olt/crc/actual', 'Error CRC', 'CRC/s'],
+    'caidas' => [
+        '/api/olt/caidas/actuales',
+        'Caída actual',
+        'min',
+    ],
+    'saturacion' => [
+        '/api/olt/saturacion/actual',
+        'Saturación uplink',
+        '%',
+    ],
+    'crc' => [
+        '/api/olt/crc/actual',
+        'Error CRC',
+        'CRC/s',
+    ],
 ];
+
 $rows = [];
 $sources = [];
+
 foreach ($definitions as $source => [$path, $state, $unit]) {
     try {
         $response = datosClient()->get($path);
         $body = $response['body'];
-        if ($response['status'] < 200 || $response['status'] >= 300 || ($body['ok'] ?? false) !== true
-            || !is_array($body['data']['datos'] ?? null)) {
-            throw new RuntimeException('Respuesta inválida de ' . $source);
+
+        if (
+            $response['status'] < 200
+            || $response['status'] >= 300
+            || ($body['ok'] ?? false) !== true
+            || !is_array($body['data']['datos'] ?? null)
+        ) {
+            throw new RuntimeException(
+                'Respuesta inválida de ' . $source
+            );
         }
+
         $sourceRows = [];
+
         foreach ($body['data']['datos'] as $group) {
-            if (!is_string($group['olt'] ?? null) || !is_array($group['puertos'] ?? null)) {
-                throw new RuntimeException('Grupo inválido de ' . $source);
+            if (
+                !is_string($group['olt'] ?? null)
+                || !is_array($group['puertos'] ?? null)
+            ) {
+                throw new RuntimeException(
+                    'Grupo inválido de ' . $source
+                );
             }
+
             foreach ($group['puertos'] as $port) {
                 if (!is_string($port['puerto'] ?? null)) {
-                    throw new RuntimeException('Puerto inválido de ' . $source);
+                    throw new RuntimeException(
+                        'Puerto inválido de ' . $source
+                    );
                 }
+
+                /*
+                 * CAÍDAS
+                 *
+                 * Sólo interesa CAIDO_ACTUAL:
+                 *
+                 * - el puerto está reportando
+                 * - las últimas muestras están en tráfico 0
+                 *
+                 * No mostrar:
+                 *
+                 * - SIN_MUESTRAS_RECIENTES
+                 * - CAIDO_SIN_FECHA
+                 *
+                 * Estos casos representan equipos/puertos
+                 * que dejaron de reportar o de los cuales
+                 * no tenemos información reciente suficiente.
+                 */
                 if ($source === 'caidas') {
-                    $value = $port['tiempo_sin_trafico_minutos'] ?? null;
-                    $detail = 'Estado de origen: ' . ($port['estado'] ?? 'N/D');
-                } else {
-                    $value = $port['valor'] ?? null;
-                    if (!is_numeric($value)) {
-                        throw new RuntimeException('Valor inválido de ' . $source);
+                    $estadoOrigen = (string) (
+                        $port['estado'] ?? ''
+                    );
+
+                    if ($estadoOrigen !== 'CAIDO_ACTUAL') {
+                        continue;
                     }
-                    $detail = 'Última muestra en ventana de 15 minutos';
+
+                    $value = (
+                        $port['tiempo_sin_trafico_minutos']
+                        ?? null
+                    );
+
+                    /*
+                     * Una caída actual válida debe tener
+                     * duración calculable.
+                     */
+                    if (
+                        $value === null
+                        || !is_numeric($value)
+                        || (float) $value <= 0
+                    ) {
+                        continue;
+                    }
+
+                    $detail = 'Estado de origen: CAIDO_ACTUAL';
+                } else {
+                    /*
+                     * SATURACIÓN / CRC
+                     *
+                     * Los endpoints /actual ya entregan
+                     * solamente la condición vigente.
+                     */
+                    $value = $port['valor'] ?? null;
+
+                    if (!is_numeric($value)) {
+                        throw new RuntimeException(
+                            'Valor inválido de ' . $source
+                        );
+                    }
+
+                    /*
+                     * No mostrar valores en cero.
+                     */
+                    if ((float) $value <= 0) {
+                        continue;
+                    }
+
+                    $detail = (
+                        'Última muestra en ventana de 15 minutos'
+                    );
                 }
-                if ($value !== null && !is_numeric($value)) {
-                    throw new RuntimeException('Duración inválida');
-                }
-                if ($value !== null && (float) $value === 0.0) {
-                    continue;
-                }
-                $sourceRows[] = ['equipo' => $group['olt'], 'puerto' => $port['puerto'],
-                    'valor' => $value === null ? null : (float) $value,
-                    'unidad' => $unit, 'estado' => $state, 'detalle' => $detail];
+
+                $sourceRows[] = [
+                    'equipo' => $group['olt'],
+                    'puerto' => $port['puerto'],
+                    'valor' => (float) $value,
+                    'unidad' => $unit,
+                    'estado' => $state,
+                    'detalle' => $detail,
+                ];
             }
         }
+
         array_push($rows, ...$sourceRows);
-        $sources[$source] = ['ok' => true];
+
+        $sources[$source] = [
+            'ok' => true,
+        ];
     } catch (Throwable $error) {
-        error_log('GKP ' . $source . ': ' . $error->getMessage());
-        $sources[$source] = ['ok' => false];
+        error_log(
+            'GKP ' . $source . ': ' . $error->getMessage()
+        );
+
+        $sources[$source] = [
+            'ok' => false,
+        ];
     }
 }
-// State order is global; the frontend groups equipment without moving rows.
-$priority = ['Caída actual' => 0, 'Saturación uplink' => 1, 'Error CRC' => 2];
-usort($rows, static fn ($a, $b) => ($priority[$a['estado']] <=> $priority[$b['estado']])
-    ?: strnatcasecmp($a['equipo'], $b['equipo']) ?: strnatcasecmp($a['puerto'], $b['puerto']));
-$ok = in_array(true, array_column($sources, 'ok'), true);
-jsonResponse(['ok' => $ok, 'data' => ['estado_actual_red' => $rows], 'sources' => $sources], $ok ? 200 : 503);
+
+/*
+ * Orden del tablero:
+ *
+ * 1. Caídas
+ * 2. Saturación
+ * 3. CRC
+ */
+$priority = [
+    'Caída actual' => 0,
+    'Saturación uplink' => 1,
+    'Error CRC' => 2,
+];
+
+usort(
+    $rows,
+    static fn ($a, $b) =>
+        ($priority[$a['estado']]
+            <=> $priority[$b['estado']])
+        ?: strnatcasecmp(
+            $a['equipo'],
+            $b['equipo']
+        )
+        ?: strnatcasecmp(
+            $a['puerto'],
+            $b['puerto']
+        )
+);
+
+$ok = in_array(
+    true,
+    array_column($sources, 'ok'),
+    true
+);
+
+jsonResponse(
+    [
+        'ok' => $ok,
+        'data' => [
+            'estado_actual_red' => $rows,
+        ],
+        'sources' => $sources,
+    ],
+    $ok ? 200 : 503
+);
