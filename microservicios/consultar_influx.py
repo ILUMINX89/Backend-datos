@@ -10,7 +10,7 @@ from typing import Any, Callable
 #
 # python .\microservicios\consultar_influx.py
 #
-# La forma recomendada sigue siendo:
+# Forma recomendada:
 #
 # python -m microservicios.consultar_influx
 
@@ -27,6 +27,7 @@ if __package__ in {
 from microservicios.olt.caidas.service import (
     obtener_caidas,
     obtener_caidas_actuales,
+    obtener_intermitencias,
 )
 from microservicios.olt.correlacion.service import (
     obtener_correlacion,
@@ -59,10 +60,6 @@ consultar_correlacion = obtener_correlacion
 def serializar(
     valor: Any,
 ) -> str:
-    """
-    Convierte fechas a ISO para poder
-    imprimir correctamente el JSON.
-    """
 
     if isinstance(
         valor,
@@ -79,9 +76,6 @@ def serializar(
 def imprimir_resultado(
     resultado: dict[str, Any],
 ) -> None:
-    """
-    Imprime un resultado en formato JSON.
-    """
 
     print(
         json.dumps(
@@ -99,6 +93,7 @@ def imprimir_resultado(
 
 
 def mostrar_menu() -> None:
+
     print()
 
     print("=" * 55)
@@ -115,6 +110,8 @@ def mostrar_menu() -> None:
 
     print("4. Correlación Saturación + CRC + Caídas")
 
+    print("5. Intermitencias")
+
     print("0. Salir")
 
     print("=" * 55)
@@ -126,16 +123,6 @@ def mostrar_menu() -> None:
 
 
 def seleccionar_periodo_caidas() -> str | None:
-    """
-    Devuelve:
-
-    actuales
-    -2d
-    -4d
-    -7d
-
-    None significa volver al menú principal.
-    """
 
     while True:
 
@@ -174,21 +161,20 @@ def seleccionar_periodo_caidas() -> str | None:
         periodo = opciones.get(opcion)
 
         if periodo is None:
+
             print("Opción no válida.")
+
             continue
 
         return periodo
 
 
 def ejecutar_caidas() -> dict[str, Any]:
-    """
-    Ejecuta caídas actuales o históricas
-    dependiendo de la selección del usuario.
-    """
 
     periodo = seleccionar_periodo_caidas()
 
     if periodo is None:
+
         return {
             "consulta": "caidas",
             "cancelado": True,
@@ -196,9 +182,77 @@ def ejecutar_caidas() -> dict[str, Any]:
         }
 
     if periodo == "actuales":
+
         return obtener_caidas_actuales()
 
     return obtener_caidas(periodo)
+
+
+# ============================================================
+# MENÚ DE INTERMITENCIAS
+# ============================================================
+
+
+def seleccionar_periodo_intermitencias() -> str | None:
+
+    while True:
+
+        print()
+
+        print("=" * 55)
+
+        print(" INTERMITENCIAS OLT")
+
+        print("=" * 55)
+
+        print("1. Últimos 2 días")
+
+        print("2. Últimos 4 días")
+
+        print("3. Últimos 7 días")
+
+        print("0. Volver")
+
+        print("=" * 55)
+
+        opcion = input("Seleccione una opción: ").strip()
+
+        opciones = {
+            "1": "-2d",
+            "2": "-4d",
+            "3": "-7d",
+        }
+
+        if opcion == "0":
+            return None
+
+        periodo = opciones.get(opcion)
+
+        if periodo is None:
+
+            print("Opción no válida.")
+
+            continue
+
+        return periodo
+
+
+def ejecutar_intermitencias() -> dict[
+    str,
+    Any,
+]:
+
+    periodo = seleccionar_periodo_intermitencias()
+
+    if periodo is None:
+
+        return {
+            "consulta": "intermitencias",
+            "cancelado": True,
+            "mensaje": ("Consulta cancelada " "por el usuario"),
+        }
+
+    return obtener_intermitencias(periodo)
 
 
 # ============================================================
@@ -207,9 +261,6 @@ def ejecutar_caidas() -> dict[str, Any]:
 
 
 def main() -> int:
-    """
-    Menú principal de prueba.
-    """
 
     opciones: dict[
         str,
@@ -222,6 +273,7 @@ def main() -> int:
         "2": ejecutar_caidas,
         "3": obtener_crc,
         "4": obtener_correlacion,
+        "5": ejecutar_intermitencias,
     }
 
     while True:
@@ -248,9 +300,6 @@ def main() -> int:
 
             resultado = servicio()
 
-            # Si el usuario seleccionó
-            # "Volver" en el submenú de caídas,
-            # no imprimimos JSON innecesario.
             if resultado.get("cancelado"):
                 continue
 

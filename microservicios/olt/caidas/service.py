@@ -21,6 +21,7 @@ def _obtener_trafico(
 ) -> float | None:
     try:
         return float(muestra.get("TRAFICO"))
+
     except (
         TypeError,
         ValueError,
@@ -83,6 +84,10 @@ def reconstruir_caidas(
             if fecha is None or trafico is None:
                 continue
 
+            # ==============================================
+            # TIENE TRÁFICO
+            # ==============================================
+
             if trafico > 0:
 
                 if caida_confirmada and inicio_posible_caida is not None:
@@ -97,13 +102,19 @@ def reconstruir_caidas(
                     )
 
                 ya_tuvo_trafico = True
+
                 trafico_antes_caida = trafico
+
                 muestras_cero = 0
                 inicio_posible_caida = None
                 ultima_muestra_cero = None
                 caida_confirmada = False
 
                 continue
+
+            # ==============================================
+            # TRÁFICO EN CERO
+            # ==============================================
 
             if not ya_tuvo_trafico:
                 continue
@@ -112,10 +123,15 @@ def reconstruir_caidas(
                 inicio_posible_caida = fecha
 
             muestras_cero += 1
+
             ultima_muestra_cero = fecha
 
             if muestras_cero >= MINIMO_MUESTRAS_CERO:
                 caida_confirmada = True
+
+        # ==============================================
+        # TERMINA EL RANGO Y SIGUE CAÍDO
+        # ==============================================
 
         if caida_confirmada and inicio_posible_caida is not None:
             _agregar_caida(
@@ -304,6 +320,177 @@ def obtener_caidas(
 
 
 # ============================================================
+# INTERMITENCIAS
+# ============================================================
+
+
+def obtener_intermitencias(
+    periodo: str = "-7d",
+) -> dict[str, Any]:
+    """
+    Detecta puertos intermitentes reutilizando
+    las mismas caídas históricas.
+
+    Regla:
+
+    Si un OLT + PUERTO presenta más de
+    2 caídas dentro del mismo día:
+
+        3 o más caídas
+
+    se considera INTERMITENTE.
+    """
+
+    periodos = {
+        "-2d": "ultimos_2_dias",
+        "-4d": "ultimos_4_dias",
+        "-7d": "ultimos_7_dias",
+    }
+
+    if periodo not in periodos:
+        raise ValueError(
+            "Periodo de intermitencias no permitido. " "Use -2d, -4d o -7d."
+        )
+
+    # Reutilizamos la consulta y reconstrucción
+    # que ya usa el módulo de caídas.
+    caidas_por_puerto = obtener_caidas_por_puerto(periodo)
+
+    resultado_olts: dict[
+        str,
+        list[dict[str, Any]],
+    ] = defaultdict(list)
+
+    for (
+        olt,
+        puerto,
+    ), caidas in caidas_por_puerto.items():
+
+        caidas_por_dia: dict[
+            str,
+            list[dict[str, Any]],
+        ] = defaultdict(list)
+
+        # ==========================================
+        # AGRUPAR CAÍDAS POR DÍA
+        # ==========================================
+
+        for caida in caidas:
+
+            inicio = caida.get("inicio")
+
+            if inicio is None:
+                continue
+
+            dia = inicio.strftime("%Y-%m-%d")
+
+            caidas_por_dia[dia].append(caida)
+
+        dias_intermitentes = []
+
+        # ==========================================
+        # VALIDAR MÁS DE 2 CAÍDAS EN EL MISMO DÍA
+        # ==========================================
+
+        for (
+            dia,
+            eventos,
+        ) in caidas_por_dia.items():
+
+            cantidad_caidas = len(eventos)
+
+            if cantidad_caidas <= 2:
+                continue
+
+            tiempo_total_minutos = sum(
+                evento.get(
+                    "duracion_minutos",
+                    0,
+                )
+                for evento in eventos
+            )
+
+            eventos_ordenados = sorted(
+                eventos,
+                key=lambda evento: evento.get("inicio"),
+            )
+
+            dias_intermitentes.append(
+                {
+                    "dia": dia,
+                    "estado": "INTERMITENTE",
+                    "cantidad_caidas": cantidad_caidas,
+                    "tiempo_total_caido_minutos": round(
+                        tiempo_total_minutos,
+                        2,
+                    ),
+                    "tiempo_total_caido_horas": round(
+                        tiempo_total_minutos / 60,
+                        2,
+                    ),
+                    "eventos": eventos_ordenados,
+                }
+            )
+
+        if not dias_intermitentes:
+            continue
+
+        dias_intermitentes.sort(
+            key=lambda item: item["dia"],
+            reverse=True,
+        )
+
+        total_caidas = sum(dia["cantidad_caidas"] for dia in dias_intermitentes)
+
+        maximo_caidas_dia = max(dia["cantidad_caidas"] for dia in dias_intermitentes)
+
+        resultado_olts[olt].append(
+            {
+                "puerto": puerto,
+                "estado": "INTERMITENTE",
+                "cantidad_dias_intermitentes": len(dias_intermitentes),
+                "total_caidas_en_dias_intermitentes": total_caidas,
+                "maximo_caidas_en_un_dia": maximo_caidas_dia,
+                "dias": dias_intermitentes,
+            }
+        )
+
+    datos = []
+
+    for olt in sorted(resultado_olts):
+
+        puertos = resultado_olts[olt]
+
+        puertos.sort(
+            key=lambda item: (
+                item["maximo_caidas_en_un_dia"],
+                item["cantidad_dias_intermitentes"],
+            ),
+            reverse=True,
+        )
+
+        datos.append(
+            {
+                "olt": olt,
+                "cantidad_puertos_intermitentes": len(puertos),
+                "puertos": puertos,
+            }
+        )
+
+    return {
+        "consulta": "intermitencias_por_caidas",
+        "periodo": periodos[periodo],
+        "criterio": "mas_de_2_caidas_en_un_mismo_dia",
+        "minimo_caidas_para_intermitencia": 3,
+        "cantidad_olts": len(datos),
+        "cantidad_puertos_intermitentes": sum(
+            olt["cantidad_puertos_intermitentes"] for olt in datos
+        ),
+        "datos": datos,
+    }
+
+
+# ============================================================
 # ACTUALES
 # ============================================================
 
@@ -464,12 +651,16 @@ def obtener_caidas_actuales() -> dict[
     # TIENE MUESTRAS RECIENTES Y DOS ÚLTIMAS SON 0
     # --------------------------------------------------------
 
-    for clave, muestras in recientes_por_puerto.items():
+    for (
+        clave,
+        muestras,
+    ) in recientes_por_puerto.items():
 
         if len(muestras) < 2:
             continue
 
         anterior = muestras[-2]
+
         actual = muestras[-1]
 
         trafico_anterior = anterior["TRAFICO"]
@@ -489,7 +680,10 @@ def obtener_caidas_actuales() -> dict[
     # DEJÓ DE REPORTAR COMPLETAMENTE
     # --------------------------------------------------------
 
-    for clave, info in ultima_muestra_por_puerto.items():
+    for (
+        clave,
+        info,
+    ) in ultima_muestra_por_puerto.items():
 
         if clave in recientes_por_puerto:
             continue
