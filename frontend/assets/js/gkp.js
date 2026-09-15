@@ -59,7 +59,8 @@
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 185000);
         try {
-            const response = await fetch('/backend/api/gkp.php', { cache: 'no-store', signal: controller.signal });
+            const endpoint = new URL('../backend/api/gkp.php', window.location.href);
+            const response = await fetch(endpoint, { cache: 'no-store', signal: controller.signal });
             const payload = await response.json();
             if (!response.ok || !payload.ok || !Array.isArray(payload.data?.estado_actual_red)) {
                 throw new Error('Respuesta no disponible');

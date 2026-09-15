@@ -5,8 +5,8 @@ requireMethod('GET');
 
 $definitions = [
     'caidas' => ['/api/olt/caidas/actuales', 'Caída actual', 'min'],
-    'saturacion' => ['/api/olt/saturacion', 'Saturación uplink', '%'],
-    'crc' => ['/api/olt/crc', 'Error CRC', 'CRC/s'],
+    'saturacion' => ['/api/olt/saturacion/actual', 'Saturación uplink', '%'],
+    'crc' => ['/api/olt/crc/actual', 'Error CRC', 'CRC/s'],
 ];
 $rows = [];
 $sources = [];
@@ -31,21 +31,11 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
                     $value = $port['tiempo_sin_trafico_minutos'] ?? null;
                     $detail = 'Estado de origen: ' . ($port['estado'] ?? 'N/D');
                 } else {
-                    // Preserve every episode supplied by the existing 24-hour endpoint.
-                    if (!is_array($port['episodios'] ?? null)) {
-                        throw new RuntimeException('Episodios inválidos de ' . $source);
+                    $value = $port['valor'] ?? null;
+                    if (!is_numeric($value)) {
+                        throw new RuntimeException('Valor inválido de ' . $source);
                     }
-                    foreach ($port['episodios'] as $episode) {
-                        if (!is_numeric($episode['maximo'] ?? null)) {
-                            throw new RuntimeException('Valor inválido de ' . $source);
-                        }
-                        $sourceRows[] = [
-                            'equipo' => $group['olt'], 'puerto' => $port['puerto'],
-                            'valor' => (float) $episode['maximo'], 'unidad' => $unit, 'estado' => $state,
-                            'detalle' => 'Máximo del episodio: ' . ($episode['inicio'] ?? 'N/D') . ' — ' . ($episode['fin'] ?? 'N/D'),
-                        ];
-                    }
-                    continue;
+                    $detail = 'Última muestra en ventana de 15 minutos';
                 }
                 if ($value !== null && !is_numeric($value)) {
                     throw new RuntimeException('Duración inválida');

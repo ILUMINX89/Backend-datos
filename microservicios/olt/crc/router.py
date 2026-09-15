@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from microservicios.olt.crc.service import obtener_crc
+from microservicios.olt.crc.service import obtener_crc, obtener_crc_actual
 
 router = APIRouter(tags=["OLT - CRC"])
 
@@ -10,3 +10,8 @@ router = APIRouter(tags=["OLT - CRC"])
 @router.get("/crc")
 def crc() -> dict:
     return {"ok": True, "data": obtener_crc()}
+
+
+@router.get("/crc/actual")
+def crc_actual() -> dict:
+    return {"ok": True, "data": obtener_crc_actual()}

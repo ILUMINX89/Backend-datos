@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Any
 
 from microservicios.influx import consultar_flux_temp
-from microservicios.olt.crc.queries import obtener_crc_flux
+from microservicios.olt.crc.queries import obtener_crc_actual_flux, obtener_crc_flux
 
 SEPARACION_EPISODIO_MINUTOS = 30
 
@@ -93,4 +93,24 @@ def obtener_crc() -> dict[str, Any]:
         "criterio": "mas_de_10_crc_por_segundo",
         "cantidad_olts": len(datos),
         "datos": datos,
+    }
+
+
+def obtener_crc_actual() -> dict[str, Any]:
+    """Devuelve los puertos cuya ultima muestra supera el umbral actual."""
+    filas = consultar_flux_temp(obtener_crc_actual_flux())
+    resultado_olts: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for fila in filas:
+        olt = str(fila.get("OLT") or "")
+        puerto = str(fila.get("PUERTO") or "")
+        if not olt or not puerto:
+            continue
+        resultado_olts[olt].append(
+            {"puerto": puerto, "valor": round(float(fila["CRC_POR_SEGUNDO"]), 2)}
+        )
+    return {
+        "datos": [
+            {"olt": olt, "puertos": sorted(resultado_olts[olt], key=lambda item: item["puerto"])}
+            for olt in sorted(resultado_olts)
+        ]
     }

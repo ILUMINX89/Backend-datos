@@ -3,11 +3,10 @@
 from microservicios.config import settings
 
 
-def obtener_saturacion_flux() -> str:
-    """Devuelve la secuencia de muestras con saturacion superior al 70 %."""
+def _metricas_saturacion_flux(ventana: str) -> str:
     return f'''
 from(bucket: "{settings.influx_temp_bucket}")
-  |> range(start: -24h)
+  |> range(start: {ventana})
   |> filter(fn: (r) => r._measurement == "trafico_olt")
   |> filter(fn: (r) => r._field == "INPUT" or r._field == "OUTPUT")
   |> group(columns: ["OLT", "PUERTO", "_field"])
@@ -26,7 +25,23 @@ from(bucket: "{settings.influx_temp_bucket}")
         else
           (r.OUTPUT / 10000000.0) * 100.0
   }}))
+'''
+
+
+def obtener_saturacion_flux() -> str:
+    """Devuelve la secuencia de muestras con saturacion superior al 70 %."""
+    return _metricas_saturacion_flux("-24h") + '''
   |> filter(fn: (r) => r.SATURACION > 70.0)
   |> group(columns: [])
   |> sort(columns: ["OLT", "PUERTO", "_time"])
+'''
+
+
+def obtener_saturacion_actual_flux() -> str:
+    """Filtra el umbral despues de seleccionar la ultima muestra de cada puerto."""
+    return _metricas_saturacion_flux("-15m") + '''
+  |> group(columns: ["OLT", "PUERTO"])
+  |> sort(columns: ["_time"])
+  |> last(column: "SATURACION")
+  |> filter(fn: (r) => r.SATURACION >= 80.0)
 '''

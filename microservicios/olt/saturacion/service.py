@@ -4,7 +4,7 @@ from collections import defaultdict
 from typing import Any
 
 from microservicios.influx import consultar_flux_temp
-from microservicios.olt.saturacion.queries import obtener_saturacion_flux
+from microservicios.olt.saturacion.queries import obtener_saturacion_actual_flux, obtener_saturacion_flux
 
 MINIMO_MUESTRAS = 2
 SEPARACION_EPISODIO_MINUTOS = 30
@@ -110,4 +110,24 @@ def obtener_saturacion() -> dict[str, Any]:
         "separacion_nuevo_episodio_minutos": SEPARACION_EPISODIO_MINUTOS,
         "cantidad_olts": len(datos),
         "datos": datos,
+    }
+
+
+def obtener_saturacion_actual() -> dict[str, Any]:
+    """Devuelve los puertos cuya ultima muestra supera el umbral actual."""
+    filas = consultar_flux_temp(obtener_saturacion_actual_flux())
+    resultado_olts: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for fila in filas:
+        olt = str(fila.get("OLT") or "")
+        puerto = str(fila.get("PUERTO") or "")
+        if not olt or not puerto:
+            continue
+        resultado_olts[olt].append(
+            {"puerto": puerto, "valor": round(float(fila["SATURACION"]), 2)}
+        )
+    return {
+        "datos": [
+            {"olt": olt, "puertos": sorted(resultado_olts[olt], key=lambda item: item["puerto"])}
+            for olt in sorted(resultado_olts)
+        ]
     }
