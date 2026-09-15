@@ -1,12 +1,47 @@
-"""Rutas HTTP de caidas OLT."""
+"""Rutas HTTP de caídas OLT."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
-from microservicios.olt.caidas.service import obtener_caidas
+from microservicios.olt.caidas.service import (
+    obtener_caidas,
+    obtener_caidas_actuales,
+)
 
-router = APIRouter(tags=["OLT - Caídas"])
+router = APIRouter(
+    tags=["OLT - Caídas"],
+)
 
 
 @router.get("/caidas")
-def caidas() -> dict:
-    return {"ok": True, "data": obtener_caidas()}
+def caidas(
+    dias: int = Query(
+        7,
+        description="Periodo histórico a consultar: 2, 4 o 7 días",
+    ),
+) -> dict:
+    periodos = {
+        2: "-2d",
+        4: "-4d",
+        7: "-7d",
+    }
+
+    periodo = periodos.get(dias)
+
+    if periodo is None:
+        return {
+            "ok": False,
+            "error": "El parámetro dias solo puede ser 2, 4 o 7",
+        }
+
+    return {
+        "ok": True,
+        "data": obtener_caidas(periodo),
+    }
+
+
+@router.get("/caidas/actuales")
+def caidas_actuales() -> dict:
+    return {
+        "ok": True,
+        "data": obtener_caidas_actuales(),
+    }

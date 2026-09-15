@@ -90,3 +90,6 @@ from(bucket: "{settings.influx_temp_bucket}")
 
   |> group(columns: [])
 """
+
+
+def obtener_caidas_actuales_flux() -> str:

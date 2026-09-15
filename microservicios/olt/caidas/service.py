@@ -329,3 +329,9 @@ def obtener_caidas(
         "cantidad_puertos": sum(olt["cantidad_puertos"] for olt in datos),
         "datos": datos,
     }
+
+def obtener_caidas_actuales() -> dict[str, Any]:
+    
+    def analizar_caidas_actuales(
+    datos: list[dict[str, Any]],
+) -> list[dict[str, Any]]:

@@ -61,7 +61,7 @@ def ejecutar_caidas() -> dict[str, Any]:
 def main() -> int:
     opciones: dict[str, Callable[[], dict[str, Any]]] = {
         "1": obtener_saturacion,
-        "2": obtener_caidas,
+        "2": ejecutar_caidas,
         "3": obtener_crc,
         "4": obtener_correlacion,
     }
