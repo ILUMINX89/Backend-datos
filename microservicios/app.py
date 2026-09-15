@@ -9,6 +9,7 @@ from microservicios.olt.caidas.router import router as caidas_router
 from microservicios.olt.correlacion.router import router as correlacion_router
 from microservicios.olt.crc.router import router as crc_router
 from microservicios.olt.saturacion.router import router as saturacion_router
+from microservicios.olt.temperatura.router import router as temperatura_router
 
 app = FastAPI(title="Backend Datos API", version="1.0.0")
 
@@ -48,6 +49,7 @@ app.include_router(saturacion_router, prefix="/api/olt")
 app.include_router(caidas_router, prefix="/api/olt")
 app.include_router(crc_router, prefix="/api/olt")
 app.include_router(correlacion_router, prefix="/api/olt")
+app.include_router(temperatura_router, prefix="/api/olt")
 
 # Las rutas existentes se conservan mientras el frontend PHP migra al nuevo servicio.
 app.include_router(alarmas_router)
