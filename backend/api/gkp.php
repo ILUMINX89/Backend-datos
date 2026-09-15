@@ -40,6 +40,9 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
                 if ($value !== null && !is_numeric($value)) {
                     throw new RuntimeException('Duración inválida');
                 }
+                if ($value !== null && (float) $value === 0.0) {
+                    continue;
+                }
                 $sourceRows[] = ['equipo' => $group['olt'], 'puerto' => $port['puerto'],
                     'valor' => $value === null ? null : (float) $value,
                     'unidad' => $unit, 'estado' => $state, 'detalle' => $detail];

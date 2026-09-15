@@ -28,7 +28,8 @@
             port.textContent = row.puerto;
             port.setAttribute('aria-label', `${row.equipo}: ${row.puerto}`);
             const value = document.createElement('td');
-            value.textContent = row.valor === null ? 'N/D' : `${number.format(row.valor)} ${row.unidad}`;
+            value.textContent = row.valor === null ? 'N/D'
+                : `${row.unidad === 'min' ? Number(row.valor).toFixed(2) : number.format(row.valor)} ${row.unidad}`;
             value.title = row.detalle;
             const down = row.estado === 'Caída actual';
             if (down) value.className = 'gkp-value--down';
