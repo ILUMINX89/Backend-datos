@@ -10,12 +10,6 @@ def obtener_caidas_flux(
     Consulta histórica de tráfico.
 
     Se usa para reconstruir caídas en Python.
-
-    Periodos permitidos:
-    - 24 horas
-    - 2 días
-    - 4 días
-    - 7 días
     """
 
     periodos_permitidos = {
@@ -112,16 +106,14 @@ from(bucket: "{settings.influx_temp_bucket}")
 """
 
 
-def obtener_caidas_actuales_flux() -> str:
+def obtener_estado_actual_flux() -> str:
     """
-    Obtiene las últimas 3 muestras de tráfico
-    de cada OLT + PUERTO.
+    Obtiene las últimas muestras de tráfico recientes.
 
-    Con esto determinamos cuáles puertos
-    continúan actualmente sin tráfico.
-
-    Se usan 30 minutos de margen porque las
-    muestras llegan aproximadamente cada 5 minutos.
+    Se revisan 30 minutos para detectar:
+    - puertos con tráfico actual;
+    - puertos con dos muestras seguidas en 0;
+    - puertos que todavía están reportando pero sin tráfico.
     """
 
     return f"""
@@ -218,14 +210,121 @@ from(bucket: "{settings.influx_temp_bucket}")
 """
 
 
+def obtener_ultima_muestra_conocida_flux(
+    periodo: str = "-7d",
+) -> str:
+    """
+    Obtiene la última muestra conocida de cada puerto.
+
+    Sirve para detectar puertos que dejaron de reportar
+    completamente y por eso no aparecen en los últimos 30 minutos.
+    """
+
+    periodos_permitidos = {
+        "-2d",
+        "-4d",
+        "-7d",
+    }
+
+    if periodo not in periodos_permitidos:
+        raise ValueError("Periodo de búsqueda no permitido.")
+
+    return f"""
+from(bucket: "{settings.influx_temp_bucket}")
+
+  |> range(start: {periodo})
+
+  |> filter(fn: (r) =>
+      r._measurement == "trafico_olt"
+  )
+
+  |> filter(fn: (r) =>
+      r._field == "INPUT" or
+      r._field == "OUTPUT"
+  )
+
+  |> group(
+      columns: [
+          "OLT",
+          "PUERTO",
+          "_field"
+      ]
+  )
+
+  |> derivative(
+      unit: 1s,
+      nonNegative: true
+  )
+
+  |> map(fn: (r) => ({{
+      r with
+      _value: r._value * 8.0 / 1000.0
+  }}))
+
+  |> pivot(
+      rowKey: [
+          "_time",
+          "OLT",
+          "PUERTO"
+      ],
+      columnKey: ["_field"],
+      valueColumn: "_value"
+  )
+
+  |> map(fn: (r) => ({{
+      r with
+      TRAFICO:
+        if exists r.INPUT and exists r.OUTPUT then
+          if r.INPUT > r.OUTPUT then
+            r.INPUT
+          else
+            r.OUTPUT
+        else if exists r.INPUT then
+          r.INPUT
+        else if exists r.OUTPUT then
+          r.OUTPUT
+        else
+          0.0
+  }}))
+
+  |> keep(
+      columns: [
+          "_time",
+          "OLT",
+          "PUERTO",
+          "INPUT",
+          "OUTPUT",
+          "TRAFICO"
+      ]
+  )
+
+  |> group(
+      columns: [
+          "OLT",
+          "PUERTO"
+      ]
+  )
+
+  |> sort(
+      columns: ["_time"]
+  )
+
+  |> tail(n: 1)
+
+  |> group(columns: [])
+
+  |> sort(
+      columns: [
+          "OLT",
+          "PUERTO"
+      ]
+  )
+"""
+
+
 def _escapar_flux(
     valor: str,
 ) -> str:
-    """
-    Escapa texto antes de insertarlo
-    en una condición Flux.
-    """
-
     return valor.replace("\\", "\\\\").replace('"', '\\"')
 
 
@@ -235,11 +334,7 @@ def obtener_ultima_actividad_flux(
 ) -> str:
     """
     Busca la última muestra con tráfico > 0
-    solamente para los puertos que actualmente
-    están detectados sin tráfico.
-
-    Esto evita consultar y procesar historial
-    innecesario de todos los puertos.
+    para los puertos actualmente problemáticos.
     """
 
     periodos_permitidos = {
@@ -351,7 +446,11 @@ from(bucket: "{settings.influx_temp_bucket}")
       ]
   )
 
-  |> last()
+  |> sort(
+      columns: ["_time"]
+  )
+
+  |> tail(n: 1)
 
   |> group(columns: [])
 

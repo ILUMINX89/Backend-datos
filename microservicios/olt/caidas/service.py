@@ -6,24 +6,21 @@ from typing import Any
 
 from microservicios.influx import consultar_flux_temp
 from microservicios.olt.caidas.queries import (
-    obtener_caidas_actuales_flux,
     obtener_caidas_flux,
+    obtener_estado_actual_flux,
     obtener_ultima_actividad_flux,
+    obtener_ultima_muestra_conocida_flux,
 )
 
 MINIMO_MUESTRAS_CERO = 2
+MINUTOS_SIN_MUESTRAS = 15
 
 
 def _obtener_trafico(
     muestra: dict[str, Any],
 ) -> float | None:
-    """
-    Convierte el campo TRAFICO a float.
-    """
-
     try:
         return float(muestra.get("TRAFICO"))
-
     except (
         TypeError,
         ValueError,
@@ -32,7 +29,7 @@ def _obtener_trafico(
 
 
 # ============================================================
-# HISTÓRICO DE CAÍDAS
+# HISTÓRICO
 # ============================================================
 
 
@@ -44,27 +41,12 @@ def reconstruir_caidas(
     tuple[str, str],
     list[dict[str, Any]],
 ]:
-    """
-    Reconstruye caídas históricas.
-
-    Regla:
-
-    tráfico > 0
-    luego 0
-    luego 0
-    => caída confirmada
-
-    Cuando vuelve tráfico > 0,
-    la caída termina.
-    """
-
     muestras_por_puerto: dict[
         tuple[str, str],
         list[dict[str, Any]],
     ] = defaultdict(list)
 
     for fila in datos:
-
         olt = str(fila.get("OLT") or "")
 
         puerto = str(fila.get("PUERTO") or "")
@@ -86,32 +68,20 @@ def reconstruir_caidas(
         muestras.sort(key=lambda fila: fila["_time"])
 
         ya_tuvo_trafico = False
-
         muestras_cero = 0
-
         inicio_posible_caida = None
-
         ultima_muestra_cero = None
-
         caida_confirmada = False
-
         trafico_antes_caida = None
 
         for muestra in muestras:
 
             fecha = muestra.get("_time")
 
-            if fecha is None:
-                continue
-
             trafico = _obtener_trafico(muestra)
 
-            if trafico is None:
+            if fecha is None or trafico is None:
                 continue
-
-            # ==============================================
-            # TIENE TRÁFICO
-            # ==============================================
 
             if trafico > 0:
 
@@ -127,22 +97,13 @@ def reconstruir_caidas(
                     )
 
                 ya_tuvo_trafico = True
-
                 trafico_antes_caida = trafico
-
                 muestras_cero = 0
-
                 inicio_posible_caida = None
-
                 ultima_muestra_cero = None
-
                 caida_confirmada = False
 
                 continue
-
-            # ==============================================
-            # TRÁFICO EN CERO
-            # ==============================================
 
             if not ya_tuvo_trafico:
                 continue
@@ -151,15 +112,10 @@ def reconstruir_caidas(
                 inicio_posible_caida = fecha
 
             muestras_cero += 1
-
             ultima_muestra_cero = fecha
 
             if muestras_cero >= MINIMO_MUESTRAS_CERO:
                 caida_confirmada = True
-
-        # ==============================================
-        # TERMINA EL RANGO Y SIGUE CAÍDO
-        # ==============================================
 
         if caida_confirmada and inicio_posible_caida is not None:
             _agregar_caida(
@@ -185,9 +141,6 @@ def _agregar_caida(
     trafico_antes_caida: float | None = None,
     trafico_recuperacion: float | None = None,
 ) -> None:
-    """
-    Agrega una caída histórica.
-    """
 
     duracion_minutos = (fin_calculo - inicio).total_seconds() / 60
 
@@ -246,13 +199,6 @@ def analizar_caidas(
         list[dict[str, Any]],
     ],
 ) -> list[dict[str, Any]]:
-    """
-    Muestra puertos que tengan:
-
-    - 3 o más caídas
-    O
-    - alguna caída de 2 horas o más
-    """
 
     resultado_olts: dict[
         str,
@@ -358,34 +304,18 @@ def obtener_caidas(
 
 
 # ============================================================
-# CAÍDAS ACTUALES
+# ACTUALES
 # ============================================================
 
 
-def detectar_puertos_sin_trafico(
+def _agrupar_muestras_recientes(
     datos: list[dict[str, Any]],
 ) -> dict[
     tuple[str, str],
-    dict[str, Any],
+    list[dict[str, Any]],
 ]:
-    """
-    Identifica puertos que actualmente
-    continúan sin tráfico.
 
-    Se consideran confirmados si las dos
-    últimas muestras tienen tráfico <= 0.
-
-    Ya NO descartamos:
-
-        0
-        0
-        0
-
-    porque puede tratarse de un puerto que
-    lleva horas o días caído.
-    """
-
-    muestras_por_puerto: dict[
+    resultado: dict[
         tuple[str, str],
         list[dict[str, Any]],
     ] = defaultdict(list)
@@ -407,61 +337,64 @@ def detectar_puertos_sin_trafico(
 
         copia["TRAFICO"] = trafico
 
-        muestras_por_puerto[(olt, puerto)].append(copia)
+        resultado[(olt, puerto)].append(copia)
 
-    resultado = {}
-
-    for clave, muestras in muestras_por_puerto.items():
-
+    for muestras in resultado.values():
         muestras.sort(key=lambda fila: fila["_time"])
 
-        if len(muestras) < 2:
-            continue
-
-        anterior = muestras[-2]
-
-        actual = muestras[-1]
-
-        trafico_anterior = anterior["TRAFICO"]
-
-        trafico_actual = actual["TRAFICO"]
-
-        # Dos muestras consecutivas sin tráfico.
-        if trafico_anterior <= 0 and trafico_actual <= 0:
-            resultado[clave] = {
-                "muestras": muestras[-3:],
-                "ultima_muestra": actual["_time"],
-                "trafico_actual": trafico_actual,
-            }
-
-    return resultado
+    return dict(resultado)
 
 
-def obtener_ultima_actividad(
-    puertos: list[tuple[str, str]],
-    periodo: str = "-7d",
+def _indexar_ultima_muestra(
+    datos: list[dict[str, Any]],
 ) -> dict[
     tuple[str, str],
     dict[str, Any],
 ]:
-    """
-    Busca cuándo fue la última vez
-    que cada puerto tuvo tráfico.
-    """
+
+    resultado = {}
+
+    for fila in datos:
+
+        olt = str(fila.get("OLT") or "")
+
+        puerto = str(fila.get("PUERTO") or "")
+
+        fecha = fila.get("_time")
+
+        trafico = _obtener_trafico(fila)
+
+        if not olt or not puerto or fecha is None or trafico is None:
+            continue
+
+        resultado[(olt, puerto)] = {
+            "fecha": fecha,
+            "trafico": trafico,
+        }
+
+    return resultado
+
+
+def _buscar_ultima_actividad(
+    puertos: list[tuple[str, str]],
+) -> dict[
+    tuple[str, str],
+    dict[str, Any],
+]:
 
     if not puertos:
         return {}
 
-    registros = consultar_flux_temp(
+    datos = consultar_flux_temp(
         obtener_ultima_actividad_flux(
             puertos,
-            periodo,
+            "-7d",
         )
     )
 
     resultado = {}
 
-    for fila in registros:
+    for fila in datos:
 
         olt = str(fila.get("OLT") or "")
 
@@ -476,7 +409,7 @@ def obtener_ultima_actividad(
 
         resultado[(olt, puerto)] = {
             "fecha": fecha,
-            "trafico_kbps": trafico,
+            "trafico": trafico,
         }
 
     return resultado
@@ -487,88 +420,147 @@ def obtener_caidas_actuales() -> dict[
     Any,
 ]:
     """
-    Obtiene los puertos actualmente
-    sin tráfico y busca la última vez
-    que tuvieron tráfico positivo.
+    Detecta tres escenarios:
+
+    1. CAIDO_ACTUAL:
+       las dos últimas muestras están en 0.
+
+    2. SIN_MUESTRAS_RECIENTES:
+       el puerto tenía tráfico o al menos una muestra histórica,
+       pero lleva más de 15 minutos sin reportar.
+
+    3. CAIDO_SIN_FECHA:
+       está actualmente en 0 pero no encontramos
+       tráfico positivo en los últimos 7 días.
     """
 
+    ahora = datetime.now(timezone.utc)
+
     # --------------------------------------------------------
-    # PASO 1:
-    # Últimas muestras
+    # MUESTRAS DE LOS ÚLTIMOS 30 MINUTOS
     # --------------------------------------------------------
 
-    datos_actuales = consultar_flux_temp(obtener_caidas_actuales_flux())
+    recientes = consultar_flux_temp(obtener_estado_actual_flux())
 
-    puertos_caidos = detectar_puertos_sin_trafico(datos_actuales)
+    recientes_por_puerto = _agrupar_muestras_recientes(recientes)
 
-    if not puertos_caidos:
+    # --------------------------------------------------------
+    # ÚLTIMA MUESTRA CONOCIDA EN 7 DÍAS
+    # --------------------------------------------------------
+
+    ultima_muestra_datos = consultar_flux_temp(
+        obtener_ultima_muestra_conocida_flux("-7d")
+    )
+
+    ultima_muestra_por_puerto = _indexar_ultima_muestra(ultima_muestra_datos)
+
+    candidatos: dict[
+        tuple[str, str],
+        dict[str, Any],
+    ] = {}
+
+    # --------------------------------------------------------
+    # CASO 1:
+    # TIENE MUESTRAS RECIENTES Y DOS ÚLTIMAS SON 0
+    # --------------------------------------------------------
+
+    for clave, muestras in recientes_por_puerto.items():
+
+        if len(muestras) < 2:
+            continue
+
+        anterior = muestras[-2]
+        actual = muestras[-1]
+
+        trafico_anterior = anterior["TRAFICO"]
+
+        trafico_actual = actual["TRAFICO"]
+
+        if trafico_anterior <= 0 and trafico_actual <= 0:
+            candidatos[clave] = {
+                "estado_base": "CAIDO_ACTUAL",
+                "ultima_muestra": actual["_time"],
+                "trafico_actual": trafico_actual,
+                "muestras": muestras[-3:],
+            }
+
+    # --------------------------------------------------------
+    # CASO 2:
+    # DEJÓ DE REPORTAR COMPLETAMENTE
+    # --------------------------------------------------------
+
+    for clave, info in ultima_muestra_por_puerto.items():
+
+        if clave in recientes_por_puerto:
+            continue
+
+        fecha = info["fecha"]
+
+        minutos_sin_muestras = (ahora - fecha).total_seconds() / 60
+
+        if minutos_sin_muestras >= MINUTOS_SIN_MUESTRAS:
+            candidatos[clave] = {
+                "estado_base": "SIN_MUESTRAS_RECIENTES",
+                "ultima_muestra": fecha,
+                "trafico_actual": None,
+                "muestras": [],
+            }
+
+    if not candidatos:
         return {
             "consulta": "caidas_actuales_por_trafico",
-            "criterio": ("2_ultimas_muestras_" "con_trafico_cero"),
             "cantidad_olts": 0,
             "cantidad_puertos": 0,
             "datos": [],
         }
 
     # --------------------------------------------------------
-    # PASO 2:
-    # Buscar última actividad únicamente
-    # para los puertos actualmente caídos.
+    # BUSCAR ÚLTIMA VEZ CON TRÁFICO
     # --------------------------------------------------------
 
-    ultima_actividad = obtener_ultima_actividad(
-        list(puertos_caidos.keys()),
-        periodo="-7d",
-    )
-
-    ahora = datetime.now(timezone.utc)
+    ultima_actividad = _buscar_ultima_actividad(list(candidatos.keys()))
 
     resultado_olts: dict[
         str,
         list[dict[str, Any]],
     ] = defaultdict(list)
 
-    # --------------------------------------------------------
-    # PASO 3:
-    # Construir resultado.
-    # --------------------------------------------------------
-
     for (
         olt,
         puerto,
-    ), info_actual in puertos_caidos.items():
+    ), info in candidatos.items():
 
         actividad = ultima_actividad.get((olt, puerto))
 
+        estado = info["estado_base"]
+
         ultima_vez_con_trafico = None
-
         ultimo_trafico = None
-
         minutos_sin_trafico = None
-
         horas_sin_trafico = None
-
         dias_sin_trafico = None
 
         if actividad is not None:
 
-            ultima_vez_con_trafico = actividad.get("fecha")
+            ultima_vez_con_trafico = actividad["fecha"]
 
-            ultimo_trafico = actividad.get("trafico_kbps")
+            ultimo_trafico = actividad["trafico"]
 
-            if ultima_vez_con_trafico is not None:
+            diferencia = ahora - ultima_vez_con_trafico
 
-                diferencia = ahora - ultima_vez_con_trafico
+            minutos_sin_trafico = diferencia.total_seconds() / 60
 
-                minutos_sin_trafico = diferencia.total_seconds() / 60
+            horas_sin_trafico = minutos_sin_trafico / 60
 
-                horas_sin_trafico = minutos_sin_trafico / 60
+            dias_sin_trafico = horas_sin_trafico / 24
 
-                dias_sin_trafico = horas_sin_trafico / 24
+        elif estado == "CAIDO_ACTUAL":
+
+            estado = "CAIDO_SIN_FECHA"
 
         muestras_salida = []
 
-        for muestra in info_actual["muestras"]:
+        for muestra in info["muestras"]:
 
             trafico = _obtener_trafico(muestra)
 
@@ -589,13 +581,16 @@ def obtener_caidas_actuales() -> dict[
         resultado_olts[olt].append(
             {
                 "puerto": puerto,
-                "estado": "CAIDO_ACTUAL",
-                "confirmado": True,
-                "trafico_actual_kbps": round(
-                    info_actual["trafico_actual"],
-                    2,
+                "estado": estado,
+                "ultima_muestra": info["ultima_muestra"],
+                "trafico_actual_kbps": (
+                    round(
+                        info["trafico_actual"],
+                        2,
+                    )
+                    if info["trafico_actual"] is not None
+                    else None
                 ),
-                "ultima_muestra": info_actual["ultima_muestra"],
                 "ultima_vez_con_trafico": ultima_vez_con_trafico,
                 "ultimo_trafico_kbps": (
                     round(
@@ -655,8 +650,13 @@ def obtener_caidas_actuales() -> dict[
 
     return {
         "consulta": "caidas_actuales_por_trafico",
-        "criterio": ("2_ultimas_muestras_" "con_trafico_cero"),
-        "busqueda_ultima_actividad": "ultimos_7_dias",
+        "criterios": {
+            "caido_actual": ("2_ultimas_muestras_" "con_trafico_cero"),
+            "sin_muestras_recientes": (
+                f"mas_de_" f"{MINUTOS_SIN_MUESTRAS}_" "minutos_sin_reportar"
+            ),
+            "busqueda_ultima_actividad": "ultimos_7_dias",
+        },
         "cantidad_olts": len(datos),
         "cantidad_puertos": sum(item["cantidad_puertos"] for item in datos),
         "datos": datos,
