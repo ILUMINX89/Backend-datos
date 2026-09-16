@@ -17,6 +17,18 @@
         'temperatura-updated'
     );
 
+    const tableRegion = document.getElementById(
+        'temperatura-table-region'
+    );
+
+    const empty = document.getElementById(
+        'temperatura-empty'
+    );
+
+    const count = document.getElementById(
+        'temperatura-count'
+    );
+
     let busy = false;
 
     function formatTemperature(value) {
@@ -29,30 +41,16 @@
         return `${temperatura.toFixed(2)} °C`;
     }
 
-    function badgeStyle(
-        badge,
-        nivel
-    ) {
-        badge.style.display = 'inline-block';
-        badge.style.padding = '7px 14px';
-        badge.style.borderRadius = '4px';
-        badge.style.whiteSpace = 'nowrap';
-        badge.style.fontWeight = '600';
-
+    function badgeClass(nivel) {
         if (nivel === 'rojo') {
-            badge.style.background = '#ff303a';
-            badge.style.color = '#ffffff';
-            return;
+            return 'temperature-badge--red';
         }
 
         if (nivel === 'naranja') {
-            badge.style.background = '#ff8c00';
-            badge.style.color = '#ffffff';
-            return;
+            return 'temperature-badge--orange';
         }
 
-        badge.style.background = '#ffe331';
-        badge.style.color = '#111111';
+        return 'temperature-badge--yellow';
     }
 
     function renderTemperature(
@@ -60,6 +58,8 @@
     ) {
         const fragment =
             document.createDocumentFragment();
+
+        let visibleCount = 0;
 
         for (const item of temperatures) {
             const temperatura = Number(
@@ -79,6 +79,8 @@
             if (temperatura < 70) {
                 continue;
             }
+
+            visibleCount += 1;
 
             const row =
                 document.createElement('tr');
@@ -127,10 +129,8 @@
             badge.textContent =
                 item.estado || 'Advertencia';
 
-            badgeStyle(
-                badge,
-                item.nivel || 'amarillo'
-            );
+            badge.className =
+                `temperature-badge ${badgeClass(item.nivel || 'amarillo')}`;
 
             estado.appendChild(badge);
 
@@ -145,6 +145,12 @@
         }
 
         rows.replaceChildren(fragment);
+
+        tableRegion.hidden = visibleCount === 0;
+        empty.hidden = visibleCount !== 0;
+        count.textContent = String(visibleCount);
+
+        return visibleCount;
     }
 
     async function loadTemperature() {
@@ -203,14 +209,7 @@
                 temperaturas
             );
 
-            status.textContent =
-                temperaturas.length
-                    ? ''
-                    : (
-                        'Sin alarmas de temperatura. ' +
-                        'Todas las lecturas actuales ' +
-                        'están por debajo de 70 °C.'
-                    );
+            status.textContent = '';
 
             updated.textContent =
                 'Última actualización: ' +
@@ -219,6 +218,10 @@
                 );
         } catch (error) {
             rows.replaceChildren();
+
+            tableRegion.hidden = false;
+            empty.hidden = true;
+            count.textContent = '—';
 
             status.textContent =
                 'No se pudo consultar la ' +

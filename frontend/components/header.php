@@ -1,88 +1,42 @@
 <header class="topbar">
-
     <div class="topbar__main">
-
         <div class="topbar__title-group">
-
-            <span class="topbar__eyebrow">
-                NOC BOA · MONITOREO GPON / OLT
-            </span>
-
-            <h1>Vista General</h1>
-
-            <p>
-                Supervisión en tiempo real de alarmas e infraestructura de red
-            </p>
-
+            <h1>Estado operacional de red</h1>
+            <p>Excepciones activas y temperatura OLT</p>
         </div>
 
-
-        <div class="topbar__status">
-
-            <div class="topbar-card topbar-card--time">
-
-                <div class="topbar-card__icon">
-                    ◷
-                </div>
-
-                <div>
-                    <span class="topbar-card__label">
-                        Última actualización
-                    </span>
-
-                    <strong id="header-datetime">
-                        15/9/2026, 8:52:18 a. m.
-                    </strong>
-                </div>
-
-            </div>
-
-
-            <div class="topbar-card topbar-card--connection">
-
-                <div class="connection-dot offline"></div>
-
-                <div>
-                    <span class="topbar-card__label">
-                        Conectividad
-                    </span>
-
-                    <strong id="header-connection">
-                        Sin conexión
-                    </strong>
-
-                    <small id="header-connection-detail">
-                        Sin actualizar
-                    </small>
-                </div>
-
-            </div>
-
-
+        <div class="topbar__status" aria-label="Estado del sistema">
             <div class="topbar-card topbar-card--monitoring">
-
-                <div class="monitor-icon">
-                    ●
-                </div>
-
+                <span class="monitor-dot" aria-hidden="true"></span>
                 <div>
-                    <span class="topbar-card__label">
-                        Monitoreo
-                    </span>
-
-                    <strong>
-                        Activo
-                    </strong>
-
-                    <small>
-                        Escucha de eventos
-                    </small>
+                    <span class="topbar-card__label">Monitoreo general</span>
+                    <strong id="header-monitoring">Consultando</strong>
+                    <small id="header-monitoring-detail">Esperando datos</small>
                 </div>
-
             </div>
-
+            <div class="topbar-card topbar-card--connection">
+                <span class="connection-dot offline" aria-hidden="true"></span>
+                <div>
+                    <span class="topbar-card__label">Conexión frontend</span>
+                    <strong id="header-connection">Pendiente</strong>
+                    <small id="header-connection-detail">Esperando primera consulta</small>
+                </div>
+            </div>
+            <div class="topbar-card topbar-card--sources">
+                <svg class="topbar-card__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <div>
+                    <span class="topbar-card__label">Fuentes de datos</span>
+                    <strong id="header-sources">Pendiente</strong>
+                    <small>Caídas · saturación · CRC</small>
+                </div>
+            </div>
+            <div class="topbar-card topbar-card--time">
+                <svg class="topbar-card__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <div>
+                    <span class="topbar-card__label">Última actualización</span>
+                    <strong id="header-datetime">Pendiente</strong>
+                </div>
+            </div>
         </div>
-
     </div>
-
 </header>

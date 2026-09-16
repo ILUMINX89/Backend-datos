@@ -1,653 +1,408 @@
-/* =========================================================
-   GKP - Centro de Monitoreo de Red
-   Layout responsive para 3 módulos
-   ========================================================= */
-
 .gkp-page {
-    background: #f2faff;
-    color: #06127a;
-    font-family: Arial, sans-serif;
+    --gkp-ink: #07132c;
+    --gkp-ink-2: #334462;
+    --gkp-muted: #64728a;
+    --gkp-paper: #eaf2f8;
+    --gkp-surface: #f9fcfe;
+    --gkp-line: #cfdae5;
+    --gkp-line-soft: #dde6ee;
+    background: var(--gkp-paper);
+    color: var(--gkp-ink);
+    font-family: "Segoe UI", Inter, Arial, sans-serif;
 }
 
-
-/* =========================================================
-   ESTRUCTURA GENERAL
-   ========================================================= */
-
-.gkp-page .app {
-    grid-template-columns: 230px minmax(0, 1fr);
-}
-
+.gkp-page .app { grid-template-columns: 224px minmax(0, 1fr); }
 .gkp-page .main {
-    padding: 0;
-
-    /*
-     * Muy importante en CSS Grid:
-     * permite que el contenido pueda reducir su ancho
-     * sin desbordar toda la página.
-     */
+    grid-column: 2;
     min-width: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 .gkp-page .topbar {
-    background: white;
-    border-bottom: 1px solid #dceefb;
+    min-height: 88px;
     margin: 0;
-    padding: 16px 24px;
-    box-shadow: none;
+    padding: 14px 20px;
+    color: #f2f7fb;
+    background: #070b10;
+    border: 0;
+    border-bottom: 1px solid #1b2835;
     border-radius: 0;
+    box-shadow: none;
 }
 
+.gkp-page .topbar::before { content: none; }
+.gkp-page .topbar__main { gap: 22px; }
 .gkp-page .topbar h1 {
-    color: #06127a;
+    color: #f2f7fb;
+    font-size: clamp(22px, 2vw, 28px);
+    line-height: 1.15;
+    letter-spacing: -.025em;
 }
 
-.gkp-page .topbar p,
-.gkp-page .topbar__eyebrow {
-    color: #526ac0;
+.gkp-page .topbar p { margin-top: 5px; color: #96a6b6; font-size: 13px; }
+.gkp-page .topbar__status {
+    gap: 0;
+    overflow: hidden;
+    background: #0c121a;
+    border: 1px solid #1b2835;
+    border-radius: 10px;
 }
 
 .gkp-page .topbar-card {
+    min-width: 128px;
+    min-height: 58px;
+    gap: 8px;
+    padding: 8px 10px;
     background: transparent;
-    color: #243f92;
-    border-color: #dceefb;
+    border: 0;
+    border-left: 1px solid #1b2835;
+    border-radius: 0;
 }
 
-.gkp-page .topbar-card strong {
-    color: #243f92;
+.gkp-page .topbar-card:first-child { border-left: 0; }
+.gkp-page .topbar-card:hover { background: #101923; border-color: #1b2835; }
+.gkp-page .topbar-card--monitoring { min-width: 137px; }
+.gkp-page .topbar-card--connection { min-width: 150px; }
+.gkp-page .topbar-card--sources { min-width: 160px; }
+.gkp-page .topbar-card--time { min-width: 178px; }
+.gkp-page .topbar-card__label { color: #96a6b6; font-size: 11px; letter-spacing: 0; text-transform: none; }
+.gkp-page .topbar-card strong { color: #d6e2eb; font-size: 12px; font-variant-numeric: tabular-nums; }
+.gkp-page .topbar-card small { color: #788b9d; font-size: 10px; }
+.gkp-page .topbar-card__icon {
+    width: 27px;
+    height: 27px;
+    padding: 5px;
+    color: #73c1ff;
+    background: #0a2031;
+    border-color: #173a54;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
-.gkp-page .topbar-card small,
-.gkp-page .topbar-card__label {
-    color: #526ac0;
+.monitor-dot,
+.connection-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 8px;
+    border-radius: 50%;
 }
 
-
-/* =========================================================
-   CONTENIDO
-   ========================================================= */
-
-.gkp-content {
-    width: 100%;
-    min-width: 0;
-
-    padding: 14px;
-
-    box-sizing: border-box;
-}
-
-
-/* =========================================================
-   TOOLBAR
-   ========================================================= */
-
+.monitor-dot { background: #e6b900; }
+.monitor-dot.available,
+.connection-dot.online { background: #16cf7b; }
+.monitor-dot.partial { background: #e6b900; }
+.monitor-dot.error { background: #e0394f; }
+.connection-dot.offline { background: #e0394f; }
+.topbar-card--monitoring strong { color: #e7cf63; }
+.topbar-card--monitoring.is-available strong,
+.topbar-card--connection.is-online strong { color: #9aefc2; }
+.topbar-card--monitoring.is-partial strong { color: #e7cf63; }
+.topbar-card--monitoring.is-error strong { color: #ff8998; }
+.gkp-content { width: 100%; min-width: 0; padding: 14px; box-sizing: border-box; }
 .gkp-toolbar {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-
-    gap: 24px;
-
-    margin-bottom: 14px;
-
-    color: #526ac0;
-    font-size: 13px;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 54px;
+    margin-bottom: 12px;
+    padding: 9px 11px;
+    color: #d9e6ef;
+    background: #0c1721;
+    border-radius: 10px;
 }
 
+.gkp-toolbar__summary {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+.gkp-toolbar__summary strong { color: #f2f7fb; font-size: 13px; }
+.gkp-toolbar__summary span { color: #9eb0be; font-size: 12px; }
 .gkp-toolbar button {
-    background: #fff;
-    color: #1768df;
-
-    border: 1px solid #c9daff;
-    border-radius: 5px;
-
-    padding: 9px 14px;
-
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 7px 11px;
+    color: #d9e5ee;
+    background: #111e29;
+    border: 1px solid #314556;
+    border-radius: 7px;
     cursor: pointer;
 }
 
-.gkp-toolbar button:disabled {
-    opacity: .6;
-    cursor: wait;
+.gkp-toolbar button:hover { background: #172734; border-color: #4e7d9f; }
+.gkp-toolbar button:disabled { opacity: .58; cursor: wait; }
+.gkp-toolbar button svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
-
-
-/* =========================================================
-   GRID DE PANELES
-   ========================================================= */
-
-/*
- * Escritorio:
- *
- * ┌────────────────────┬────────────────────┐
- * │ Estado actual      │ Temperatura        │
- * └────────────────────┴────────────────────┘
- *
- * El tercer panel usa la fila completa.
- */
 
 .gkp-panels {
-    display: grid;
-
-    grid-template-columns:
-        minmax(0, 1.25fr) minmax(0, 1fr);
-
-    gap: 14px;
-
     width: 100%;
     min-width: 0;
-
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(350px, 1fr);
+    gap: 12px;
+    align-items: start;
 }
-
-
-/*
- * Al tercer panel y a cualquier panel marcado como full
- * le damos las dos columnas.
- *
- * Cuando creemos Pérdida de gestión y latencia,
- * se puede usar:
- *
- * class="gkp-panel gkp-panel--full"
- */
-
-.gkp-panel--full {
-    grid-column: 1 / -1;
-}
-
-
-/*
- * Protección adicional:
- * si agregamos exactamente un tercer panel dentro
- * de .gkp-panels, automáticamente ocupa todo el ancho,
- * incluso si olvidamos agregar gkp-panel--full.
- */
-
-.gkp-panels>.gkp-panel:nth-child(3) {
-    grid-column: 1 / -1;
-}
-
-
-/* =========================================================
-   PANEL
-   ========================================================= */
 
 .gkp-panel {
     width: 100%;
     min-width: 0;
-
-    min-height: 480px;
-
-    background: #fff;
-
-    border: 1px solid #e0efff;
-    border-radius: 12px;
-
-    padding: 12px;
-
-    box-sizing: border-box;
-
-    box-shadow: 0 3px 14px #deeffb55;
-
+    padding: 0;
     overflow: hidden;
+    background: var(--gkp-surface);
+    border: 1px solid var(--gkp-line);
+    border-radius: 12px;
+    box-shadow: none;
 }
-
-
-/*
- * El tercer panel puede ser un poco más bajo,
- * porque ocupa todo el ancho.
- */
 
 .gkp-panel--full,
-.gkp-panels>.gkp-panel:nth-child(3) {
-    min-height: 360px;
-}
-
-
-/* =========================================================
-   ENCABEZADOS
-   ========================================================= */
-
+.gkp-panels > .gkp-panel:nth-child(3) { grid-column: 1 / -1; }
 .gkp-panel-heading {
+    min-height: 68px;
     display: flex;
-    align-items: center;
-
-    gap: 24px;
-
-    padding: 0 10px 8px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 15px 12px;
+    background: #edf5fa;
+    border-bottom: 1px solid var(--gkp-line);
 }
 
-.gkp-panel-heading h2 {
-    margin: 0 0 3px;
-
-    color: #080d78;
-
-    font-size: 23px;
-    letter-spacing: -.5px;
-}
-
-.gkp-panel-heading p {
-    margin: 0;
-
-    font-size: 16px;
-
-    color: #4c62b6;
-}
-
-
-/* =========================================================
-   ICONO DE BARRAS
-   ========================================================= */
-
-.gkp-bars {
+.gkp-panel-heading h2 { margin: 0; color: var(--gkp-ink); font-size: 17px; line-height: 1.25; }
+.gkp-panel-heading p { margin: 4px 0 0; color: var(--gkp-muted); font-size: 12px; }
+.gkp-panel-total {
+    flex: 0 0 auto;
     display: flex;
-    gap: 4px;
-
-    align-items: flex-end;
-
-    height: 37px;
+    align-items: baseline;
+    gap: 6px;
+    color: var(--gkp-muted);
+    font-size: 11px;
 }
 
-.gkp-bars i {
-    width: 9px;
-    height: 15px;
-
-    border-radius: 3px;
-
-    background:
-        linear-gradient(#ffad38,
-            #ff7910);
-}
-
-.gkp-bars i:nth-child(2) {
-    height: 25px;
-}
-
-.gkp-bars i:nth-child(3) {
-    height: 37px;
-}
-
-
-/* =========================================================
-   CONTEXTO / ESTADO
-   ========================================================= */
-
-.gkp-context {
-    margin: 4px 10px 10px;
-
-    color: #526ac0;
-
-    font-size: 12px;
-    line-height: 1.5;
-}
-
+.gkp-panel-total strong { color: var(--gkp-ink); font-size: 19px; font-variant-numeric: tabular-nums; }
 #gkp-status,
 #temperatura-status,
 #gestion-status {
-    color: #526ac0;
-
-    padding: 10px;
-
-    font-size: 14px;
+    margin: 0;
+    padding: 9px 15px;
+    color: #665112;
+    background: #fff8d9;
+    border-bottom: 1px solid #e7d990;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 #gkp-status:empty,
 #temperatura-status:empty,
-#gestion-status:empty {
-    display: none;
+#gestion-status:empty { display: none; }
+.temperature-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 13px;
+    padding: 9px 15px;
+    color: var(--gkp-muted);
+    background: #f1f7fb;
+    border-bottom: 1px solid var(--gkp-line);
+    font-size: 11px;
 }
 
-
-/* =========================================================
-   TABLAS
-   ========================================================= */
-
+.temperature-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.temperature-legend i { width: 8px; height: 8px; border-radius: 50%; }
+.temperature-legend__yellow { background: #e6b900; }
+.temperature-legend__orange { background: #c55e0a; }
+.temperature-legend__red { background: #c82b42; }
 .gkp-table-scroll {
     width: 100%;
     max-width: 100%;
-
-    max-height: 410px;
-
-    overflow-x: auto;
-    overflow-y: auto;
-
-    /*
-     * Scroll suave en móviles.
-     */
-    -webkit-overflow-scrolling: touch;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #7894aa #e4edf4;
 }
 
-
-/*
- * Estado actual necesita un poco más de espacio.
- */
-
-#alarmas .gkp-table {
-    min-width: 560px;
-}
-
-
-/*
- * Temperatura puede ser algo más compacta.
- */
-
-#temperatura-panel .gkp-table {
-    min-width: 430px;
-}
-
-
-/*
- * Cuando exista el tercer módulo,
- * puede tener más columnas sin romper el dashboard.
- */
-
+#alarmas .gkp-table { min-width: 670px; }
+#temperatura-panel .gkp-table { min-width: 480px; }
 .gkp-panel--full .gkp-table,
-.gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
-    min-width: 760px;
-}
-
-
-.gkp-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    text-align: left;
-
-    font-size: 16px;
-}
-
+.gkp-panels > .gkp-panel:nth-child(3) .gkp-table { min-width: 760px; }
+.gkp-table { width: 100%; border-collapse: collapse; text-align: left; }
 .gkp-table th {
-    padding: 9px 13px;
-
-    background: #eff8fd;
-
-    font-size: 14px;
-    font-weight: 600;
-
-    color: #07117e;
-
-    text-transform: none;
-    letter-spacing: normal;
-
-    border-bottom: 0;
-
-    white-space: nowrap;
-}
-
-.gkp-table thead th {
     position: sticky;
-
     top: 0;
-
     z-index: 2;
+    padding: 9px 12px;
+    color: #52627a;
+    background: #e7f0f6;
+    border-bottom: 1px solid #c4d1dd;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .035em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .gkp-table td {
-    padding: 6px 13px;
-
-    height: 41px;
-
-    border-bottom: 1px solid #e5effc;
-
-    color: #07117e;
-
+    height: 47px;
+    padding: 7px 12px;
+    color: var(--gkp-ink-2);
+    border-bottom: 1px solid var(--gkp-line-soft);
+    font-size: 13px;
     vertical-align: middle;
-
-    font-size: 16px;
-}
-
-.gkp-table td.gkp-equipment {
-    font-weight: 700;
-
-    border-right: 1px solid #e5effc;
-}
-
-.gkp-table tr:last-child td {
-    border-bottom: 0;
-}
-
-.gkp-table tbody tr:hover {
-    background: #f5faff;
-}
-
-
-/* =========================================================
-   BADGES
-   ========================================================= */
-
-.gkp-badge {
-    display: inline-block;
-
-    padding: 7px 14px;
-
-    border-radius: 4px;
-
-    background: #ffe331;
-
-    color: #111;
-
     white-space: nowrap;
 }
 
-.gkp-badge--down {
-    background: #ff303a;
-
-    color: white;
+.gkp-table tbody tr:last-child td { border-bottom: 0; }
+.gkp-table tbody tr:hover { background: #edf6fb; }
+.gkp-table td.gkp-equipment { color: var(--gkp-ink); font-weight: 700; vertical-align: top; padding-top: 15px; }
+.gkp-badge,
+.temperature-badge {
+    min-height: 25px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 8px;
+    border: 1px solid;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
-.gkp-table .gkp-value--down {
-    color: #f00;
+.gkp-badge::before,
+.temperature-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: 0 0 6px;
+    border-radius: 50%;
+    background: currentColor;
 }
 
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-.gkp-page .footer {
-    padding: 20px 24px;
-
-    color: #526ac0;
+.gkp-badge,
+.temperature-badge--yellow { color: #735800; background: #fff6cd; border-color: #e7c94a; }
+.gkp-badge--down,
+.temperature-badge--red { color: #a31d31; background: #ffe6ea; border-color: #e68492; }
+.temperature-badge--orange { color: #934304; background: #ffead9; border-color: #ed9e60; }
+.gkp-table .gkp-value--down { color: #b51f35; font-weight: 800; }
+.gkp-panel-foot {
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+    padding: 8px 14px;
+    color: var(--gkp-muted);
+    background: #edf4f8;
+    border-top: 1px solid var(--gkp-line-soft);
+    font-size: 11px;
 }
 
-
-/* =========================================================
-   ACCESIBILIDAD
-   ========================================================= */
-
-.gkp-page :focus-visible {
-    outline: 2px solid #1768df;
-
-    outline-offset: 3px;
+.gkp-scroll-hint { display: none; }
+.temperature-empty {
+    min-height: 250px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 7px;
+    padding: 28px;
+    color: var(--gkp-muted);
+    text-align: center;
 }
 
+.temperature-empty[hidden],
+.gkp-table-scroll[hidden] { display: none !important; }
+.temperature-empty svg {
+    width: 42px;
+    height: 42px;
+    padding: 9px;
+    color: #167b50;
+    background: #dcf5e9;
+    border: 1px solid #8bceb0;
+    border-radius: 50%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
 
-/* =========================================================
-   PANTALLA MEDIANA
-   ========================================================= */
+.temperature-empty strong { color: var(--gkp-ink); font-size: 14px; }
+.temperature-empty span { max-width: 38ch; font-size: 12px; }
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
 
-/*
- * Cuando empieza a faltar ancho:
- * apilamos los paneles.
- */
-
+.gkp-page .footer { padding: 14px 18px; color: #64728a; font-size: 11px; }
+.gkp-page ::selection { color: #fff; background: #0d5e98; }
+.gkp-page :focus-visible { outline: 3px solid #52a7e3; outline-offset: 3px; }
 @media (max-width: 1180px) {
-
-    .gkp-panels {
-        grid-template-columns:
-            minmax(0, 1fr);
-    }
-
+    .gkp-page .topbar__main { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .gkp-page .topbar__status { width: 100%; }
+    .gkp-page .topbar-card { flex: 1; min-width: 0; }
+    .gkp-panels { grid-template-columns: minmax(0, 1fr); }
     .gkp-panel,
     .gkp-panel--full,
-    .gkp-panels>.gkp-panel:nth-child(3) {
-        grid-column: 1;
-    }
-
-    .gkp-panel {
-        min-height: 420px;
-    }
-
-    #alarmas .gkp-table,
-    #temperatura-panel .gkp-table,
-    .gkp-panel--full .gkp-table,
-    .gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
-        min-width: 650px;
-    }
+    .gkp-panels > .gkp-panel:nth-child(3) { grid-column: 1; }
 }
 
-
-/* =========================================================
-   TABLET
-   ========================================================= */
-
-@media (max-width: 850px) {
-
-    .gkp-content {
-        padding: 10px;
-    }
-
-    .gkp-panel {
-        min-height: 380px;
-
-        padding: 10px;
-    }
-
-    .gkp-panel-heading {
-        gap: 14px;
-    }
-
-    .gkp-panel-heading h2 {
-        font-size: 21px;
-    }
-
-    .gkp-panel-heading p {
-        font-size: 14px;
-    }
-
-    .gkp-toolbar {
-        gap: 10px;
-
-        flex-wrap: wrap;
-    }
-
-    .gkp-table-scroll {
-        max-height: 360px;
-    }
+@media (max-width: 860px) and (min-width: 641px) {
+    .gkp-page .app { grid-template-columns: 76px minmax(0, 1fr); }
+    .gkp-page .main { grid-column: 2; }
 }
 
-
-/* =========================================================
-   MÓVIL
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-    .gkp-page .app {
-        display: block;
-    }
-
-    .gkp-page .sidebar {
-        position: relative;
-
-        width: 100%;
-    }
-
-    .gkp-page .topbar {
-        padding: 16px;
-    }
-
-    .gkp-content {
-        padding: 8px;
-    }
-
-    .gkp-panels {
-        gap: 10px;
-    }
-
-    .gkp-panel {
-        min-height: 340px;
-
-        border-radius: 9px;
-    }
-
-    .gkp-panel-heading {
-        padding-left: 5px;
-        padding-right: 5px;
-    }
-
-    .gkp-panel-heading h2 {
-        font-size: 19px;
-    }
-
-    .gkp-panel-heading p {
-        font-size: 13px;
-    }
-
-    .gkp-context {
-        margin-left: 5px;
-        margin-right: 5px;
-    }
-
-    .gkp-table {
-        font-size: 14px;
-    }
-
-    .gkp-table th {
-        padding: 8px 10px;
-
-        font-size: 13px;
-    }
-
-    .gkp-table td {
-        padding: 6px 10px;
-
-        font-size: 14px;
-    }
-
-    /*
-     * La tabla conserva su ancho mínimo.
-     * El usuario desplaza horizontalmente sólo dentro
-     * del panel, no toda la página.
-     */
-
-    #alarmas .gkp-table {
-        min-width: 540px;
-    }
-
-    #temperatura-panel .gkp-table {
-        min-width: 480px;
-    }
-
-    .gkp-panel--full .gkp-table,
-    .gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
-        min-width: 720px;
-    }
+@media (max-width: 640px) {
+    .gkp-page .app { display: block; }
+    .gkp-page .main { grid-column: auto; }
+    .gkp-page .topbar { min-height: auto; padding: 14px 12px; }
+    .gkp-page .topbar__status { display: grid; grid-template-columns: 1fr 1fr; }
+    .gkp-page .topbar-card:nth-child(odd) { border-left: 0; }
+    .gkp-page .topbar-card:nth-child(n+3) { border-top: 1px solid #1b2835; }
+    .gkp-content { padding: 8px; }
+    .gkp-toolbar { align-items: flex-start; }
+    .gkp-toolbar__summary { display: grid; gap: 2px; }
+    .gkp-toolbar button span { display: none; }
+    .gkp-panel-heading { padding: 12px; }
+    .gkp-scroll-hint { display: inline; }
 }
 
+@media (max-width: 430px) {
+    .gkp-page .topbar__status { grid-template-columns: 1fr; }
+    .gkp-page .topbar-card { border-left: 0; border-top: 1px solid #1b2835; }
+    .gkp-page .topbar-card:first-child { border-top: 0; }
+    .gkp-panel-total span { display: none; }
+}
 
-/* =========================================================
-   MÓVIL PEQUEÑO
-   ========================================================= */
-
-@media (max-width: 480px) {
-
-    .gkp-toolbar {
-        justify-content: space-between;
-
-        font-size: 12px;
-    }
-
-    .gkp-toolbar button {
-        padding: 8px 10px;
-    }
-
-    .gkp-panel-heading h2 {
-        font-size: 18px;
-    }
-
-    .gkp-table-scroll {
-        max-height: 330px;
+@media (prefers-reduced-motion: reduce) {
+    .gkp-page *,
+    .gkp-page *::before,
+    .gkp-page *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
     }
 }

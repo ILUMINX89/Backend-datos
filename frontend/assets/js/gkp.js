@@ -175,16 +175,66 @@
             '.connection-dot'
         );
 
+        const card = document.querySelector(
+            '.topbar-card--connection'
+        );
+
         if (dot) {
             dot.classList.toggle(
                 'offline',
                 text !== 'Conectado'
+            );
+
+            dot.classList.toggle(
+                'online',
+                text === 'Conectado'
+            );
+        }
+
+        if (card) {
+            card.classList.toggle(
+                'is-online',
+                text === 'Conectado'
             );
         }
 
         document.getElementById(
             'header-connection-detail'
         ).textContent = detail;
+    }
+
+    function monitoring(text, detail, tone) {
+        document.getElementById(
+            'header-monitoring'
+        ).textContent = text;
+
+        document.getElementById(
+            'header-monitoring-detail'
+        ).textContent = detail;
+
+        document.getElementById(
+            'sidebar-monitoring'
+        ).textContent = text;
+
+        document.getElementById(
+            'sidebar-monitoring-detail'
+        ).textContent = detail;
+
+        document.querySelectorAll(
+            '.monitor-dot, .sidebar-system__dot'
+        ).forEach((dot) => {
+            dot.classList.toggle('available', tone === 'available');
+            dot.classList.toggle('partial', tone === 'partial');
+            dot.classList.toggle('error', tone === 'error');
+        });
+
+        document.querySelectorAll(
+            '.topbar-card--monitoring, .sidebar-system'
+        ).forEach((surface) => {
+            surface.classList.toggle('is-available', tone === 'available');
+            surface.classList.toggle('is-partial', tone === 'partial');
+            surface.classList.toggle('is-error', tone === 'error');
+        });
     }
 
     async function load() {
@@ -241,15 +291,47 @@
 
             render(rows);
 
-            const failed = Object.entries(
+            const sourceEntries = Object.entries(
                 payload.sources || {}
-            )
+            );
+
+            const failed = sourceEntries
                 .filter(
                     ([, source]) => !source.ok
                 )
                 .map(
                     ([name]) => name
                 );
+
+            document.getElementById(
+                'gkp-count'
+            ).textContent = String(
+                rows.length
+            );
+
+            document.getElementById(
+                'gkp-summary'
+            ).textContent = rows.length === 1
+                ? '1 excepción requiere revisión'
+                : `${rows.length} excepciones requieren revisión`;
+
+            const sources = document.getElementById(
+                'header-sources'
+            );
+
+            if (sources) {
+                sources.textContent = sourceEntries.length
+                    ? `${sourceEntries.length - failed.length} / ${sourceEntries.length} disponibles`
+                    : 'Sin información';
+            }
+
+            monitoring(
+                failed.length ? 'Parcial' : 'Disponible',
+                sourceEntries.length
+                    ? `${sourceEntries.length - failed.length} de ${sourceEntries.length} fuentes`
+                    : 'Consulta completada',
+                failed.length ? 'partial' : 'available'
+            );
 
             status.textContent = failed.length
                 ? (
@@ -298,6 +380,14 @@
                 'sidebar-total'
             ).textContent = '—';
 
+            document.getElementById(
+                'gkp-count'
+            ).textContent = '—';
+
+            document.getElementById(
+                'gkp-summary'
+            ).textContent = 'Estado operacional no disponible';
+
             status.textContent =
                 'No se pudo consultar el estado ' +
                 'de la red. Reintentando ' +
@@ -307,6 +397,20 @@
             connection(
                 'Sin conexión',
                 'Consulta fallida'
+            );
+
+            const sources = document.getElementById(
+                'header-sources'
+            );
+
+            if (sources) {
+                sources.textContent = 'No disponibles';
+            }
+
+            monitoring(
+                'Error',
+                'Consulta no disponible',
+                'error'
             );
         } finally {
             clearTimeout(timeout);

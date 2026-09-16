@@ -2676,6 +2676,10 @@ tbody tr:hover {
     min-width: 155px;
 }
 
+.topbar-card--sources {
+    min-width: 170px;
+}
+
 
 /* =========================================================
    ICONOS
@@ -2700,6 +2704,23 @@ tbody tr:hover {
     border: 1px solid rgba(21, 148, 255, .14);
 
     font-size: 15px;
+}
+
+svg.topbar-card__icon {
+    padding: 7px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.monitor-dot {
+    flex: 0 0 9px;
+    width: 9px;
+    height: 9px;
+    background: #19d985;
+    border-radius: 50%;
 }
 
 
@@ -2764,7 +2785,7 @@ tbody tr:hover {
 
     color: #526274;
 
-    font-size: 8px;
+    font-size: 10px;
     font-weight: 700;
 
     letter-spacing: .06em;
@@ -2790,7 +2811,7 @@ tbody tr:hover {
 
     color: #657687;
 
-    font-size: 9px;
+    font-size: 10px;
 }
 
 
