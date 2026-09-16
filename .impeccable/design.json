@@ -152,7 +152,7 @@
       "Decoración mínima; cada recurso visual debe ayudar a detectar, entender, priorizar o actuar."
     ],
     "rules": [
-      { "name": "The Context Defines Meaning Rule", "body": "El color no define por sí solo la severidad; el módulo y el estado operacional determinan su significado. La tabla principal conserva amarillo para errores CRC y rojo para caído. Temperatura OLT conserva amarillo desde 70 °C, naranja desde 80 °C y rojo desde 90 °C.", "section": "colors" },
+      { "name": "The Context Defines Meaning Rule", "body": "El color no define por sí solo la severidad; el módulo y el estado operacional determinan su significado. Tabla principal — Estado actual de red: Caída actual → rojo; Saturación uplink → amarillo; Error CRC → amarillo. Temperatura OLT: ≥ 70 °C → amarillo; ≥ 80 °C → naranja; ≥ 90 °C → rojo. Ambas semánticas son independientes.", "section": "colors" },
       { "name": "The Signal, Not Decoration Rule", "body": "Los colores saturados se reservan para estados, alarmas, selección, foco y acciones importantes; nunca llenan grandes superficies con intención decorativa.", "section": "colors" },
       { "name": "The Redundancy Rule", "body": "Ningún estado crítico depende únicamente del color: debe incluir texto, icono, etiqueta o indicador equivalente.", "section": "colors" },
       { "name": "The Operational Hierarchy Rule", "body": "Una métrica importante gana jerarquía mediante contraste, peso y posición; el tamaño extremo no sustituye una estructura clara.", "section": "typography" },
@@ -164,7 +164,7 @@
     "dos": [
       "Do usar el modo oscuro como identidad dominante para monitoreo continuo y operación intensiva.",
       "Do verificar el contexto del componente antes de interpretar o cambiar un color.",
-      "Do conservar amarillo para errores CRC y rojo para caído en la tabla principal.",
+      "Do conservar rojo para Caída actual y amarillo tanto para Saturación uplink como para Error CRC en la tabla principal.",
       "Do conservar los umbrales de temperatura OLT: amarillo desde 70 °C, naranja desde 80 °C y rojo desde 90 °C.",
       "Do usar texto, iconos o etiquetas junto al color para comunicar estados.",
       "Do reorganizar paneles según el ancho y mantener el overflow dentro de regiones de datos.",

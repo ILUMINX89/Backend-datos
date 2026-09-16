@@ -123,7 +123,7 @@ La paleta combina neutros casi negros con un azul de telemetría y colores de es
 ### Secondary
 
 - **Verde Operativo:** comunica estados positivos o conectividad cuando el módulo así lo define.
-- **Amarillo de Señal:** destaca condiciones definidas por el contexto, como errores CRC o temperatura elevada.
+- **Amarillo de Señal:** destaca condiciones definidas por el contexto, como saturación uplink, errores CRC o temperatura elevada.
 - **Naranja de Señal:** marca estados intermedios o elevados definidos por cada módulo.
 - **Rojo de Alarma:** identifica caídas, alarmas o condiciones críticas según la semántica local.
 
@@ -139,7 +139,19 @@ La paleta combina neutros casi negros con un azul de telemetría y colores de es
 
 ### Named Rules
 
-**The Context Defines Meaning Rule.** El color no define por sí solo la severidad; el módulo y el estado operacional determinan su significado. La tabla principal conserva amarillo para errores CRC y rojo para caído. Temperatura OLT conserva amarillo desde 70 °C, naranja desde 80 °C y rojo desde 90 °C.
+**The Context Defines Meaning Rule.** El color no define por sí solo la severidad; el módulo y el estado operacional determinan su significado. La tabla principal y el módulo de temperatura tienen semánticas independientes.
+
+**Tabla principal — Estado actual de red:**
+
+- **Caída actual → rojo.** Badge rojo y valor resaltado en rojo.
+- **Saturación uplink → amarillo.** Usa el badge general amarillo; no utiliza naranja.
+- **Error CRC → amarillo.** Usa el badge general amarillo.
+
+**Temperatura OLT:**
+
+- **≥ 70 °C → amarillo.** Temperatura elevada.
+- **≥ 80 °C → naranja.** Temperatura considerablemente elevada.
+- **≥ 90 °C → rojo.** Temperatura extremadamente elevada.
 
 **The Signal, Not Decoration Rule.** Los colores saturados se reservan para estados, alarmas, selección, foco y acciones importantes; nunca llenan grandes superficies con intención decorativa.
 
@@ -246,7 +258,7 @@ Los componentes son compactos, técnicos y contenidos. Sus estados deben preserv
 
 - **Do** usar el modo oscuro como identidad dominante para monitoreo continuo y operación intensiva.
 - **Do** verificar el contexto del componente antes de interpretar o cambiar un color.
-- **Do** conservar amarillo para errores CRC y rojo para caído en la tabla principal.
+- **Do** conservar rojo para Caída actual y amarillo tanto para Saturación uplink como para Error CRC en la tabla principal.
 - **Do** conservar los umbrales de temperatura OLT: amarillo desde 70 °C, naranja desde 80 °C y rojo desde 90 °C.
 - **Do** usar texto, iconos o etiquetas junto al color para comunicar estados.
 - **Do** reorganizar paneles según el ancho y mantener el overflow dentro de regiones de datos.
