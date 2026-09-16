@@ -8,6 +8,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
 
     # ==========================================
+    # Influx - Monitor de red
+    # ==========================================
+
+    influx_red_url: str = ""
+    influx_red_verify_ssl: bool = False
+    influx_red_org: str = ""
+    influx_red_token: str = ""
+    influx_red_bucket: str = ""
+    influx_red_timeout_ms: int = 10000
+
+    # ==========================================
     # Influx - Trafico Temperatura OLTs
     # ==========================================
 

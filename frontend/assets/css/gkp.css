@@ -198,7 +198,8 @@
 .gkp-panel-total strong { color: var(--gkp-ink); font-size: 19px; font-variant-numeric: tabular-nums; }
 #gkp-status,
 #temperatura-status,
-#gestion-status {
+#gestion-status,
+#perdida-latencia-status {
     margin: 0;
     padding: 9px 15px;
     color: #665112;
@@ -210,7 +211,8 @@
 
 #gkp-status:empty,
 #temperatura-status:empty,
-#gestion-status:empty { display: none; }
+#gestion-status:empty,
+#perdida-latencia-status:empty { display: none; }
 .temperature-legend {
     display: flex;
     flex-wrap: wrap;
@@ -237,6 +239,7 @@
 
 #alarmas .gkp-table { min-width: 670px; }
 #temperatura-panel .gkp-table { min-width: 480px; }
+#perdida-latencia-table-region { max-height: 520px; }
 .gkp-panel--full .gkp-table,
 .gkp-panels > .gkp-panel:nth-child(3) .gkp-table { min-width: 760px; }
 .gkp-table { width: 100%; border-collapse: collapse; text-align: left; }

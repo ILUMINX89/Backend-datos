@@ -98,15 +98,6 @@
                 `Tarjeta: ${item.tarjeta || 'N/D'}`;
 
             /*
-             * ZONA
-             */
-            const zona =
-                document.createElement('td');
-
-            zona.textContent =
-                item.zona || 'N/D';
-
-            /*
              * TEMPERATURA
              */
             const valor =
@@ -136,7 +127,6 @@
 
             row.append(
                 equipo,
-                zona,
                 valor,
                 estado
             );

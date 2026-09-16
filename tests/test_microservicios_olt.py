@@ -18,6 +18,11 @@ from microservicios.olt.crc.service import agrupar_episodios_crc
 from microservicios.olt.crc.queries import obtener_crc_flux
 from microservicios.olt.saturacion.service import agrupar_episodios_saturacion
 from microservicios.olt.saturacion.queries import obtener_saturacion_flux
+from microservicios.olt.perdida_latencia import service as perdida_latencia_service
+from microservicios.olt.perdida_latencia.queries import (
+    obtener_latencia_actual_flux,
+    obtener_latencia_equipo_flux,
+)
 
 
 BASE = datetime(2026, 9, 15, tzinfo=timezone.utc)
@@ -185,6 +190,46 @@ def test_error_interno_no_expone_detalles(monkeypatch):
 
     assert respuesta.status_code == 500
     assert respuesta.json() == {"ok": False, "error": "Error interno del servicio"}
+
+
+def test_consulta_perdida_latencia_usa_fuente_confirmada():
+    actual = obtener_latencia_actual_flux()
+    historica = obtener_latencia_equipo_flux("AAC-BOG.CENTRO_ONNET-H1")
+
+    assert 'r._measurement == "ping_monitor"' in actual
+    assert 'r._field == "latency"' in actual
+    assert 'r._field == "packet_loss"' in actual
+    assert "range(start: -10m)" in actual
+    assert 'r.equipo == "AAC-BOG.CENTRO_ONNET-H1"' in historica
+
+
+def test_servicio_perdida_latencia_normaliza_y_descarta_invalidos(monkeypatch):
+    monkeypatch.setattr(
+        perdida_latencia_service,
+        "consultar_flux_temp",
+        lambda _query, **_kwargs: [
+            {"equipo": "OLT-1", "_field": "latency", "_value": 12.345, "_time": BASE},
+            {"equipo": "OLT-1", "_field": "packet_loss", "_value": 10},
+            {"equipo": "OLT-2", "_field": "latency", "_value": float("nan")},
+            {"equipo": "equipo no valido", "_field": "latency", "_value": 2},
+        ],
+    )
+
+    resultado = perdida_latencia_service.obtener_perdida_latencia_actual()
+
+    assert resultado["cantidad"] == 1
+    assert resultado["datos"] == [
+        {
+            "equipo": "OLT-1",
+            "perdida": 10.0,
+            "latencia": 12.35,
+            "unidad_latencia": None,
+            "estado": "Latencia registrada",
+            "nivel": "neutral",
+            "ultima_muestra": "2026-09-15T00:00:00Z",
+            "tiempo": None,
+        }
+    ]
 
 
 if __name__ == "__main__":

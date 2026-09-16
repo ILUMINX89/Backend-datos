@@ -55,7 +55,7 @@
                 <p id="temperatura-status" role="status" aria-live="polite">Cargando temperatura OLT…</p>
                 <div id="temperatura-table-region" class="gkp-table-scroll" tabindex="0" role="region" aria-label="Temperatura OLT; tabla desplazable en pantallas pequeñas">
                     <table class="gkp-table">
-                        <thead><tr><th scope="col">Equipo</th><th scope="col">Zona</th><th scope="col">Temperatura</th><th scope="col">Estado</th></tr></thead>
+                        <thead><tr><th scope="col">Equipo</th><th scope="col">Temperatura</th><th scope="col">Estado</th></tr></thead>
                         <tbody id="temperatura-rows"></tbody>
                     </table>
                 </div>
@@ -68,6 +68,27 @@
                 <p id="temperatura-updated" class="sr-only">Última actualización: pendiente</p>
                 <noscript>Activa JavaScript para consultar la temperatura OLT.</noscript>
             </section>
+            <section id="perdida-latencia-panel" class="gkp-panel gkp-panel--full" aria-labelledby="perdida-latencia-title" aria-busy="true">
+                <div class="gkp-panel-heading">
+                    <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Última lectura disponible por equipo en los últimos 10 minutos</p></div>
+                    <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>equipos</span></span>
+                </div>
+                <p id="perdida-latencia-status" role="status" aria-live="polite">Cargando pérdida y latencia…</p>
+                <div id="perdida-latencia-table-region" class="gkp-table-scroll" tabindex="0" role="region" aria-label="Pérdida y latencia OLT; tabla desplazable en pantallas pequeñas">
+                    <table class="gkp-table">
+                        <thead><tr><th scope="col">Equipo</th><th scope="col">Pérdida</th><th scope="col">Latencia</th><th scope="col">Estado</th><th scope="col">Tiempo</th></tr></thead>
+                        <tbody id="perdida-latencia-rows"></tbody>
+                    </table>
+                </div>
+                <div id="perdida-latencia-empty" class="temperature-empty" hidden>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                    <strong>Sin lecturas recientes</strong>
+                    <span>No se encontraron muestras de latencia en los últimos 10 minutos.</span>
+                </div>
+                <p class="gkp-panel-foot"><span>La fuente no define unidad ni umbrales de latencia</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
+                <p id="perdida-latencia-updated" class="sr-only">Última actualización: pendiente</p>
+                <noscript>Activa JavaScript para consultar pérdida y latencia OLT.</noscript>
+            </section>
             </div>
         </div>
         <?php require __DIR__ . '/components/footer.php'; ?>
@@ -75,5 +96,6 @@
 </div>
 <script src="assets/js/gkp.js" defer></script>
 <script src="assets/js/temperatura.js" defer></script>
+<script src="assets/js/perdida_latencia.js" defer></script>
 </body>
 </html>

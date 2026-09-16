@@ -26,12 +26,31 @@ def probar_conexion_temp() -> bool:
         return bool(client.ping())
 
 
-def consultar_flux_temp(consulta: str) -> list[dict[str, Any]]:
+def consultar_flux_temp(
+    consulta: str,
+    *,
+    fuente: str = "temp",
+) -> list[dict[str, Any]]:
+    if fuente == "temp":
+        cliente = crear_cliente_temp
+        org = settings.influx_temp_org
+    elif fuente == "red":
+        cliente = lambda: InfluxDBClient(
+            url=settings.influx_red_url,
+            token=settings.influx_red_token,
+            org=settings.influx_red_org,
+            timeout=settings.influx_red_timeout_ms,
+            verify_ssl=settings.influx_red_verify_ssl,
+        )
+        org = settings.influx_red_org
+    else:
+        raise ValueError("Fuente InfluxDB no permitida")
+
     try:
-        with crear_cliente_temp() as client:
+        with cliente() as client:
             tablas = client.query_api().query(
                 query=consulta,
-                org=settings.influx_temp_org,
+                org=org,
             )
 
         registros: list[dict[str, Any]] = []
@@ -48,4 +67,4 @@ def consultar_flux_temp(consulta: str) -> list[dict[str, Any]]:
         return registros
 
     except InfluxDBError as exc:
-        raise RuntimeError(f"La consulta a InfluxDB TEMP falló: {exc}") from exc
+        raise RuntimeError(f"La consulta a InfluxDB falló: {exc}") from exc
