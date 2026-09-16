@@ -42,6 +42,7 @@
                 <p class="gkp-panel-foot"><span>Datos operacionales actuales</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
                 <noscript>Activa JavaScript para consultar el estado de la red.</noscript>
             </section>
+            <div class="gkp-secondary-panels">
             <section id="temperatura-panel" class="gkp-panel" aria-labelledby="temperatura-title" aria-busy="true">
                 <div class="gkp-panel-heading">
                     <div><h2 id="temperatura-title">Temperatura OLT</h2><p>Solo equipos por encima de 70 °C</p></div>
@@ -55,7 +56,7 @@
                 <p id="temperatura-status" role="status" aria-live="polite">Cargando temperatura OLT…</p>
                 <div id="temperatura-table-region" class="gkp-table-scroll" tabindex="0" role="region" aria-label="Temperatura OLT; tabla desplazable en pantallas pequeñas">
                     <table class="gkp-table">
-                        <thead><tr><th scope="col">Equipo</th><th scope="col">Temperatura</th><th scope="col">Estado</th></tr></thead>
+                        <thead><tr><th scope="col">Equipo</th><th scope="col">Temperatura</th></tr></thead>
                         <tbody id="temperatura-rows"></tbody>
                     </table>
                 </div>
@@ -68,7 +69,7 @@
                 <p id="temperatura-updated" class="sr-only">Última actualización: pendiente</p>
                 <noscript>Activa JavaScript para consultar la temperatura OLT.</noscript>
             </section>
-            <section id="perdida-latencia-panel" class="gkp-panel gkp-panel--full" aria-labelledby="perdida-latencia-title" aria-busy="true">
+            <section id="perdida-latencia-panel" class="gkp-panel" aria-labelledby="perdida-latencia-title" aria-busy="true">
                 <div class="gkp-panel-heading">
                     <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Última lectura disponible por equipo en los últimos 10 minutos</p></div>
                     <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>eventos</span></span>
@@ -89,6 +90,7 @@
                 <p id="perdida-latencia-updated" class="sr-only">Última actualización: pendiente</p>
                 <noscript>Activa JavaScript para consultar pérdida y latencia OLT.</noscript>
             </section>
+            </div>
             </div>
         </div>
         <?php require __DIR__ . '/components/footer.php'; ?>

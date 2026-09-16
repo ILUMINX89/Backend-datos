@@ -160,6 +160,12 @@
     align-items: start;
 }
 
+.gkp-secondary-panels {
+    min-width: 0;
+    display: grid;
+    gap: 12px;
+}
+
 .gkp-panel {
     width: 100%;
     min-width: 0;
@@ -171,8 +177,6 @@
     box-shadow: none;
 }
 
-.gkp-panel--full,
-.gkp-panels > .gkp-panel:nth-child(3) { grid-column: 1 / -1; }
 .gkp-panel-heading {
     min-height: 68px;
     display: flex;
@@ -238,10 +242,9 @@
 }
 
 #alarmas .gkp-table { min-width: 670px; }
-#temperatura-panel .gkp-table { min-width: 480px; }
+#temperatura-panel .gkp-table,
+#perdida-latencia-panel .gkp-table { min-width: 0; }
 #perdida-latencia-table-region { max-height: 520px; }
-.gkp-panel--full .gkp-table,
-.gkp-panels > .gkp-panel:nth-child(3) .gkp-table { min-width: 760px; }
 .gkp-table { width: 100%; border-collapse: collapse; text-align: left; }
 .gkp-table th {
     position: sticky;
@@ -374,8 +377,7 @@
     .gkp-page .topbar-card { flex: 1; min-width: 0; }
     .gkp-panels { grid-template-columns: minmax(0, 1fr); }
     .gkp-panel,
-    .gkp-panel--full,
-    .gkp-panels > .gkp-panel:nth-child(3) { grid-column: 1; }
+    .gkp-secondary-panels { grid-column: 1; }
 }
 
 @media (max-width: 860px) and (min-width: 641px) {

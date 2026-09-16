@@ -100,32 +100,22 @@
             const valor =
                 document.createElement('td');
 
-            valor.textContent =
-                formatTemperature(
-                    temperatura
-                );
-
-            /*
-             * ESTADO
-             */
-            const estado =
-                document.createElement('td');
-
             const badge =
                 document.createElement('span');
 
             badge.textContent =
-                item.estado || 'Advertencia';
+                formatTemperature(
+                    temperatura
+                );
 
             badge.className =
                 `temperature-badge ${badgeClass(item.nivel || 'amarillo')}`;
 
-            estado.appendChild(badge);
+            valor.appendChild(badge);
 
             row.append(
                 equipo,
-                valor,
-                estado
+                valor
             );
 
             fragment.appendChild(row);
