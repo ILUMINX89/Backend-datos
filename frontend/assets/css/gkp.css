@@ -12,11 +12,25 @@
 }
 
 .gkp-page .app { grid-template-columns: 224px minmax(0, 1fr); }
+.gkp-page .app { transition: grid-template-columns .2s ease; }
 .gkp-page .main {
     grid-column: 2;
     min-width: 0;
     padding: 0;
     overflow-x: hidden;
+}
+
+@media (min-width: 861px) {
+    .gkp-page.sidebar-collapsed .app { grid-template-columns: 0 minmax(0, 1fr); }
+    .gkp-page.sidebar-collapsed .main { grid-column: 2; }
+}
+
+@media (min-width: 1280px) {
+    .gkp-page.sidebar-collapsed .gkp-panels {
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, .7fr) minmax(0, .8fr);
+    }
+
+    .gkp-page.sidebar-collapsed .gkp-secondary-panels { display: contents; }
 }
 
 .gkp-page .topbar {

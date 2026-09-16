@@ -1,4 +1,4 @@
-<aside class="sidebar" aria-label="Navegación principal">
+<aside id="main-sidebar" class="sidebar" aria-label="Navegación principal">
     <div class="sidebar__top">
         <a href="index.php" class="sidebar-brand">
             <div class="sidebar-brand__icon" aria-hidden="true">
