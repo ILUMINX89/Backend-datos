@@ -1,51 +1,653 @@
-/* Page-scoped integration; shared components remain unchanged in phase 1. */
-.gkp-page { background: #f2faff; color: #06127a; font-family: Arial, sans-serif; }
-.gkp-page .app { grid-template-columns: 230px minmax(0, 1fr); }
-.gkp-page .main { padding: 0; }
-.gkp-page .topbar { background: white; border-bottom: 1px solid #dceefb; margin: 0; padding: 16px 24px; }
-.gkp-page .topbar h1 { color: #06127a; }
-.gkp-page .topbar p, .gkp-page .topbar__eyebrow { color: #526ac0; }
-.gkp-page .topbar-card { background: transparent; color: #243f92; border-color: #dceefb; }
-.gkp-content { padding: 14px; }
-.gkp-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 24px; margin-bottom: 14px; color: #526ac0; font-size: 13px; }
-.gkp-toolbar button { background: #fff; color: #1768df; border: 1px solid #c9daff; border-radius: 5px; padding: 9px 14px; cursor: pointer; }
-.gkp-toolbar button:disabled { opacity: .6; cursor: wait; }
-.gkp-panels { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; }
-.gkp-panel { min-width: 0; min-height: 480px; background: #fff; border: 1px solid #e0efff; border-radius: 12px; padding: 12px; box-shadow: 0 3px 14px #deeffb55; }
-#temperatura-panel .gkp-table { min-width: 430px; }
-.gkp-panel-heading { display: flex; align-items: center; gap: 24px; padding: 0 10px 8px; }
-.gkp-panel-heading h2 { margin: 0 0 3px; color: #080d78; font-size: 23px; letter-spacing: -.5px; }
-.gkp-panel-heading p { margin: 0; font-size: 16px; color: #4c62b6; }
-.gkp-bars { display: flex; gap: 4px; align-items: flex-end; height: 37px; }
-.gkp-bars i { width: 9px; height: 15px; border-radius: 3px; background: linear-gradient(#ffad38, #ff7910); }
-.gkp-bars i:nth-child(2) { height: 25px; }
-.gkp-bars i:nth-child(3) { height: 37px; }
-.gkp-context { margin: 4px 10px 10px; color: #526ac0; font-size: 12px; line-height: 1.5; }
-#gkp-status, #temperatura-status { color: #526ac0; padding: 10px; font-size: 14px; }
-#gkp-status:empty, #temperatura-status:empty { display: none; }
-.gkp-table-scroll { overflow-x: auto; }
-.gkp-table { width: 100%; min-width: 560px; border-collapse: collapse; text-align: left; font-size: 16px; }
-.gkp-table th { padding: 9px 13px; background: #eff8fd; font-size: 14px; font-weight: 600; color: #07117e; }
-.gkp-table td { padding: 6px 13px; height: 41px; border-bottom: 1px solid #e5effc; color: #07117e; vertical-align: middle; }
-.gkp-table td.gkp-equipment { font-weight: 700; border-right: 1px solid #e5effc; }
-.gkp-table tr:last-child td { border-bottom: 0; }
-.gkp-badge { display: inline-block; padding: 7px 14px; border-radius: 4px; background: #ffe331; color: #111; white-space: nowrap; }
-.gkp-badge--down { background: #ff303a; color: white; }
-.gkp-table .gkp-value--down { color: #f00; }
-.gkp-page .footer { padding: 20px 24px; color: #526ac0; }
-.gkp-page :focus-visible { outline: 2px solid #1768df; outline-offset: 3px; }
-@media (max-width: 1100px) { .gkp-panels { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 700px) { .gkp-page .app { display: block; } .gkp-page .sidebar { position: relative; width: 100%; } .gkp-page .topbar { padding: 16px; } .gkp-toolbar { flex-wrap: wrap; gap: 10px; } .gkp-panel-heading { gap: 14px; } .gkp-panel-heading h2 { font-size: 21px; } }
+/* =========================================================
+   GKP - Centro de Monitoreo de Red
+   Layout responsive para 3 módulos
+   ========================================================= */
 
-.gkp-table th { text-transform: none; letter-spacing: normal; }
+.gkp-page {
+    background: #f2faff;
+    color: #06127a;
+    font-family: Arial, sans-serif;
+}
 
-.gkp-page .topbar { box-shadow: none; border-radius: 0; }
-.gkp-page .topbar-card strong { color: #243f92; }
-.gkp-page .topbar-card small, .gkp-page .topbar-card__label { color: #526ac0; }
-.gkp-table th { border-bottom: 0; }
 
-.gkp-table-scroll { max-height: 410px; }
-.gkp-table thead th { position: sticky; top: 0; z-index: 1; }
+/* =========================================================
+   ESTRUCTURA GENERAL
+   ========================================================= */
 
-.gkp-table td { font-size: 16px; }
-.gkp-table tbody tr:hover { background: #f5faff; }
+.gkp-page .app {
+    grid-template-columns: 230px minmax(0, 1fr);
+}
+
+.gkp-page .main {
+    padding: 0;
+
+    /*
+     * Muy importante en CSS Grid:
+     * permite que el contenido pueda reducir su ancho
+     * sin desbordar toda la página.
+     */
+    min-width: 0;
+}
+
+.gkp-page .topbar {
+    background: white;
+    border-bottom: 1px solid #dceefb;
+    margin: 0;
+    padding: 16px 24px;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.gkp-page .topbar h1 {
+    color: #06127a;
+}
+
+.gkp-page .topbar p,
+.gkp-page .topbar__eyebrow {
+    color: #526ac0;
+}
+
+.gkp-page .topbar-card {
+    background: transparent;
+    color: #243f92;
+    border-color: #dceefb;
+}
+
+.gkp-page .topbar-card strong {
+    color: #243f92;
+}
+
+.gkp-page .topbar-card small,
+.gkp-page .topbar-card__label {
+    color: #526ac0;
+}
+
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.gkp-content {
+    width: 100%;
+    min-width: 0;
+
+    padding: 14px;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.gkp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 24px;
+
+    margin-bottom: 14px;
+
+    color: #526ac0;
+    font-size: 13px;
+}
+
+.gkp-toolbar button {
+    background: #fff;
+    color: #1768df;
+
+    border: 1px solid #c9daff;
+    border-radius: 5px;
+
+    padding: 9px 14px;
+
+    cursor: pointer;
+}
+
+.gkp-toolbar button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+
+/* =========================================================
+   GRID DE PANELES
+   ========================================================= */
+
+/*
+ * Escritorio:
+ *
+ * ┌────────────────────┬────────────────────┐
+ * │ Estado actual      │ Temperatura        │
+ * └────────────────────┴────────────────────┘
+ *
+ * El tercer panel usa la fila completa.
+ */
+
+.gkp-panels {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.25fr) minmax(0, 1fr);
+
+    gap: 14px;
+
+    width: 100%;
+    min-width: 0;
+
+    align-items: stretch;
+}
+
+
+/*
+ * Al tercer panel y a cualquier panel marcado como full
+ * le damos las dos columnas.
+ *
+ * Cuando creemos Pérdida de gestión y latencia,
+ * se puede usar:
+ *
+ * class="gkp-panel gkp-panel--full"
+ */
+
+.gkp-panel--full {
+    grid-column: 1 / -1;
+}
+
+
+/*
+ * Protección adicional:
+ * si agregamos exactamente un tercer panel dentro
+ * de .gkp-panels, automáticamente ocupa todo el ancho,
+ * incluso si olvidamos agregar gkp-panel--full.
+ */
+
+.gkp-panels>.gkp-panel:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+
+/* =========================================================
+   PANEL
+   ========================================================= */
+
+.gkp-panel {
+    width: 100%;
+    min-width: 0;
+
+    min-height: 480px;
+
+    background: #fff;
+
+    border: 1px solid #e0efff;
+    border-radius: 12px;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    box-shadow: 0 3px 14px #deeffb55;
+
+    overflow: hidden;
+}
+
+
+/*
+ * El tercer panel puede ser un poco más bajo,
+ * porque ocupa todo el ancho.
+ */
+
+.gkp-panel--full,
+.gkp-panels>.gkp-panel:nth-child(3) {
+    min-height: 360px;
+}
+
+
+/* =========================================================
+   ENCABEZADOS
+   ========================================================= */
+
+.gkp-panel-heading {
+    display: flex;
+    align-items: center;
+
+    gap: 24px;
+
+    padding: 0 10px 8px;
+}
+
+.gkp-panel-heading h2 {
+    margin: 0 0 3px;
+
+    color: #080d78;
+
+    font-size: 23px;
+    letter-spacing: -.5px;
+}
+
+.gkp-panel-heading p {
+    margin: 0;
+
+    font-size: 16px;
+
+    color: #4c62b6;
+}
+
+
+/* =========================================================
+   ICONO DE BARRAS
+   ========================================================= */
+
+.gkp-bars {
+    display: flex;
+    gap: 4px;
+
+    align-items: flex-end;
+
+    height: 37px;
+}
+
+.gkp-bars i {
+    width: 9px;
+    height: 15px;
+
+    border-radius: 3px;
+
+    background:
+        linear-gradient(#ffad38,
+            #ff7910);
+}
+
+.gkp-bars i:nth-child(2) {
+    height: 25px;
+}
+
+.gkp-bars i:nth-child(3) {
+    height: 37px;
+}
+
+
+/* =========================================================
+   CONTEXTO / ESTADO
+   ========================================================= */
+
+.gkp-context {
+    margin: 4px 10px 10px;
+
+    color: #526ac0;
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+#gkp-status,
+#temperatura-status,
+#gestion-status {
+    color: #526ac0;
+
+    padding: 10px;
+
+    font-size: 14px;
+}
+
+#gkp-status:empty,
+#temperatura-status:empty,
+#gestion-status:empty {
+    display: none;
+}
+
+
+/* =========================================================
+   TABLAS
+   ========================================================= */
+
+.gkp-table-scroll {
+    width: 100%;
+    max-width: 100%;
+
+    max-height: 410px;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    /*
+     * Scroll suave en móviles.
+     */
+    -webkit-overflow-scrolling: touch;
+}
+
+
+/*
+ * Estado actual necesita un poco más de espacio.
+ */
+
+#alarmas .gkp-table {
+    min-width: 560px;
+}
+
+
+/*
+ * Temperatura puede ser algo más compacta.
+ */
+
+#temperatura-panel .gkp-table {
+    min-width: 430px;
+}
+
+
+/*
+ * Cuando exista el tercer módulo,
+ * puede tener más columnas sin romper el dashboard.
+ */
+
+.gkp-panel--full .gkp-table,
+.gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
+    min-width: 760px;
+}
+
+
+.gkp-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    text-align: left;
+
+    font-size: 16px;
+}
+
+.gkp-table th {
+    padding: 9px 13px;
+
+    background: #eff8fd;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #07117e;
+
+    text-transform: none;
+    letter-spacing: normal;
+
+    border-bottom: 0;
+
+    white-space: nowrap;
+}
+
+.gkp-table thead th {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 2;
+}
+
+.gkp-table td {
+    padding: 6px 13px;
+
+    height: 41px;
+
+    border-bottom: 1px solid #e5effc;
+
+    color: #07117e;
+
+    vertical-align: middle;
+
+    font-size: 16px;
+}
+
+.gkp-table td.gkp-equipment {
+    font-weight: 700;
+
+    border-right: 1px solid #e5effc;
+}
+
+.gkp-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.gkp-table tbody tr:hover {
+    background: #f5faff;
+}
+
+
+/* =========================================================
+   BADGES
+   ========================================================= */
+
+.gkp-badge {
+    display: inline-block;
+
+    padding: 7px 14px;
+
+    border-radius: 4px;
+
+    background: #ffe331;
+
+    color: #111;
+
+    white-space: nowrap;
+}
+
+.gkp-badge--down {
+    background: #ff303a;
+
+    color: white;
+}
+
+.gkp-table .gkp-value--down {
+    color: #f00;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.gkp-page .footer {
+    padding: 20px 24px;
+
+    color: #526ac0;
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+   ========================================================= */
+
+.gkp-page :focus-visible {
+    outline: 2px solid #1768df;
+
+    outline-offset: 3px;
+}
+
+
+/* =========================================================
+   PANTALLA MEDIANA
+   ========================================================= */
+
+/*
+ * Cuando empieza a faltar ancho:
+ * apilamos los paneles.
+ */
+
+@media (max-width: 1180px) {
+
+    .gkp-panels {
+        grid-template-columns:
+            minmax(0, 1fr);
+    }
+
+    .gkp-panel,
+    .gkp-panel--full,
+    .gkp-panels>.gkp-panel:nth-child(3) {
+        grid-column: 1;
+    }
+
+    .gkp-panel {
+        min-height: 420px;
+    }
+
+    #alarmas .gkp-table,
+    #temperatura-panel .gkp-table,
+    .gkp-panel--full .gkp-table,
+    .gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
+        min-width: 650px;
+    }
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .gkp-content {
+        padding: 10px;
+    }
+
+    .gkp-panel {
+        min-height: 380px;
+
+        padding: 10px;
+    }
+
+    .gkp-panel-heading {
+        gap: 14px;
+    }
+
+    .gkp-panel-heading h2 {
+        font-size: 21px;
+    }
+
+    .gkp-panel-heading p {
+        font-size: 14px;
+    }
+
+    .gkp-toolbar {
+        gap: 10px;
+
+        flex-wrap: wrap;
+    }
+
+    .gkp-table-scroll {
+        max-height: 360px;
+    }
+}
+
+
+/* =========================================================
+   MÓVIL
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+    .gkp-page .app {
+        display: block;
+    }
+
+    .gkp-page .sidebar {
+        position: relative;
+
+        width: 100%;
+    }
+
+    .gkp-page .topbar {
+        padding: 16px;
+    }
+
+    .gkp-content {
+        padding: 8px;
+    }
+
+    .gkp-panels {
+        gap: 10px;
+    }
+
+    .gkp-panel {
+        min-height: 340px;
+
+        border-radius: 9px;
+    }
+
+    .gkp-panel-heading {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .gkp-panel-heading h2 {
+        font-size: 19px;
+    }
+
+    .gkp-panel-heading p {
+        font-size: 13px;
+    }
+
+    .gkp-context {
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .gkp-table {
+        font-size: 14px;
+    }
+
+    .gkp-table th {
+        padding: 8px 10px;
+
+        font-size: 13px;
+    }
+
+    .gkp-table td {
+        padding: 6px 10px;
+
+        font-size: 14px;
+    }
+
+    /*
+     * La tabla conserva su ancho mínimo.
+     * El usuario desplaza horizontalmente sólo dentro
+     * del panel, no toda la página.
+     */
+
+    #alarmas .gkp-table {
+        min-width: 540px;
+    }
+
+    #temperatura-panel .gkp-table {
+        min-width: 480px;
+    }
+
+    .gkp-panel--full .gkp-table,
+    .gkp-panels>.gkp-panel:nth-child(3) .gkp-table {
+        min-width: 720px;
+    }
+}
+
+
+/* =========================================================
+   MÓVIL PEQUEÑO
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .gkp-toolbar {
+        justify-content: space-between;
+
+        font-size: 12px;
+    }
+
+    .gkp-toolbar button {
+        padding: 8px 10px;
+    }
+
+    .gkp-panel-heading h2 {
+        font-size: 18px;
+    }
+
+    .gkp-table-scroll {
+        max-height: 330px;
+    }
+}

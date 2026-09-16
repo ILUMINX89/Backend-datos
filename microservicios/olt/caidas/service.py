@@ -610,21 +610,20 @@ def obtener_caidas_actuales() -> dict[
     Detecta tres escenarios:
 
     1. CAIDO_ACTUAL:
-       las dos últimas muestras están en 0.
+       la ultima muestra esta en 0.
 
     2. SIN_MUESTRAS_RECIENTES:
-       el puerto tenía tráfico o al menos una muestra histórica,
-       pero lleva más de 15 minutos sin reportar.
+       el puerto lleva mas de 15 minutos sin reportar.
 
     3. CAIDO_SIN_FECHA:
-       está actualmente en 0 pero no encontramos
-       tráfico positivo en los últimos 7 días.
+       esta actualmente en 0 pero no encontramos
+       trafico positivo en los ultimos 7 dias.
     """
 
     ahora = datetime.now(timezone.utc)
 
     # --------------------------------------------------------
-    # MUESTRAS DE LOS ÚLTIMOS 30 MINUTOS
+    # MUESTRAS DE LOS ULTIMOS 30 MINUTOS
     # --------------------------------------------------------
 
     recientes = consultar_flux_temp(obtener_estado_actual_flux())
@@ -632,7 +631,7 @@ def obtener_caidas_actuales() -> dict[
     recientes_por_puerto = _agrupar_muestras_recientes(recientes)
 
     # --------------------------------------------------------
-    # ÚLTIMA MUESTRA CONOCIDA EN 7 DÍAS
+    # ULTIMA MUESTRA CONOCIDA EN 7 DIAS
     # --------------------------------------------------------
 
     ultima_muestra_datos = consultar_flux_temp(
@@ -648,7 +647,7 @@ def obtener_caidas_actuales() -> dict[
 
     # --------------------------------------------------------
     # CASO 1:
-    # TIENE MUESTRAS RECIENTES Y DOS ÚLTIMAS SON 0
+    # LA ULTIMA MUESTRA ESTA EN CERO
     # --------------------------------------------------------
 
     for (
@@ -656,18 +655,17 @@ def obtener_caidas_actuales() -> dict[
         muestras,
     ) in recientes_por_puerto.items():
 
-        if len(muestras) < 2:
+        if not muestras:
             continue
-
-        anterior = muestras[-2]
 
         actual = muestras[-1]
 
-        trafico_anterior = anterior["TRAFICO"]
-
         trafico_actual = actual["TRAFICO"]
 
-        if trafico_anterior <= 0 and trafico_actual <= 0:
+        # Si la ultima muestra esta en cero,
+        # aparece inmediatamente como caido.
+        if trafico_actual <= 0:
+
             candidatos[clave] = {
                 "estado_base": "CAIDO_ACTUAL",
                 "ultima_muestra": actual["_time"],
@@ -677,7 +675,7 @@ def obtener_caidas_actuales() -> dict[
 
     # --------------------------------------------------------
     # CASO 2:
-    # DEJÓ DE REPORTAR COMPLETAMENTE
+    # LLEVA MAS DE 15 MINUTOS SIN REPORTAR
     # --------------------------------------------------------
 
     for (
@@ -685,22 +683,36 @@ def obtener_caidas_actuales() -> dict[
         info,
     ) in ultima_muestra_por_puerto.items():
 
-        if clave in recientes_por_puerto:
+        # Si ya esta marcado como CAIDO_ACTUAL,
+        # no lo procesamos de nuevo.
+        if clave in candidatos:
             continue
 
         fecha = info["fecha"]
 
+        if fecha is None:
+            continue
+
         minutos_sin_muestras = (ahora - fecha).total_seconds() / 60
 
         if minutos_sin_muestras >= MINUTOS_SIN_MUESTRAS:
+
             candidatos[clave] = {
                 "estado_base": "SIN_MUESTRAS_RECIENTES",
                 "ultima_muestra": fecha,
-                "trafico_actual": None,
-                "muestras": [],
+                "trafico_actual": info.get("trafico"),
+                "muestras": recientes_por_puerto.get(
+                    clave,
+                    [],
+                )[-3:],
             }
 
+    # --------------------------------------------------------
+    # SI NO HAY NINGUN PUERTO CAIDO
+    # --------------------------------------------------------
+
     if not candidatos:
+
         return {
             "consulta": "caidas_actuales_por_trafico",
             "cantidad_olts": 0,
@@ -709,7 +721,7 @@ def obtener_caidas_actuales() -> dict[
         }
 
     # --------------------------------------------------------
-    # BUSCAR ÚLTIMA VEZ CON TRÁFICO
+    # BUSCAR ULTIMA VEZ CON TRAFICO
     # --------------------------------------------------------
 
     ultima_actividad = _buscar_ultima_actividad(list(candidatos.keys()))
@@ -719,12 +731,21 @@ def obtener_caidas_actuales() -> dict[
         list[dict[str, Any]],
     ] = defaultdict(list)
 
+    # --------------------------------------------------------
+    # CONSTRUIR RESULTADO
+    # --------------------------------------------------------
+
     for (
         olt,
         puerto,
     ), info in candidatos.items():
 
-        actividad = ultima_actividad.get((olt, puerto))
+        actividad = ultima_actividad.get(
+            (
+                olt,
+                puerto,
+            )
+        )
 
         estado = info["estado_base"]
 
@@ -752,6 +773,10 @@ def obtener_caidas_actuales() -> dict[
 
             estado = "CAIDO_SIN_FECHA"
 
+        # ----------------------------------------------------
+        # ULTIMAS MUESTRAS PARA MOSTRAR EN LA RESPUESTA
+        # ----------------------------------------------------
+
         muestras_salida = []
 
         for muestra in info["muestras"]:
@@ -771,6 +796,10 @@ def obtener_caidas_actuales() -> dict[
                     ),
                 }
             )
+
+        # ----------------------------------------------------
+        # AGREGAR PUERTO
+        # ----------------------------------------------------
 
         resultado_olts[olt].append(
             {
@@ -823,6 +852,10 @@ def obtener_caidas_actuales() -> dict[
             }
         )
 
+    # --------------------------------------------------------
+    # ORDENAR RESULTADOS
+    # --------------------------------------------------------
+
     datos = []
 
     for olt in sorted(resultado_olts):
@@ -842,10 +875,14 @@ def obtener_caidas_actuales() -> dict[
             }
         )
 
+    # --------------------------------------------------------
+    # RESPUESTA FINAL
+    # --------------------------------------------------------
+
     return {
         "consulta": "caidas_actuales_por_trafico",
         "criterios": {
-            "caido_actual": ("2_ultimas_muestras_" "con_trafico_cero"),
+            "caido_actual": "ultima_muestra_con_trafico_cero",
             "sin_muestras_recientes": (
                 f"mas_de_" f"{MINUTOS_SIN_MUESTRAS}_" "minutos_sin_reportar"
             ),
