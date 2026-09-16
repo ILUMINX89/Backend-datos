@@ -11,6 +11,7 @@ from fastapi.testclient import TestClient
 import pytest
 
 from microservicios.app import app
+from microservicios.olt.caidas import service as caidas_service
 from microservicios.olt.caidas.service import analizar_caidas, reconstruir_caidas
 from microservicios.olt.caidas.queries import obtener_caidas_flux
 from microservicios.olt.correlacion import service as correlacion_service
@@ -100,6 +101,70 @@ def test_queries_conservan_secuencia_temporal():
     assert "derivative(unit: 1s, nonNegative: true)" in crc
     assert "max(" not in crc
     assert "range(start: -7d)" in caidas
+
+
+def test_caidas_actuales_limita_busquedas_historicas_a_cuatro_dias(monkeypatch):
+    rangos = {}
+    consultas = {
+        "estado_actual": [],
+        "ultima_muestra": [
+            {
+                "OLT": "OLT-1",
+                "PUERTO": "1/1",
+                "_time": BASE - timedelta(minutes=20),
+                "TRAFICO": 0,
+            }
+        ],
+        "ultima_actividad": [
+            {
+                "OLT": "OLT-1",
+                "PUERTO": "1/1",
+                "_time": BASE - timedelta(hours=1),
+                "TRAFICO": 10,
+            }
+        ],
+    }
+
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_estado_actual_flux",
+        lambda: "estado_actual",
+    )
+
+    def ultima_muestra(periodo):
+        rangos["ultima_muestra"] = periodo
+        return "ultima_muestra"
+
+    def ultima_actividad(puertos, periodo):
+        rangos["ultima_actividad"] = periodo
+        assert puertos == [("OLT-1", "1/1")]
+        return "ultima_actividad"
+
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_muestra_conocida_flux",
+        ultima_muestra,
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_actividad_flux",
+        ultima_actividad,
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "consultar_flux_temp",
+        lambda consulta: consultas[consulta],
+    )
+
+    resultado = caidas_service.obtener_caidas_actuales()
+
+    assert rangos == {
+        "ultima_muestra": "-4d",
+        "ultima_actividad": "-4d",
+    }
+    assert resultado["criterios"]["busqueda_ultima_actividad"] == (
+        "ultimos_4_dias"
+    )
 
 
 def test_correlacion_no_incluye_fenomeno_fuera_del_margen(monkeypatch):

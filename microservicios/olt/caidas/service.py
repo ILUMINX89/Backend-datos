@@ -575,7 +575,7 @@ def _buscar_ultima_actividad(
     datos = consultar_flux_temp(
         obtener_ultima_actividad_flux(
             puertos,
-            "-7d",
+            "-4d",
         )
     )
 
@@ -617,7 +617,7 @@ def obtener_caidas_actuales() -> dict[
 
     3. CAIDO_SIN_FECHA:
        esta actualmente en 0 pero no encontramos
-       trafico positivo en los ultimos 7 dias.
+       trafico positivo en los ultimos 4 dias.
     """
 
     ahora = datetime.now(timezone.utc)
@@ -631,11 +631,11 @@ def obtener_caidas_actuales() -> dict[
     recientes_por_puerto = _agrupar_muestras_recientes(recientes)
 
     # --------------------------------------------------------
-    # ULTIMA MUESTRA CONOCIDA EN 7 DIAS
+    # ULTIMA MUESTRA CONOCIDA EN 4 DIAS
     # --------------------------------------------------------
 
     ultima_muestra_datos = consultar_flux_temp(
-        obtener_ultima_muestra_conocida_flux("-7d")
+        obtener_ultima_muestra_conocida_flux("-4d")
     )
 
     ultima_muestra_por_puerto = _indexar_ultima_muestra(ultima_muestra_datos)
@@ -886,7 +886,7 @@ def obtener_caidas_actuales() -> dict[
             "sin_muestras_recientes": (
                 f"mas_de_" f"{MINUTOS_SIN_MUESTRAS}_" "minutos_sin_reportar"
             ),
-            "busqueda_ultima_actividad": "ultimos_7_dias",
+            "busqueda_ultima_actividad": "ultimos_4_dias",
         },
         "cantidad_olts": len(datos),
         "cantidad_puertos": sum(item["cantidad_puertos"] for item in datos),
