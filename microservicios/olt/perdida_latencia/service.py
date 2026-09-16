@@ -67,7 +67,7 @@ def obtener_perdida_latencia_actual() -> dict[str, Any]:
                 "estado": "Pérdida",
                 "nivel": "rojo" if perdida == 100 else "neutral",
             }
-            if latencia is not None and perdida <= 50:
+            if latencia is not None:
                 evento.update(
                     {
                         "valor_secundario": round(latencia, 2),

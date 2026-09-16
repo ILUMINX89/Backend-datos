@@ -35,7 +35,10 @@ try {
                 true
             )
         ) {
-            throw new RuntimeException('Lectura inválida de pérdida y latencia');
+            error_log(
+                'Pérdida y latencia OLT: se omitió una lectura inválida'
+            );
+            continue;
         }
 
         $valor = (float) $row['valor'];
@@ -58,11 +61,13 @@ try {
 
         if ($estado === 'Pérdida + Latencia') {
             if (
-                $valor > 50.0
-                || !is_numeric($row['valor_secundario'] ?? null)
+                !is_numeric($row['valor_secundario'] ?? null)
                 || (float) $row['valor_secundario'] <= 50.0
             ) {
-                throw new RuntimeException('Lectura combinada inválida');
+                error_log(
+                    'Pérdida y latencia OLT: se omitió una lectura combinada inválida'
+                );
+                continue;
             }
             $normalized['valor_secundario'] = (float) $row['valor_secundario'];
             $normalized['unidad_secundaria'] = 'ms';

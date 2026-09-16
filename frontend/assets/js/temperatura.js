@@ -30,6 +30,7 @@
     );
 
     let busy = false;
+    let hasValidData = false;
 
     function formatTemperature(value) {
         const temperatura = Number(value);
@@ -130,7 +131,7 @@
         return visibleCount;
     }
 
-    async function loadTemperature() {
+    async function loadTemperature({ silent = false } = {}) {
         if (busy) {
             return;
         }
@@ -141,6 +142,10 @@
             'aria-busy',
             'true'
         );
+
+        if (!silent && !hasValidData) {
+            status.textContent = 'Consultando temperatura OLT…';
+        }
 
         const controller =
             new AbortController();
@@ -185,6 +190,7 @@
             renderTemperature(
                 temperaturas
             );
+            hasValidData = true;
 
             status.textContent = '';
 
@@ -194,11 +200,12 @@
                     'es-CO'
                 );
         } catch (error) {
-            rows.replaceChildren();
-
-            tableRegion.hidden = false;
-            empty.hidden = true;
-            count.textContent = '—';
+            if (!hasValidData) {
+                rows.replaceChildren();
+                tableRegion.hidden = false;
+                empty.hidden = true;
+                count.textContent = '—';
+            }
 
             status.textContent =
                 'No se pudo consultar la ' +
@@ -224,14 +231,14 @@
     if (refresh) {
         refresh.addEventListener(
             'click',
-            loadTemperature
+            () => loadTemperature({ silent: false })
         );
     }
 
     loadTemperature();
 
     setInterval(
-        loadTemperature,
+        () => loadTemperature({ silent: true }),
         30000
     );
 })();

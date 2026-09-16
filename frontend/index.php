@@ -61,10 +61,9 @@
                         <tbody id="temperatura-rows"></tbody>
                     </table>
                 </div>
-                <div id="temperatura-empty" class="temperature-empty" hidden>
+                <div id="temperatura-empty" class="panel-ok-state" hidden>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
-                    <strong>Sin equipos por encima de 70 °C</strong>
-                    <span>Las lecturas actuales permanecen por debajo del umbral de excepción.</span>
+                    <span class="sr-only">Sin excepciones de temperatura OLT</span>
                 </div>
                 <p class="gkp-panel-foot"><span>Escala contextual de temperatura OLT</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
                 <p id="temperatura-updated" class="sr-only">Última actualización: pendiente</p>
@@ -82,10 +81,9 @@
                         <tbody id="perdida-latencia-rows"></tbody>
                     </table>
                 </div>
-                <div id="perdida-latencia-empty" class="temperature-empty" hidden>
+                <div id="perdida-latencia-empty" class="panel-ok-state" hidden>
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
-                    <strong>Sin excepciones recientes</strong>
-                    <span>No se encontraron pérdidas mayores a 10% ni latencias mayores a 50 ms.</span>
+                    <span class="sr-only">Sin excepciones de pérdida o latencia</span>
                 </div>
                 <p class="gkp-panel-foot"><span>Solo pérdida &gt; 10% y latencia &gt; 50 ms</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
                 <p id="perdida-latencia-updated" class="sr-only">Última actualización: pendiente</p>

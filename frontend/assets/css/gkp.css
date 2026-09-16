@@ -289,7 +289,12 @@
 #alarmas .gkp-table { min-width: 670px; }
 #temperatura-panel .gkp-table,
 #perdida-latencia-panel .gkp-table { min-width: 0; }
-#perdida-latencia-table-region { max-height: 520px; }
+#temperatura-table-region,
+#perdida-latencia-table-region {
+    max-height: 380px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
 .gkp-table { width: 100%; border-collapse: collapse; text-align: left; }
 .gkp-table th {
     position: sticky;
@@ -371,23 +376,19 @@
 }
 
 .gkp-scroll-hint { display: none; }
-.temperature-empty {
-    min-height: 250px;
+.panel-ok-state {
+    min-height: 70px;
     display: grid;
     place-items: center;
-    align-content: center;
-    gap: 7px;
-    padding: 28px;
-    color: var(--gkp-muted);
-    text-align: center;
+    padding: 10px 14px;
 }
 
-.temperature-empty[hidden],
+.panel-ok-state[hidden],
 .gkp-table-scroll[hidden] { display: none !important; }
-.temperature-empty svg {
-    width: 42px;
-    height: 42px;
-    padding: 9px;
+.panel-ok-state svg {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
     color: #167b50;
     background: #dcf5e9;
     border: 1px solid #8bceb0;
@@ -398,9 +399,6 @@
     stroke-linecap: round;
     stroke-linejoin: round;
 }
-
-.temperature-empty strong { color: var(--gkp-ink); font-size: 14px; }
-.temperature-empty span { max-width: 38ch; font-size: 12px; }
 .sr-only {
     position: absolute !important;
     width: 1px !important;

@@ -9,6 +9,7 @@
     const empty = document.getElementById('perdida-latencia-empty');
     const count = document.getElementById('perdida-latencia-count');
     let busy = false;
+    let hasValidData = false;
 
     function formatNumber(value, unit) {
         const number = Number(value);
@@ -58,10 +59,13 @@
         count.textContent = String(data.length);
     }
 
-    async function load() {
+    async function load({ silent = false } = {}) {
         if (busy) return;
         busy = true;
         panel.setAttribute('aria-busy', 'true');
+        if (!silent && !hasValidData) {
+            status.textContent = 'Consultando pérdida y latencia…';
+        }
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 20000);
 
@@ -76,13 +80,16 @@
                 throw new Error('Respuesta inválida');
             }
             render(payload.data.datos);
+            hasValidData = true;
             status.textContent = '';
             updated.textContent = `Última actualización: ${new Date().toLocaleString('es-CO')}`;
         } catch (error) {
-            rows.replaceChildren();
-            tableRegion.hidden = false;
-            empty.hidden = true;
-            count.textContent = '—';
+            if (!hasValidData) {
+                rows.replaceChildren();
+                tableRegion.hidden = false;
+                empty.hidden = true;
+                count.textContent = '—';
+            }
             status.textContent = 'No se pudo consultar pérdida y latencia. Se reintentará automáticamente.';
         } finally {
             clearTimeout(timeout);
@@ -91,7 +98,10 @@
         }
     }
 
-    document.getElementById('gkp-refresh')?.addEventListener('click', load);
+    document.getElementById('gkp-refresh')?.addEventListener(
+        'click',
+        () => load({ silent: false })
+    );
     load();
-    setInterval(load, 30000);
+    setInterval(() => load({ silent: true }), 30000);
 })();

@@ -11,6 +11,7 @@
     });
 
     let busy = false;
+    let hasValidData = false;
 
     function setText(id, text) {
         const element = document.getElementById(id);
@@ -230,7 +231,7 @@
         });
     }
 
-    async function load() {
+    async function load({ silent = false } = {}) {
         if (busy) {
             return;
         }
@@ -239,7 +240,9 @@
 
         refresh.disabled = true;
 
-        status.textContent = 'Consultando el estado de la red…';
+        if (!silent) {
+            status.textContent = 'Consultando el estado de la red…';
+        }
 
         panel.setAttribute(
             'aria-busy',
@@ -285,6 +288,7 @@
                 payload.data.estado_actual_red;
 
             render(rows);
+            hasValidData = true;
 
             const sourceEntries = Object.entries(
                 payload.sources || {}
@@ -351,10 +355,11 @@
                 'Actualización cada 30 segundos'
             );
         } catch (error) {
-            body.replaceChildren();
-
-            setText('gkp-count', '—');
-            setText('gkp-summary', 'Estado operacional no disponible');
+            if (!hasValidData) {
+                body.replaceChildren();
+                setText('gkp-count', '—');
+                setText('gkp-summary', 'Estado operacional no disponible');
+            }
 
             status.textContent = error?.name === 'AbortError'
                 ? 'La consulta excedió el tiempo disponible. Se reintentará automáticamente; también puedes pulsar Actualizar.'
@@ -369,7 +374,7 @@
                 'header-sources'
             );
 
-            if (sources) {
+            if (sources && !hasValidData) {
                 sources.textContent = 'No disponibles';
             }
 
@@ -400,13 +405,13 @@
 
     refresh.addEventListener(
         'click',
-        load
+        () => load({ silent: false })
     );
 
     load();
 
     setInterval(
-        load,
+        () => load({ silent: true }),
         30000
     );
 })();
