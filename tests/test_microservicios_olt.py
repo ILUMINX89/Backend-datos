@@ -104,6 +104,7 @@ def test_queries_conservan_secuencia_temporal():
 
 
 def test_caidas_actuales_limita_busquedas_historicas_a_cuatro_dias(monkeypatch):
+    caidas_service._cache_ultima_actividad.clear()
     rangos = {}
     consultas = {
         "estado_actual": [],
@@ -165,6 +166,86 @@ def test_caidas_actuales_limita_busquedas_historicas_a_cuatro_dias(monkeypatch):
     assert resultado["criterios"]["busqueda_ultima_actividad"] == (
         "ultimos_4_dias"
     )
+
+
+def test_ultima_actividad_reutiliza_cache_y_expira_a_los_cinco_minutos(
+    monkeypatch,
+):
+    caidas_service._cache_ultima_actividad.clear()
+    clave = ("OLT-1", "1/1")
+    reloj = {"ahora": 0.0}
+    consultas = []
+
+    monkeypatch.setattr(
+        caidas_service,
+        "monotonic",
+        lambda: reloj["ahora"],
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_actividad_flux",
+        lambda puertos, periodo: consultas.append((puertos, periodo)) or "flux",
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "consultar_flux_temp",
+        lambda _consulta: [
+            {
+                "OLT": clave[0],
+                "PUERTO": clave[1],
+                "_time": BASE,
+                "TRAFICO": 10,
+            }
+        ],
+    )
+
+    primera = caidas_service._buscar_ultima_actividad([clave])
+    reloj["ahora"] = 30.0
+    segunda = caidas_service._buscar_ultima_actividad([clave])
+
+    assert primera == segunda
+    assert consultas == [([clave], "-4d")]
+
+    reloj["ahora"] = 301.0
+    caidas_service._buscar_ultima_actividad([clave])
+
+    assert consultas == [([clave], "-4d"), ([clave], "-4d")]
+
+
+def test_ultima_actividad_cachea_ausencia_de_historial(monkeypatch):
+    caidas_service._cache_ultima_actividad.clear()
+    clave = ("OLT-1", "1/1")
+    cantidad_consultas = 0
+
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_actividad_flux",
+        lambda _puertos, _periodo: "flux",
+    )
+
+    def consultar(_consulta):
+        nonlocal cantidad_consultas
+        cantidad_consultas += 1
+        return []
+
+    monkeypatch.setattr(caidas_service, "consultar_flux_temp", consultar)
+
+    assert caidas_service._buscar_ultima_actividad([clave]) == {}
+    assert caidas_service._buscar_ultima_actividad([clave]) == {}
+    assert cantidad_consultas == 1
+
+
+def test_ultima_actividad_invalida_cache_cuando_el_puerto_se_recupera():
+    caidas_service._cache_ultima_actividad.clear()
+    clave = ("OLT-1", "1/1")
+    caidas_service._cache_ultima_actividad[clave] = (
+        float("inf"),
+        {"fecha": BASE, "trafico": 10},
+    )
+
+    caidas_service._invalidar_cache_ultima_actividad([clave])
+
+    assert clave not in caidas_service._cache_ultima_actividad
 
 
 def test_correlacion_no_incluye_fenomeno_fuera_del_margen(monkeypatch):

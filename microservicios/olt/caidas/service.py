@@ -2,6 +2,8 @@
 
 from collections import defaultdict
 from datetime import datetime, timezone
+from threading import Lock
+from time import monotonic
 from typing import Any
 
 from microservicios.influx import consultar_flux_temp
@@ -14,6 +16,14 @@ from microservicios.olt.caidas.queries import (
 
 MINIMO_MUESTRAS_CERO = 2
 MINUTOS_SIN_MUESTRAS = 15
+TTL_CACHE_ULTIMA_ACTIVIDAD_SEGUNDOS = 300
+
+_cache_ultima_actividad: dict[
+    tuple[str, str],
+    tuple[float, dict[str, Any] | None],
+] = {}
+_cache_ultima_actividad_lock = Lock()
+_consulta_ultima_actividad_lock = Lock()
 
 
 def _obtener_trafico(
@@ -568,18 +578,57 @@ def _buscar_ultima_actividad(
     tuple[str, str],
     dict[str, Any],
 ]:
+    with _consulta_ultima_actividad_lock:
+        return _buscar_ultima_actividad_sincronizada(puertos)
+
+
+def _buscar_ultima_actividad_sincronizada(
+    puertos: list[tuple[str, str]],
+) -> dict[
+    tuple[str, str],
+    dict[str, Any],
+]:
 
     if not puertos:
         return {}
 
+    ahora_cache = monotonic()
+    resultado = {}
+    puertos_sin_cache = []
+
+    with _cache_ultima_actividad_lock:
+        claves_vencidas = [
+            clave
+            for clave, entrada in _cache_ultima_actividad.items()
+            if entrada[0] <= ahora_cache
+        ]
+
+        for clave in claves_vencidas:
+            _cache_ultima_actividad.pop(clave, None)
+
+        for clave in puertos:
+            entrada = _cache_ultima_actividad.get(clave)
+
+            if entrada is None:
+                puertos_sin_cache.append(clave)
+                continue
+
+            actividad = entrada[1]
+
+            if actividad is not None:
+                resultado[clave] = actividad
+
+    if not puertos_sin_cache:
+        return resultado
+
     datos = consultar_flux_temp(
         obtener_ultima_actividad_flux(
-            puertos,
+            puertos_sin_cache,
             "-4d",
         )
     )
 
-    resultado = {}
+    actividades_consultadas = {}
 
     for fila in datos:
 
@@ -594,12 +643,33 @@ def _buscar_ultima_actividad(
         if not olt or not puerto or fecha is None:
             continue
 
-        resultado[(olt, puerto)] = {
+        actividades_consultadas[(olt, puerto)] = {
             "fecha": fecha,
             "trafico": trafico,
         }
 
+    vence_en = monotonic() + TTL_CACHE_ULTIMA_ACTIVIDAD_SEGUNDOS
+
+    with _cache_ultima_actividad_lock:
+        for clave in puertos_sin_cache:
+            actividad = actividades_consultadas.get(clave)
+            _cache_ultima_actividad[clave] = (vence_en, actividad)
+
+            if actividad is not None:
+                resultado[clave] = actividad
+
     return resultado
+
+
+def _invalidar_cache_ultima_actividad(
+    puertos: list[tuple[str, str]],
+) -> None:
+    if not puertos:
+        return
+
+    with _cache_ultima_actividad_lock:
+        for clave in puertos:
+            _cache_ultima_actividad.pop(clave, None)
 
 
 def obtener_caidas_actuales() -> dict[
@@ -672,6 +742,13 @@ def obtener_caidas_actuales() -> dict[
                 "trafico_actual": trafico_actual,
                 "muestras": muestras[-3:],
             }
+
+    puertos_con_trafico = [
+        clave
+        for clave, muestras in recientes_por_puerto.items()
+        if muestras and muestras[-1]["TRAFICO"] > 0
+    ]
+    _invalidar_cache_ultima_actividad(puertos_con_trafico)
 
     # --------------------------------------------------------
     # CASO 2:
