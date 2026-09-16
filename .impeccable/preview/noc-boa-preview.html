@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>NOC BOA — Preview visual</title>
+  <style>
+    :root {
+      --canvas: #020305;
+      --sidebar: #05070a;
+      --surface: #080b10;
+      --surface-2: #0b0f15;
+      --surface-3: #0e141d;
+      --line: #192431;
+      --line-soft: #101820;
+      --line-strong: #26384b;
+      --text: #f4f7fb;
+      --text-2: #c2ccd6;
+      --muted: #8d9baa;
+      --subtle: #657483;
+      --blue: #128cff;
+      --blue-soft: #0a2943;
+      --green: #14cf7b;
+      --green-soft: #072a1b;
+      --yellow: #ffd229;
+      --yellow-soft: #2a2308;
+      --orange: #ff811a;
+      --orange-soft: #301807;
+      --red: #ff3048;
+      --red-soft: #330b13;
+      --radius-sm: 7px;
+      --radius-md: 10px;
+      --radius-lg: 12px;
+      --focus: 0 0 0 3px rgba(18, 140, 255, .34);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-width: 320px; background: var(--canvas); }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: "Segoe UI", Inter, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    ::selection { color: #00101f; background: #8acaff; }
+
+    :focus-visible {
+      outline: 2px solid #59b1ff;
+      outline-offset: 3px;
+      box-shadow: var(--focus);
+    }
+
+    .demo-ribbon {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 1000;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 16px;
+      color: #dceeff;
+      background: #08233a;
+      border-bottom: 1px solid #184e77;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 224px minmax(0, 1fr);
+      min-height: 100vh;
+      padding-top: 28px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 28px;
+      bottom: 0;
+      left: 0;
+      width: 224px;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 12px 14px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 56px;
+      padding: 5px 7px 15px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .brand-mark {
+      position: relative;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      color: #73c1ff;
+      background: #081725;
+      border: 1px solid #153e5d;
+      border-radius: var(--radius-md);
+    }
+
+    .brand-mark svg { width: 25px; height: 25px; }
+    .brand-copy { min-width: 0; }
+    .brand-copy strong { display: block; font-size: 17px; letter-spacing: -.02em; }
+    .brand-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
+
+    .system-summary {
+      margin: 14px 2px 16px;
+      padding: 10px;
+      background: var(--green-soft);
+      border: 1px solid #12472f;
+      border-radius: var(--radius-sm);
+    }
+
+    .system-summary__top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #b8f4d5;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .system-summary p { margin: 5px 0 0 16px; color: #8eb7a2; font-size: 11px; }
+
+    .nav-label {
+      margin: 0 10px 6px;
+      color: var(--subtle);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .nav { display: grid; gap: 4px; }
+
+    .nav a {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 11px;
+      color: #9aabba;
+      text-decoration: none;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav a:hover { color: var(--text); background: var(--surface-2); border-color: var(--line); }
+    .nav a.active { color: var(--text); background: #0a2943; border-color: #1b5c8c; }
+    .nav a.active::before { content: ""; width: 2px; height: 20px; margin-left: -7px; background: var(--blue); border-radius: 2px; }
+    .nav svg { width: 17px; height: 17px; flex: 0 0 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .nav-count {
+      min-width: 23px;
+      height: 20px;
+      margin-left: auto;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 6px;
+      color: #fff;
+      background: #c82137;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--line-soft); }
+    .operator { display: flex; align-items: center; gap: 9px; }
+    .avatar { width: 31px; height: 31px; display: grid; place-items: center; background: #10263a; border: 1px solid #235174; border-radius: var(--radius-sm); color: #a9dbff; font-weight: 800; }
+    .operator strong { display: block; font-size: 12px; }
+    .operator span { display: block; color: var(--muted); font-size: 11px; }
+
+    main { grid-column: 2; min-width: 0; }
+
+    .topbar {
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .page-title { min-width: 0; }
+    .page-title h1 { margin: 0; font-size: clamp(22px, 2vw, 28px); line-height: 1.15; letter-spacing: -.025em; }
+    .page-title p { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+
+    .health-strip {
+      display: flex;
+      align-items: stretch;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .health-item {
+      min-width: 140px;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+      padding: 9px 12px;
+      border-left: 1px solid var(--line);
+    }
+
+    .health-item:first-child { border-left: 0; }
+    .health-item span { color: var(--muted); font-size: 11px; }
+    .health-item strong { display: flex; align-items: center; gap: 7px; color: var(--text-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .health-item .ok { color: #94efbe; }
+
+    .workspace { padding: 14px; }
+
+    .command-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+      padding: 9px 11px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+
+    .command-summary { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .command-summary strong { font-size: 13px; }
+    .command-summary span { color: var(--muted); font-size: 12px; }
+
+    .actions { display: flex; align-items: center; gap: 8px; }
+    .button {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 7px 11px;
+      color: var(--text-2);
+      background: var(--surface-3);
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .button:hover { color: var(--text); border-color: #397aa7; }
+    .button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+    .panels {
+      display: grid;
+      grid-template-columns: minmax(0, 1.28fr) minmax(360px, .72fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 15px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title h2 { margin: 0; font-size: 17px; line-height: 1.25; }
+    .panel-title p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+
+    .panel-count {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .panel-count strong { color: var(--text); font-size: 19px; font-variant-numeric: tabular-nums; }
+
+    .table-region {
+      width: 100%;
+      overflow: auto;
+      scrollbar-color: #35506a var(--surface-2);
+      scrollbar-width: thin;
+    }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    .network-table { min-width: 670px; }
+    .temperature-table { min-width: 480px; }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 9px 12px;
+      color: #9babb9;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--line-strong);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .035em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    td {
+      height: 47px;
+      padding: 7px 12px;
+      color: var(--text-2);
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: var(--surface-3); }
+    td:first-child { color: var(--text); font-weight: 650; }
+    .mono { font-variant-numeric: tabular-nums; }
+
+    .row-down { background: rgba(255, 48, 72, .035); }
+    .row-down td:first-child { box-shadow: inset 1px 0 0 var(--red); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 25px;
+      padding: 4px 8px;
+      border: 1px solid;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .badge.red { color: #ff9ca8; background: var(--red-soft); border-color: #7b2330; }
+    .badge.yellow { color: #ffe884; background: var(--yellow-soft); border-color: #675817; }
+    .badge.orange { color: #ffb376; background: var(--orange-soft); border-color: #773c12; }
+
+    .value-down { color: #ff8796; font-weight: 800; }
+
+    .temperature-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 9px 15px;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--line);
+    }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; }
+    .legend-item i { width: 7px; height: 7px; border-radius: 50%; }
+    .legend-yellow { background: var(--yellow); }
+    .legend-orange { background: var(--orange); }
+    .legend-red { background: var(--red); }
+
+    .panel-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 14px;
+      color: var(--subtle);
+      background: #06090d;
+      border-top: 1px solid var(--line-soft);
+      font-size: 11px;
+    }
+
+    .empty-state {
+      min-height: 252px;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+    .empty-state[hidden], .temperature-live[hidden] { display: none; }
+    .empty-icon { width: 42px; height: 42px; margin: 0 auto 10px; display: grid; place-items: center; color: #7ce5ad; background: var(--green-soft); border: 1px solid #165239; border-radius: 50%; }
+    .empty-icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .empty-state strong { display: block; font-size: 14px; }
+    .empty-state p { max-width: 37ch; margin: 5px auto 0; color: var(--muted); font-size: 12px; }
+
+    .mobile-scroll-note { display: none; color: var(--subtle); font-size: 11px; }
+
+    @media (max-width: 1180px) {
+      .health-item { min-width: 122px; }
+      .panels { grid-template-columns: 1fr; }
+      .temperature-panel { max-width: none; }
+    }
+
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 76px minmax(0, 1fr); }
+      .sidebar { width: 76px; padding-inline: 9px; }
+      .brand { justify-content: center; padding-inline: 0; }
+      .brand-copy, .system-summary p, .system-summary__top span, .nav-label, .nav a span:not(.nav-count), .sidebar-foot { display: none; }
+      .system-summary { display: grid; place-items: center; padding: 12px 8px; }
+      .nav a { justify-content: center; padding: 0; }
+      .nav a.active::before { position: absolute; left: 8px; margin: 0; }
+      .nav-count { position: absolute; margin: -25px 0 0 31px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 10px; }
+      main { grid-column: 2; }
+      .topbar { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .health-strip { width: 100%; }
+      .health-item { flex: 1; min-width: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .demo-ribbon { font-size: 10px; text-align: center; }
+      .shell { display: block; padding-top: 34px; }
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        padding: 10px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .brand { min-height: 44px; padding: 0; border: 0; }
+      .brand-mark { width: 38px; height: 38px; flex-basis: 38px; }
+      .system-summary, .sidebar-foot { display: none; }
+      .nav { grid-column: 2; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .nav a { min-height: 40px; }
+      .nav a.active::before { display: none; }
+      main { min-width: 0; }
+      .topbar { min-height: auto; padding: 14px 12px; }
+      .page-title p { font-size: 12px; }
+      .health-strip { display: grid; grid-template-columns: 1fr 1fr; }
+      .health-item { min-width: 0; border-top: 1px solid var(--line); }
+      .health-item:nth-child(2) { border-left: 1px solid var(--line); }
+      .health-item:nth-child(-n+2) { border-top: 0; }
+      .health-item:nth-child(3) { border-left: 0; }
+      .workspace { padding: 8px; }
+      .command-bar { align-items: flex-start; }
+      .command-summary { display: grid; gap: 2px; }
+      .button span { display: none; }
+      .panel-head { padding: 12px; }
+      .mobile-scroll-note { display: inline; }
+    }
+
+    @media (max-width: 430px) {
+      .sidebar { grid-template-columns: 1fr; }
+      .brand { display: none; }
+      .nav { grid-column: 1; }
+      .health-item { padding: 8px 9px; }
+      .health-item span { font-size: 10px; }
+      .panel-count span { display: none; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .nav a, .button, tbody tr { transition: color .16s ease, background-color .16s ease, border-color .16s ease; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-ribbon">Propuesta visual · Datos ficticios · Sin conexión con sistemas reales</div>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+            <path d="M5 17a9 9 0 0 1 14 0"/><path d="M8 14a5.5 5.5 0 0 1 8 0"/><path d="M11 11.5a2 2 0 0 1 2 0"/><circle cx="12" cy="18" r="1.2" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="brand-copy"><strong>NOC BOA</strong><span>Operación FTTH / HFC</span></div>
+      </div>
+
+      <div class="system-summary">
+        <div class="system-summary__top"><i class="status-dot" aria-hidden="true"></i><span>Monitoreo saludable</span></div>
+        <p>3 de 3 fuentes disponibles</p>
+      </div>
+
+      <div class="nav-label">Operación</div>
+      <nav class="nav">
+        <a class="active" href="#" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg>
+          <span>Vista general</span>
+        </a>
+        <a href="#network-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          <span>Excepciones</span><b class="nav-count">6</b>
+        </a>
+        <a href="#temperature-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0Z"/><path d="M12 8v9"/></svg>
+          <span>Temperatura</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="operator"><div class="avatar">A</div><div><strong>Administrador</strong><span>NOC Colombia · Demo</span></div></div>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="page-title">
+          <h1>Estado operacional de red</h1>
+          <p>Excepciones activas y temperatura OLT · entorno de demostración</p>
+        </div>
+
+        <div class="health-strip" aria-label="Estado del sistema">
+          <div class="health-item"><span>Monitoreo general</span><strong class="ok"><i class="status-dot" aria-hidden="true"></i>Saludable</strong></div>
+          <div class="health-item"><span>Conexión frontend</span><strong class="ok"><i class="status-dot" aria-hidden="true"></i>Conectado</strong></div>
+          <div class="health-item"><span>Fuentes de datos</span><strong>3 / 3 disponibles</strong></div>
+          <div class="health-item"><span>Última actualización</span><strong id="last-updated">Hace 18 s</strong></div>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <div class="command-bar">
+          <div class="command-summary"><strong>6 excepciones requieren revisión</strong><span>Ordenadas por prioridad operacional</span></div>
+          <div class="actions">
+            <button class="button" id="toggle-empty" type="button" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span>Alternar estado vacío</span>
+            </button>
+            <button class="button" id="refresh-demo" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg><span>Actualizar demo</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panels">
+          <section class="panel" id="network-panel" aria-labelledby="network-title">
+            <div class="panel-head">
+              <div class="panel-title"><h2 id="network-title">Estado actual de red</h2><p>Caídas, saturación uplink y errores CRC activos</p></div>
+              <div class="panel-count"><strong>3</strong><span>eventos</span></div>
+            </div>
+            <div class="table-region" tabindex="0" role="region" aria-label="Estado actual de red; desplázate horizontalmente en pantallas pequeñas">
+              <table class="network-table">
+                <thead><tr><th>Equipo</th><th>Puerto o interfaz</th><th>Valor</th><th>Estado</th></tr></thead>
+                <tbody>
+                  <tr class="row-down"><td>BOG-NORTE-OLT-04</td><td>GPON 0/2/7</td><td class="mono value-down">23 min</td><td><span class="badge red">Caída actual</span></td></tr>
+                  <tr><td>MED-CENTRO-OLT-02</td><td>Uplink 1/1/1</td><td class="mono">94.6 %</td><td><span class="badge yellow">Saturación uplink</span></td></tr>
+                  <tr><td>CTG-MANGA-OLT-01</td><td>GPON 0/1/5</td><td class="mono">342 CRC/s</td><td><span class="badge yellow">Error CRC</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="panel-foot"><span>Datos ficticios para validar la dirección visual</span><span class="mobile-scroll-note">Desliza la tabla para ver más →</span></div>
+          </section>
+
+          <section class="panel temperature-panel" id="temperature-panel" aria-labelledby="temperature-title">
+            <div class="panel-head">
+              <div class="panel-title"><h2 id="temperature-title">Temperatura OLT</h2><p>Solo equipos por encima de 70 °C</p></div>
+              <div class="panel-count"><strong id="temp-count">3</strong><span>excepciones</span></div>
+            </div>
+            <div class="temperature-legend" aria-label="Umbrales de temperatura">
+              <span class="legend-item"><i class="legend-yellow"></i>70–79 °C · elevada</span>
+              <span class="legend-item"><i class="legend-orange"></i>80–89 °C · alta</span>
+              <span class="legend-item"><i class="legend-red"></i>≥90 °C · crítica</span>
+            </div>
+
+            <div class="temperature-live" id="temperature-live">
+              <div class="table-region" tabindex="0" role="region" aria-label="Excepciones de temperatura OLT; desplázate horizontalmente en pantallas pequeñas">
+                <table class="temperature-table">
+                  <thead><tr><th>Equipo</th><th>Zona</th><th>Temperatura</th><th>Estado</th></tr></thead>
+                  <tbody>
+                    <tr><td>CAL-SUR-OLT-03</td><td>Tarjeta 2</td><td class="mono">74 °C</td><td><span class="badge yellow">Elevada</span></td></tr>
+                    <tr><td>BAQ-NORTE-OLT-06</td><td>Tarjeta 5</td><td class="mono">86 °C</td><td><span class="badge orange">Alta</span></td></tr>
+                    <tr class="row-down"><td>BOG-OCC-OLT-08</td><td>Tarjeta 1</td><td class="mono value-down">92 °C</td><td><span class="badge red">Crítica</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="panel-foot"><span>Umbrales independientes de los estados de red</span><span class="mobile-scroll-note">Desliza la tabla para ver más →</span></div>
+            </div>
+
+            <div class="empty-state" id="temperature-empty" hidden>
+              <div>
+                <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></div>
+                <strong>Sin equipos por encima de 70 °C</strong>
+                <p>Las lecturas actuales permanecen por debajo del umbral de excepción.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const emptyButton = document.querySelector('#toggle-empty');
+      const refreshButton = document.querySelector('#refresh-demo');
+      const live = document.querySelector('#temperature-live');
+      const empty = document.querySelector('#temperature-empty');
+      const count = document.querySelector('#temp-count');
+      const updated = document.querySelector('#last-updated');
+
+      emptyButton.addEventListener('click', () => {
+        const showEmpty = live.hidden === false;
+        live.hidden = showEmpty;
+        empty.hidden = !showEmpty;
+        count.textContent = showEmpty ? '0' : '3';
+        emptyButton.setAttribute('aria-pressed', String(showEmpty));
+      });
+
+      refreshButton.addEventListener('click', () => {
+        refreshButton.disabled = true;
+        refreshButton.setAttribute('aria-busy', 'true');
+        updated.textContent = 'Actualizando…';
+        window.setTimeout(() => {
+          updated.textContent = 'Ahora mismo';
+          refreshButton.disabled = false;
+          refreshButton.removeAttribute('aria-busy');
+        }, 500);
+      });
+    })();
+  </script>
+</body>
+</html>
