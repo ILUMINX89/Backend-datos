@@ -212,11 +212,17 @@ def test_ultima_actividad_reutiliza_cache_y_expira_a_los_cinco_minutos(
     assert consultas == [([clave], "-4d"), ([clave], "-4d")]
 
 
-def test_ultima_actividad_cachea_ausencia_de_historial(monkeypatch):
+def test_ultima_actividad_cachea_ausencia_solo_diez_segundos(monkeypatch):
     caidas_service._cache_ultima_actividad.clear()
     clave = ("OLT-1", "1/1")
+    reloj = {"ahora": 0.0}
     cantidad_consultas = 0
 
+    monkeypatch.setattr(
+        caidas_service,
+        "monotonic",
+        lambda: reloj["ahora"],
+    )
     monkeypatch.setattr(
         caidas_service,
         "obtener_ultima_actividad_flux",
@@ -231,8 +237,76 @@ def test_ultima_actividad_cachea_ausencia_de_historial(monkeypatch):
     monkeypatch.setattr(caidas_service, "consultar_flux_temp", consultar)
 
     assert caidas_service._buscar_ultima_actividad([clave]) == {}
+    reloj["ahora"] = 5.0
     assert caidas_service._buscar_ultima_actividad([clave]) == {}
     assert cantidad_consultas == 1
+
+    reloj["ahora"] = 11.0
+    assert caidas_service._buscar_ultima_actividad([clave]) == {}
+    assert cantidad_consultas == 2
+
+
+def test_puerto_recien_caido_reintenta_historial_sin_esperar_300_segundos(
+    monkeypatch,
+):
+    caidas_service._cache_ultima_actividad.clear()
+    clave = ("OLT-1", "1/1")
+    reloj = {"ahora": 0.0}
+    respuestas_historial = [
+        [],
+        [
+            {
+                "OLT": clave[0],
+                "PUERTO": clave[1],
+                "_time": BASE,
+                "TRAFICO": 10,
+            }
+        ],
+    ]
+
+    monkeypatch.setattr(
+        caidas_service,
+        "monotonic",
+        lambda: reloj["ahora"],
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_estado_actual_flux",
+        lambda: "estado_actual",
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_muestra_conocida_flux",
+        lambda _periodo: "ultima_muestra",
+    )
+    monkeypatch.setattr(
+        caidas_service,
+        "obtener_ultima_actividad_flux",
+        lambda _puertos, _periodo: "ultima_actividad",
+    )
+
+    def consultar(consulta):
+        if consulta == "estado_actual":
+            return [
+                {
+                    "OLT": clave[0],
+                    "PUERTO": clave[1],
+                    "_time": BASE + timedelta(hours=1),
+                    "TRAFICO": 0,
+                }
+            ]
+        if consulta == "ultima_muestra":
+            return []
+        return respuestas_historial.pop(0)
+
+    monkeypatch.setattr(caidas_service, "consultar_flux_temp", consultar)
+
+    primera = caidas_service.obtener_caidas_actuales()
+    assert primera["datos"][0]["puertos"][0]["estado"] == "CAIDO_SIN_FECHA"
+
+    reloj["ahora"] = 11.0
+    segunda = caidas_service.obtener_caidas_actuales()
+    assert segunda["datos"][0]["puertos"][0]["estado"] == "CAIDO_ACTUAL"
 
 
 def test_ultima_actividad_invalida_cache_cuando_el_puerto_se_recupera():

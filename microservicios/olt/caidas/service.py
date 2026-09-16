@@ -17,6 +17,7 @@ from microservicios.olt.caidas.queries import (
 MINIMO_MUESTRAS_CERO = 2
 MINUTOS_SIN_MUESTRAS = 15
 TTL_CACHE_ULTIMA_ACTIVIDAD_SEGUNDOS = 300
+TTL_CACHE_SIN_HISTORIAL_SEGUNDOS = 10
 
 _cache_ultima_actividad: dict[
     tuple[str, str],
@@ -648,11 +649,15 @@ def _buscar_ultima_actividad_sincronizada(
             "trafico": trafico,
         }
 
-    vence_en = monotonic() + TTL_CACHE_ULTIMA_ACTIVIDAD_SEGUNDOS
-
     with _cache_ultima_actividad_lock:
         for clave in puertos_sin_cache:
             actividad = actividades_consultadas.get(clave)
+            ttl = (
+                TTL_CACHE_ULTIMA_ACTIVIDAD_SEGUNDOS
+                if actividad is not None
+                else TTL_CACHE_SIN_HISTORIAL_SEGUNDOS
+            )
+            vence_en = monotonic() + ttl
             _cache_ultima_actividad[clave] = (vence_en, actividad)
 
             if actividad is not None:
