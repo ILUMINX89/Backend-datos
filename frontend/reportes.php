@@ -492,6 +492,7 @@
 </div>
 
 
+<script src="assets/js/sidebar.js" defer></script>
 <script src="assets/js/reportes.js" defer></script>
 <script src="assets/js/app.js" defer></script>
 

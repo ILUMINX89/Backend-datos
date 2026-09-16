@@ -136,7 +136,19 @@
 .sidebar-system.is-error { color: #ffc3cb; background: #301117; border-color: #6e2632; }
 .sidebar-system.is-error strong { color: #ffc3cb; }
 .sidebar-system.is-error small { color: #c78e96; }
-.nav { display: flex; flex: 1; flex-direction: column; gap: 4px; }
+.nav {
+    min-height: 0;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #26384b transparent;
+    scrollbar-width: thin;
+}
+.nav::-webkit-scrollbar { width: 6px; }
+.nav::-webkit-scrollbar-thumb { background: #26384b; border-radius: 6px; }
 .nav__section {
     display: block;
     margin: 0 10px 6px;
@@ -148,6 +160,7 @@
 }
 
 .nav__section--secondary { margin-top: 17px; }
+.nav__section--ftth { margin-top: 14px; }
 .nav__item {
     position: relative;
     min-height: 42px;
@@ -160,9 +173,15 @@
     border: 1px solid transparent;
     border-radius: 7px;
     transition: color .16s ease, background-color .16s ease, border-color .16s ease;
+    font: inherit;
+    text-align: left;
 }
 
 .nav__item:hover { color: #fff; background: #0c121a; border-color: #1b2835; }
+.nav__item:focus-visible,
+.nav__subitem:focus-visible,
+.sidebar-toggle:focus-visible,
+.sidebar-scrim:focus-visible { outline: 2px solid #39a9f8; outline-offset: 2px; }
 .nav__item.active { color: #fff; background: #0a2943; border-color: #1b5c8c; box-shadow: none; }
 .nav__item.active::before {
     content: "";
@@ -194,6 +213,58 @@
 }
 
 .nav__text { flex: 1; font-size: 12px; font-weight: 500; }
+.nav__toggle,
+.nav__item--pending { width: 100%; cursor: pointer; background: transparent; }
+.nav__item--pending[aria-disabled="true"] { color: #8192a1; cursor: default; }
+.nav__item--pending[aria-disabled="true"]:hover { color: #9aabba; background: #080d13; border-color: transparent; }
+.nav__chevron {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform .16s ease;
+}
+.nav__toggle[aria-expanded="true"] .nav__chevron { transform: rotate(180deg); }
+.nav__group.is-active > .nav__toggle { color: #d9efff; background: #081b2b; border-color: #173d5b; }
+.nav__submenu {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    margin: 2px 0 5px 19px;
+    padding-left: 13px;
+}
+.nav__submenu[hidden] { display: none; }
+.nav__submenu::before {
+    content: "";
+    position: absolute;
+    inset: 3px auto 3px 0;
+    width: 1px;
+    background: #26384b;
+}
+.nav__subitem {
+    min-height: 32px;
+    padding: 5px 9px;
+    color: #788b9d;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    font: 500 11px/1.3 "Segoe UI", Inter, Arial, sans-serif;
+    text-align: left;
+    cursor: default;
+}
+.nav__subitem:hover { color: #9dafbe; background: #080d13; }
+.nav__subitem.active { color: #fff; background: #0a2943; border-color: #1b5c8c; }
+.nav__pending {
+    color: #607789;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
 .sidebar-badge {
     min-width: 23px;
     height: 20px;
@@ -231,56 +302,40 @@
 .sidebar-user__info span { margin-top: 2px; color: #96a6b6; font-size: 11px; }
 .sidebar-user__status { display: none; }
 .sidebar-version { margin-top: 8px; color: #607283; text-align: center; font-size: 10px; }
-@media (max-width: 860px) and (min-width: 641px) {
-    .sidebar-toggle { display: none; }
-    .sidebar { width: 76px; padding-inline: 9px; }
-    .sidebar-brand { justify-content: center; padding-inline: 0; }
-    .sidebar-brand__text,
-    .sidebar-system div,
-    .nav__section,
-    .nav__text,
-    .sidebar__footer { display: none; }
-    .sidebar-system { display: grid; place-items: center; padding: 12px 8px; }
-    .sidebar-system__dot { margin: 0; }
-    .nav__item { justify-content: center; padding: 0; }
-    .nav__item.active::before { position: absolute; left: 8px; margin: 0; }
-    .sidebar-badge { position: absolute; margin: -25px 0 0 31px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 10px; }
-}
+.sidebar-scrim { display: none; }
 
-@media (max-width: 640px) {
-    .sidebar-toggle { display: none; }
+@media (max-width: 1023px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .main { grid-column: 1; }
     .sidebar {
-        position: static;
-        width: 100%;
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 10px;
-        padding: 10px;
-        border-right: 0;
-        border-bottom: 1px solid #1b2835;
+        width: min(292px, calc(100vw - 36px));
+        padding: 15px 12px max(13px, env(safe-area-inset-bottom));
+        transform: translateX(-100%);
+        transition: transform .2s ease;
     }
-    .sidebar-brand { min-height: 40px; padding: 0; border: 0; }
-    .sidebar-brand__icon { width: 38px; height: 38px; flex-basis: 38px; }
-    .sidebar-system,
-    .sidebar__footer,
-    .nav__section { display: none; }
-    .nav { grid-column: 2; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
-    .nav__item { min-height: 40px; justify-content: center; padding: 0 7px; }
-    .nav__item.active::before { display: none; }
-    .nav__icon { display: none; }
-    .nav__text { flex: 0 1 auto; font-size: 11px; text-align: center; }
-}
-
-@media (max-width: 430px) {
-    .sidebar { grid-template-columns: 1fr; }
-    .sidebar-brand { display: none; }
-    .nav { grid-column: 1; }
-    .nav__text { font-size: 10px; }
+    .sidebar-open .sidebar { transform: translateX(0); }
+    .sidebar-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 99;
+        display: block;
+        padding: 0;
+        background: rgba(0, 3, 7, .7);
+        border: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease;
+    }
+    .sidebar-open .sidebar-scrim { opacity: 1; pointer-events: auto; }
+    .sidebar-open { overflow: hidden; }
+    .sidebar-toggle { display: grid; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .nav__item,
     .sidebar,
     .sidebar-toggle,
-    .sidebar-toggle svg { transition: none; }
+    .sidebar-toggle svg,
+    .sidebar-scrim,
+    .nav__chevron { transition: none; }
 }

@@ -25,6 +25,11 @@
     .gkp-page.sidebar-collapsed .main { grid-column: 2; }
 }
 
+@media (max-width: 1023px) {
+    .gkp-page .app { grid-template-columns: minmax(0, 1fr); }
+    .gkp-page .main { grid-column: 1; }
+}
+
 @media (min-width: 1280px) {
     .gkp-page.sidebar-collapsed .gkp-panels {
         grid-template-columns: minmax(0, 1.6fr) minmax(0, .7fr) minmax(0, .8fr);
