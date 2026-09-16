@@ -10,9 +10,11 @@
     const count = document.getElementById('perdida-latencia-count');
     let busy = false;
 
-    function formatNumber(value, suffix = '') {
+    function formatNumber(value, unit) {
         const number = Number(value);
-        return Number.isFinite(number) ? `${number.toFixed(2)}${suffix}` : '—';
+        if (!Number.isFinite(number)) return '—';
+        const separator = unit === '%' ? '' : ' ';
+        return `${number.toFixed(2)}${separator}${unit}`;
     }
 
     function render(data) {
@@ -21,21 +23,19 @@
         for (const item of data) {
             const row = document.createElement('tr');
             const equipo = document.createElement('td');
-            const perdida = document.createElement('td');
-            const latencia = document.createElement('td');
+            const valor = document.createElement('td');
             const estado = document.createElement('td');
-            const tiempo = document.createElement('td');
+            const badge = document.createElement('span');
 
             equipo.textContent = item.equipo || 'N/D';
             equipo.className = 'gkp-equipment';
-            perdida.textContent = formatNumber(item.perdida, '%');
-            latencia.textContent = formatNumber(
-                item.latencia,
-                item.unidad_latencia ? ` ${item.unidad_latencia}` : ''
-            );
-            estado.textContent = item.estado || '—';
-            tiempo.textContent = item.tiempo || '—';
-            row.append(equipo, perdida, latencia, estado, tiempo);
+            valor.textContent = formatNumber(item.valor, item.unidad || '');
+            badge.textContent = item.estado || '—';
+            badge.className = item.nivel === 'rojo'
+                ? 'gkp-badge gkp-badge--down'
+                : 'gkp-badge';
+            estado.appendChild(badge);
+            row.append(equipo, valor, estado);
             fragment.appendChild(row);
         }
 

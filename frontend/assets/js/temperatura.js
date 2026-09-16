@@ -94,9 +94,6 @@
             equipo.textContent =
                 item.equipo || 'N/D';
 
-            equipo.title =
-                `Tarjeta: ${item.tarjeta || 'N/D'}`;
-
             /*
              * TEMPERATURA
              */

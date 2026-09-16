@@ -33,7 +33,7 @@ def obtener_perdida_latencia_actual() -> dict[str, Any]:
         obtener_latencia_actual_flux(),
         fuente="red",
     )
-    equipos: dict[str, dict[str, Any]] = {}
+    eventos = []
 
     for fila in filas:
         equipo = str(fila.get("equipo") or "").strip()
@@ -48,34 +48,34 @@ def obtener_perdida_latencia_actual() -> dict[str, Any]:
         if valor is None:
             continue
 
-        registro = equipos.setdefault(
-            equipo,
-            {
-                "equipo": equipo,
-                "perdida": None,
-                "latencia": None,
-                "unidad_latencia": None,
-                "estado": "Latencia registrada",
-                "nivel": "neutral",
-                "ultima_muestra": None,
-                "tiempo": None,
-            },
-        )
+        if campo == "latency" and valor > 50:
+            eventos.append(
+                {
+                    "equipo": equipo,
+                    "valor": round(valor, 2),
+                    "unidad": "ms",
+                    "estado": "Latencia",
+                    "nivel": "neutral",
+                }
+            )
+        elif campo == "packet_loss" and valor > 10:
+            eventos.append(
+                {
+                    "equipo": equipo,
+                    "valor": round(valor, 2),
+                    "unidad": "%",
+                    "estado": "Pérdida",
+                    "nivel": "rojo" if valor == 100 else "neutral",
+                }
+            )
 
-        if campo == "latency":
-            registro["latencia"] = round(valor, 2)
-            registro["ultima_muestra"] = _timestamp(fila.get("_time"))
-        else:
-            registro["perdida"] = round(valor, 2)
-
-    datos = [fila for fila in equipos.values() if fila["latencia"] is not None]
-    datos.sort(key=lambda fila: fila["equipo"])
+    eventos.sort(key=lambda fila: (fila["equipo"], fila["estado"]))
 
     return {
         "consulta": "perdida_latencia_actual",
         "periodo": "ultimos_10_minutos",
-        "cantidad": len(datos),
-        "datos": datos,
+        "cantidad": len(eventos),
+        "datos": eventos,
     }
 
 

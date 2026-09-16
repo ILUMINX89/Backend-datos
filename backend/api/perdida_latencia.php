@@ -23,10 +23,39 @@ try {
         );
     }
 
+    $rows = [];
+
+    foreach ($body['data']['datos'] as $row) {
+        if (
+            !is_string($row['equipo'] ?? null)
+            || !is_numeric($row['valor'] ?? null)
+            || !in_array($row['estado'] ?? null, ['Pérdida', 'Latencia'], true)
+        ) {
+            throw new RuntimeException('Lectura inválida de pérdida y latencia');
+        }
+
+        $valor = (float) $row['valor'];
+        $estado = $row['estado'];
+        if (($estado === 'Pérdida' && $valor <= 10.0)
+            || ($estado === 'Latencia' && $valor <= 50.0)) {
+            continue;
+        }
+
+        $rows[] = [
+            'equipo' => $row['equipo'],
+            'valor' => $valor,
+            'unidad' => $estado === 'Pérdida' ? '%' : 'ms',
+            'estado' => $estado,
+            'nivel' => $estado === 'Pérdida' && $valor === 100.0
+                ? 'rojo'
+                : ($row['nivel'] ?? 'neutral'),
+        ];
+    }
+
     jsonResponse([
         'ok' => true,
         'data' => [
-            'datos' => $body['data']['datos'],
+            'datos' => $rows,
         ],
     ]);
 } catch (Throwable $error) {

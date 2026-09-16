@@ -35,9 +35,6 @@ try {
             !is_string(
                 $row['olt'] ?? null
             )
-            || !is_string(
-                $row['tarjeta'] ?? null
-            )
             || !is_numeric(
                 $row['temperatura'] ?? null
             )
@@ -64,9 +61,6 @@ try {
 
         $rows[] = [
             'equipo' => $row['olt'],
-            'tarjeta' => $row['tarjeta'],
-            'nombre' => $row['nombre'] ?? null,
-            'zona' => null,
             'temperatura' => $temperatura,
             'estado' => $row['estado'] ?? 'Advertencia',
             'nivel' => $row['nivel'] ?? 'amarillo',

@@ -1,4 +1,4 @@
-"""Lecturas de temperatura actual por tarjeta OLT."""
+"""Lecturas de temperatura máxima actual por equipo OLT."""
 
 from math import isfinite
 from typing import Any
@@ -26,7 +26,7 @@ def clasificar_temperatura(
 
 
 def obtener_temperatura_actual() -> dict[str, Any]:
-    datos = []
+    maximas_por_olt: dict[str, float] = {}
 
     filas = consultar_flux_temp(obtener_temperatura_actual_flux())
 
@@ -54,21 +54,19 @@ def obtener_temperatura_actual() -> dict[str, Any]:
         if temperatura == 2147483647:
             continue
 
+        maximas_por_olt[olt] = max(maximas_por_olt.get(olt, temperatura), temperatura)
+
+    datos = []
+    for olt, temperatura in maximas_por_olt.items():
         # Temperaturas normales no se muestran.
         if temperatura < UMBRAL_AMARILLO:
             continue
 
         estado, nivel = clasificar_temperatura(temperatura)
-
         datos.append(
             {
                 "olt": olt,
-                "tarjeta": tarjeta,
-                "nombre": fila.get("NOMBRE"),
-                "temperatura": round(
-                    temperatura,
-                    2,
-                ),
+                "temperatura": round(temperatura, 2),
                 "estado": estado,
                 "nivel": nivel,
             }
@@ -79,7 +77,6 @@ def obtener_temperatura_actual() -> dict[str, Any]:
         key=lambda fila: (
             -fila["temperatura"],
             fila["olt"],
-            fila["tarjeta"],
         )
     )
 
