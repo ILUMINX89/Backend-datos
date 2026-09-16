@@ -26,8 +26,11 @@ $definitions = [
 
 $rows = [];
 $sources = [];
+$gkpStartedAt = microtime(true);
 
 foreach ($definitions as $source => [$path, $state, $unit]) {
+    $sourceStartedAt = microtime(true);
+
     try {
         $response = datosClient()->get($path);
         $body = $response['body'];
@@ -148,6 +151,10 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
 
         $sources[$source] = [
             'ok' => true,
+            'duration_ms' => round(
+                (microtime(true) - $sourceStartedAt) * 1000,
+                1
+            ),
         ];
     } catch (Throwable $error) {
         error_log(
@@ -156,8 +163,21 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
 
         $sources[$source] = [
             'ok' => false,
+            'duration_ms' => round(
+                (microtime(true) - $sourceStartedAt) * 1000,
+                1
+            ),
         ];
     }
+
+    error_log(
+        sprintf(
+            'GKP source=%s duration=%.3fs ok=%s',
+            $source,
+            microtime(true) - $sourceStartedAt,
+            $sources[$source]['ok'] ? 'true' : 'false'
+        )
+    );
 }
 
 /*
@@ -192,6 +212,13 @@ $ok = in_array(
     true,
     array_column($sources, 'ok'),
     true
+);
+
+error_log(
+    sprintf(
+        'GKP total duration=%.3fs',
+        microtime(true) - $gkpStartedAt
+    )
 );
 
 jsonResponse(

@@ -420,15 +420,6 @@
             }
         );
 
-
-        // Sidebar
-        text(
-            '#sidebar-total',
-            summary.total
-            ?? 0
-        );
-
-
         // Tabla de alarmas + intermitencias
         renderAlarms(
             data.alarmas

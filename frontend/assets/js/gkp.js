@@ -12,6 +12,14 @@
 
     let busy = false;
 
+    function setText(id, text) {
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.textContent = text;
+        }
+    }
+
     function formatValue(row) {
         if (row.valor === null || row.valor === undefined) {
             return 'N/D';
@@ -167,9 +175,7 @@
     }
 
     function connection(text, detail) {
-        document.getElementById(
-            'header-connection'
-        ).textContent = text;
+        setText('header-connection', text);
 
         const dot = document.querySelector(
             '.connection-dot'
@@ -198,27 +204,14 @@
             );
         }
 
-        document.getElementById(
-            'header-connection-detail'
-        ).textContent = detail;
+        setText('header-connection-detail', detail);
     }
 
     function monitoring(text, detail, tone) {
-        document.getElementById(
-            'header-monitoring'
-        ).textContent = text;
-
-        document.getElementById(
-            'header-monitoring-detail'
-        ).textContent = detail;
-
-        document.getElementById(
-            'sidebar-monitoring'
-        ).textContent = text;
-
-        document.getElementById(
-            'sidebar-monitoring-detail'
-        ).textContent = detail;
+        setText('header-monitoring', text);
+        setText('header-monitoring-detail', detail);
+        setText('sidebar-monitoring', text);
+        setText('sidebar-monitoring-detail', detail);
 
         document.querySelectorAll(
             '.monitor-dot, .sidebar-system__dot'
@@ -245,6 +238,8 @@
         busy = true;
 
         refresh.disabled = true;
+
+        status.textContent = 'Consultando el estado de la red…';
 
         panel.setAttribute(
             'aria-busy',
@@ -303,17 +298,11 @@
                     ([name]) => name
                 );
 
-            document.getElementById(
-                'gkp-count'
-            ).textContent = String(
-                rows.length
-            );
+            setText('gkp-count', String(rows.length));
 
-            document.getElementById(
-                'gkp-summary'
-            ).textContent = rows.length === 1
+            setText('gkp-summary', rows.length === 1
                 ? '1 excepción requiere revisión'
-                : `${rows.length} excepciones requieren revisión`;
+                : `${rows.length} excepciones requieren revisión`);
 
             const sources = document.getElementById(
                 'header-sources'
@@ -352,20 +341,8 @@
             const now = new Date()
                 .toLocaleString('es-CO');
 
-            document.getElementById(
-                'gkp-updated'
-            ).textContent =
-                `Última actualización: ${now}`;
-
-            document.getElementById(
-                'header-datetime'
-            ).textContent = now;
-
-            document.getElementById(
-                'sidebar-total'
-            ).textContent = String(
-                rows.length
-            );
+            setText('gkp-updated', `Última actualización: ${now}`);
+            setText('header-datetime', now);
 
             connection(
                 failed.length
@@ -373,26 +350,15 @@
                     : 'Conectado',
                 'Actualización cada 30 segundos'
             );
-        } catch {
+        } catch (error) {
             body.replaceChildren();
 
-            document.getElementById(
-                'sidebar-total'
-            ).textContent = '—';
+            setText('gkp-count', '—');
+            setText('gkp-summary', 'Estado operacional no disponible');
 
-            document.getElementById(
-                'gkp-count'
-            ).textContent = '—';
-
-            document.getElementById(
-                'gkp-summary'
-            ).textContent = 'Estado operacional no disponible';
-
-            status.textContent =
-                'No se pudo consultar el estado ' +
-                'de la red. Reintentando ' +
-                'automáticamente; también puedes ' +
-                'pulsar Actualizar.';
+            status.textContent = error?.name === 'AbortError'
+                ? 'La consulta excedió el tiempo disponible. Se reintentará automáticamente; también puedes pulsar Actualizar.'
+                : 'No se pudo consultar el estado de la red. Se reintentará automáticamente; también puedes pulsar Actualizar.';
 
             connection(
                 'Sin conexión',
@@ -426,13 +392,11 @@
         }
     }
 
-    document.getElementById(
-        'header-datetime'
-    ).textContent = 'Pendiente';
+    if (!body || !status || !panel || !refresh) {
+        return;
+    }
 
-    document.getElementById(
-        'sidebar-total'
-    ).textContent = '—';
+    setText('header-datetime', 'Pendiente');
 
     refresh.addEventListener(
         'click',
