@@ -29,27 +29,46 @@ try {
         if (
             !is_string($row['equipo'] ?? null)
             || !is_numeric($row['valor'] ?? null)
-            || !in_array($row['estado'] ?? null, ['Pérdida', 'Latencia'], true)
+            || !in_array(
+                $row['estado'] ?? null,
+                ['Pérdida', 'Latencia', 'Pérdida + Latencia'],
+                true
+            )
         ) {
             throw new RuntimeException('Lectura inválida de pérdida y latencia');
         }
 
         $valor = (float) $row['valor'];
         $estado = $row['estado'];
-        if (($estado === 'Pérdida' && $valor <= 10.0)
+        $esPerdida = $estado === 'Pérdida' || $estado === 'Pérdida + Latencia';
+        if (($esPerdida && $valor <= 10.0)
             || ($estado === 'Latencia' && $valor <= 50.0)) {
             continue;
         }
 
-        $rows[] = [
+        $normalized = [
             'equipo' => $row['equipo'],
             'valor' => $valor,
-            'unidad' => $estado === 'Pérdida' ? '%' : 'ms',
+            'unidad' => $esPerdida ? '%' : 'ms',
             'estado' => $estado,
-            'nivel' => $estado === 'Pérdida' && $valor === 100.0
+            'nivel' => $esPerdida && $valor === 100.0
                 ? 'rojo'
                 : ($row['nivel'] ?? 'neutral'),
         ];
+
+        if ($estado === 'Pérdida + Latencia') {
+            if (
+                $valor > 50.0
+                || !is_numeric($row['valor_secundario'] ?? null)
+                || (float) $row['valor_secundario'] <= 50.0
+            ) {
+                throw new RuntimeException('Lectura combinada inválida');
+            }
+            $normalized['valor_secundario'] = (float) $row['valor_secundario'];
+            $normalized['unidad_secundaria'] = 'ms';
+        }
+
+        $rows[] = $normalized;
     }
 
     jsonResponse([

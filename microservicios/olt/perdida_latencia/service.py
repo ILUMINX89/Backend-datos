@@ -33,7 +33,7 @@ def obtener_perdida_latencia_actual() -> dict[str, Any]:
         obtener_latencia_actual_flux(),
         fuente="red",
     )
-    eventos = []
+    metricas_por_equipo: dict[str, dict[str, float]] = {}
 
     for fila in filas:
         equipo = str(fila.get("equipo") or "").strip()
@@ -49,27 +49,43 @@ def obtener_perdida_latencia_actual() -> dict[str, Any]:
             continue
 
         if campo == "latency" and valor > 50:
+            metricas_por_equipo.setdefault(equipo, {})["latencia"] = valor
+        elif campo == "packet_loss" and valor > 10:
+            metricas_por_equipo.setdefault(equipo, {})["perdida"] = valor
+
+    eventos = []
+    for equipo in sorted(metricas_por_equipo):
+        metricas = metricas_por_equipo[equipo]
+        perdida = metricas.get("perdida")
+        latencia = metricas.get("latencia")
+
+        if perdida is not None:
+            evento = {
+                "equipo": equipo,
+                "valor": round(perdida, 2),
+                "unidad": "%",
+                "estado": "Pérdida",
+                "nivel": "rojo" if perdida == 100 else "neutral",
+            }
+            if latencia is not None and perdida <= 50:
+                evento.update(
+                    {
+                        "valor_secundario": round(latencia, 2),
+                        "unidad_secundaria": "ms",
+                        "estado": "Pérdida + Latencia",
+                    }
+                )
+            eventos.append(evento)
+        elif latencia is not None:
             eventos.append(
                 {
                     "equipo": equipo,
-                    "valor": round(valor, 2),
+                    "valor": round(latencia, 2),
                     "unidad": "ms",
                     "estado": "Latencia",
                     "nivel": "neutral",
                 }
             )
-        elif campo == "packet_loss" and valor > 10:
-            eventos.append(
-                {
-                    "equipo": equipo,
-                    "valor": round(valor, 2),
-                    "unidad": "%",
-                    "estado": "Pérdida",
-                    "nivel": "rojo" if valor == 100 else "neutral",
-                }
-            )
-
-    eventos.sort(key=lambda fila: (fila["equipo"], fila["estado"]))
 
     return {
         "consulta": "perdida_latencia_actual",

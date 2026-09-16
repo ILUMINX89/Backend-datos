@@ -204,7 +204,7 @@ def test_consulta_perdida_latencia_usa_fuente_confirmada():
     assert 'r.equipo == "AAC-BOG.CENTRO_ONNET-H1"' in historica
 
 
-def test_servicio_perdida_latencia_filtra_y_separa_eventos(monkeypatch):
+def test_servicio_perdida_latencia_compacta_por_equipo(monkeypatch):
     monkeypatch.setattr(
         perdida_latencia_service,
         "consultar_flux_temp",
@@ -214,28 +214,28 @@ def test_servicio_perdida_latencia_filtra_y_separa_eventos(monkeypatch):
             {"equipo": "OLT-2", "_field": "latency", "_value": 85},
             {"equipo": "OLT-2", "_field": "packet_loss", "_value": 24},
             {"equipo": "OLT-3", "_field": "packet_loss", "_value": 100},
-            {"equipo": "OLT-2", "_field": "latency", "_value": float("nan")},
+            {"equipo": "OLT-3", "_field": "latency", "_value": 90},
+            {"equipo": "OLT-4", "_field": "packet_loss", "_value": 51},
+            {"equipo": "OLT-4", "_field": "latency", "_value": 91},
+            {"equipo": "OLT-5", "_field": "latency", "_value": 65},
+            {"equipo": "OLT-6", "_field": "packet_loss", "_value": 24},
+            {"equipo": "OLT-7", "_field": "latency", "_value": float("nan")},
             {"equipo": "equipo no valido", "_field": "latency", "_value": 2},
         ],
     )
 
     resultado = perdida_latencia_service.obtener_perdida_latencia_actual()
 
-    assert resultado["cantidad"] == 3
+    assert resultado["cantidad"] == 5
     assert resultado["datos"] == [
-        {
-            "equipo": "OLT-2",
-            "valor": 85.0,
-            "unidad": "ms",
-            "estado": "Latencia",
-            "nivel": "neutral",
-        },
         {
             "equipo": "OLT-2",
             "valor": 24.0,
             "unidad": "%",
-            "estado": "Pérdida",
+            "estado": "Pérdida + Latencia",
             "nivel": "neutral",
+            "valor_secundario": 85.0,
+            "unidad_secundaria": "ms",
         },
         {
             "equipo": "OLT-3",
@@ -244,7 +244,29 @@ def test_servicio_perdida_latencia_filtra_y_separa_eventos(monkeypatch):
             "estado": "Pérdida",
             "nivel": "rojo",
         },
+        {
+            "equipo": "OLT-4",
+            "valor": 51.0,
+            "unidad": "%",
+            "estado": "Pérdida",
+            "nivel": "neutral",
+        },
+        {
+            "equipo": "OLT-5",
+            "valor": 65.0,
+            "unidad": "ms",
+            "estado": "Latencia",
+            "nivel": "neutral",
+        },
+        {
+            "equipo": "OLT-6",
+            "valor": 24.0,
+            "unidad": "%",
+            "estado": "Pérdida",
+            "nivel": "neutral",
+        },
     ]
+    assert len({fila["equipo"] for fila in resultado["datos"]}) == resultado["cantidad"]
 
 
 def test_temperatura_agrupa_por_olt_y_usa_maxima(monkeypatch):

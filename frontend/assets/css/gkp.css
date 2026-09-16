@@ -302,6 +302,12 @@
 .temperature-badge--red { color: #a31d31; background: #ffe6ea; border-color: #e68492; }
 .temperature-badge--orange { color: #934304; background: #ffead9; border-color: #ed9e60; }
 .gkp-table .gkp-value--down { color: #b51f35; font-weight: 800; }
+.gestion-value-stack {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 1px;
+    line-height: 1.15;
+}
 .gkp-panel-foot {
     min-height: 34px;
     display: flex;

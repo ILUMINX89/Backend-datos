@@ -29,7 +29,20 @@
 
             equipo.textContent = item.equipo || 'N/D';
             equipo.className = 'gkp-equipment';
-            valor.textContent = formatNumber(item.valor, item.unidad || '');
+            const valueStack = document.createElement('span');
+            valueStack.className = 'gestion-value-stack';
+            const primaryValue = document.createElement('span');
+            primaryValue.textContent = formatNumber(item.valor, item.unidad || '');
+            valueStack.appendChild(primaryValue);
+            if (Number.isFinite(Number(item.valor_secundario))) {
+                const secondaryValue = document.createElement('span');
+                secondaryValue.textContent = formatNumber(
+                    item.valor_secundario,
+                    item.unidad_secundaria || 'ms'
+                );
+                valueStack.appendChild(secondaryValue);
+            }
+            valor.appendChild(valueStack);
             badge.textContent = item.estado || '—';
             badge.className = item.nivel === 'rojo'
                 ? 'gkp-badge gkp-badge--down'
