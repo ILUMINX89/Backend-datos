@@ -8,7 +8,7 @@
                 <span class="brand-signal__core"></span>
             </div>
             <div class="sidebar-brand__text">
-                <strong>NOC BOA</strong>
+                <strong>RKP</strong>
                 <span>Operación FTTH / HFC</span>
             </div>
         </a>
@@ -51,6 +51,6 @@
                 <span>NOC Colombia</span>
             </div>
         </div>
-        <div class="sidebar-version">NOC BOA · v1.0</div>
+        <div class="sidebar-version">RKP · v1.0</div>
     </div>
 </aside>

@@ -12,17 +12,13 @@
 <body class="gkp-page">
 <div class="app">
     <?php require __DIR__ . '/components/sidebar.php'; ?>
-    <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="main-sidebar" aria-label="Ocultar barra lateral" title="Ocultar barra lateral">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 18 9 12l6-6"/>
-        </svg>
-    </button>
     <main class="main">
         <?php require __DIR__ . '/components/header.php'; ?>
         <div class="gkp-content">
             <div class="gkp-toolbar">
                 <div class="gkp-toolbar__summary">
                     <strong id="gkp-summary">Consultando excepciones operacionales…</strong>
+                    <span class="gkp-toolbar__separator" aria-hidden="true">·</span>
                     <span>Ordenadas para revisión por prioridad operacional</span>
                 </div>
                 <span id="gkp-updated" class="sr-only">Última actualización: pendiente</span>

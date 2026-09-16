@@ -1,8 +1,16 @@
 <header class="topbar">
     <div class="topbar__main">
-        <div class="topbar__title-group">
-            <h1>Estado operacional de red</h1>
-            <p>Excepciones activas y temperatura OLT</p>
+        <div class="topbar__left">
+            <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-controls="main-sidebar" aria-label="Ocultar barra lateral" title="Ocultar barra lateral">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 18 9 12l6-6"/>
+                </svg>
+            </button>
+            <span class="topbar__collapsed-brand">RKP</span>
+            <div class="topbar__title-group">
+                <h1>Estado operacional de red</h1>
+                <p>Excepciones activas y temperatura OLT</p>
+            </div>
         </div>
 
         <div class="topbar__status" aria-label="Estado del sistema">

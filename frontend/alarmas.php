@@ -18,7 +18,7 @@ $conteo=[1=>0,2=>0,3=>0]; foreach($alarmas as $a){$conteo[$a["tipo"]]++;} $total
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NOC BOA</title>
+<title>RKP</title>
 <style>
 :root{--bg:#000;--sidebar:#030303;--panel:#07090d;--panel2:#0a0d12;--line:#1c2834;--text:#f3f6fa;--muted:#98a6b3;--blue:#1499ff;--green:#15d97a;--yellow:#ffd028;--orange:#ff7a18;--red:#ff3048}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}body{min-height:100vh}
@@ -41,7 +41,7 @@ $conteo=[1=>0,2=>0,3=>0]; foreach($alarmas as $a){$conteo[$a["tipo"]]++;} $total
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand"><div class="ico">📡</div><div><h2>NOC BOA</h2><small>Monitoreo GPON / OLT</small></div></div>
+<div class="brand"><div class="ico">📡</div><div><h2>RKP</h2><small>Monitoreo GPON / OLT</small></div></div>
 <nav class="nav">
 <a href="#" class="active">🏠 <span>Inicio</span></a>
 <a href="#">🔔 <span>Alarmas</span><span class="badge"><?=$total?></span></a>
@@ -80,7 +80,7 @@ $conteo=[1=>0,2=>0,3=>0]; foreach($alarmas as $a){$conteo[$a["tipo"]]++;} $total
 <?php foreach($alarmas as $i=>$a){ ?><tr class="<?=$a["tipo"]===1?'critical':''?>"><td><?=$i+1?></td><td><?=$a["hora"]?></td><td><span class="type t<?=$a["tipo"]?>">Tipo <?=$a["tipo"]?></span></td><td><span class="state"><?=$a["estado"]?></span></td><td><?=htmlspecialchars($a["olt"])?></td><td><?=$a["puerto"]?></td><td class="d<?=$a["tipo"]?>"><?=htmlspecialchars($a["descripcion"])?></td><td><?=htmlspecialchars($a["sitio"])?></td><td><?=$a["valor"]?></td><td><button class="btn detalle">Ver detalle ↗</button></td></tr><?php } ?>
 </tbody></table></div>
 </section>
-<div class="footer"><span>NOC BOA | Monitoreo y Gestión GPON</span><span><span style="color:var(--green)">● Operativa</span> &nbsp; <span style="color:var(--yellow)">● Advertencia</span> &nbsp; <span style="color:var(--red)">● Crítica</span> &nbsp; v1.0.0</span></div>
+<div class="footer"><span>RKP | Monitoreo y Gestión GPON</span><span><span style="color:var(--green)">● Operativa</span> &nbsp; <span style="color:var(--yellow)">● Advertencia</span> &nbsp; <span style="color:var(--red)">● Crítica</span> &nbsp; v1.0.0</span></div>
 </main></div>
 
 <div class="toast alerting" id="toast"><div class="bell">🔔</div><div style="flex:1"><strong>Alarma activa: titilando hasta interactuar</strong><br><small>Se detiene al hacer clic, mover el mouse, presionar una tecla o tocar la página.</small></div><button class="btn" id="cerrar">✕</button></div>

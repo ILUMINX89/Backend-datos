@@ -15,12 +15,9 @@
 }
 
 .sidebar-toggle {
-    position: fixed;
-    top: 50%;
-    left: 208px;
-    z-index: 110;
-    width: 32px;
-    height: 44px;
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
     display: grid;
     place-items: center;
     padding: 0;
@@ -28,10 +25,8 @@
     background: #0b1118;
     border: 1px solid #263746;
     border-radius: 7px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .24);
     cursor: pointer;
-    transform: translateY(-50%);
-    transition: left .2s ease, color .16s ease, background-color .16s ease, border-color .16s ease;
+    transition: color .16s ease, background-color .16s ease, border-color .16s ease;
 }
 
 .sidebar-toggle:hover {
@@ -52,7 +47,6 @@
 }
 
 .gkp-page.sidebar-collapsed .sidebar { transform: translateX(-100%); }
-.gkp-page.sidebar-collapsed .sidebar-toggle { left: 10px; }
 .gkp-page.sidebar-collapsed .sidebar-toggle svg { transform: rotate(180deg); }
 
 .sidebar__top { flex: 0 0 auto; }
