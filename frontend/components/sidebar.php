@@ -27,11 +27,6 @@
             <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5H15v-6H9v6H4.5A1.5 1.5 0 0 1 3 19.5z"/></svg></span>
             <span class="nav__text">Vista general</span>
         </a>
-        <a class="nav__item" href="index.php#alarmas">
-            <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span>
-            <span class="nav__text">Alarmas</span>
-            <span id="sidebar-total" class="sidebar-badge">0</span>
-        </a>
         <span class="nav__section nav__section--secondary">Gestión</span>
         <a class="nav__item" href="reportes.php">
             <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg></span>
