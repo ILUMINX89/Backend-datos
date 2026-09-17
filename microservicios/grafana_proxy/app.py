@@ -36,6 +36,7 @@ _RESPONSE_HEADER_DENYLIST = {
     "content-security-policy-report-only",
     "set-cookie",
     "content-length",
+    "content-encoding",
     "transfer-encoding",
     "connection",
 }
@@ -88,7 +89,11 @@ def _login_locked() -> None:
     except requests.RequestException as exc:
         raise ProxyUnavailable("No fue posible autenticar con Grafana") from exc
 
-    if response.status_code < 200 or response.status_code >= 300 or not _session.cookies:
+    if (
+        response.status_code < 200
+        or response.status_code >= 300
+        or not _session.cookies
+    ):
         raise ProxyUnavailable("No fue posible autenticar con Grafana")
     _authenticated = True
 
@@ -104,12 +109,22 @@ def _request_headers(request: Request) -> dict[str, str]:
         for name, value in request.headers.items()
         if name.lower() not in _REQUEST_HEADER_DENYLIST
     }
+
     headers["User-Agent"] = "Backend-Datos-Grafana-Proxy/1.0"
+    headers["Accept-Encoding"] = "identity"
+
     origin = _upstream_origin()
-    if "origin" in request.headers or request.method not in {"GET", "HEAD", "OPTIONS"}:
+
+    if "origin" in request.headers or request.method not in {
+        "GET",
+        "HEAD",
+        "OPTIONS",
+    }:
         headers["Origin"] = origin
+
     if "referer" in request.headers:
         headers["Referer"] = origin + "/"
+
     return headers
 
 

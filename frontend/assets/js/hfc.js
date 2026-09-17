@@ -20,17 +20,31 @@
     let currentRows = [];
     let selectedRow = null;
     let returnFocus = null;
+    let selectedDays = 2;
 
     function grafanaUrl(row) {
-        // En producción HTTPS, publicar este servicio detrás del reverse proxy HTTPS existente.
-        const url = new URL('http://127.0.0.1:8002/d-solo/adsfhrn/cmts');
+        const url = new URL(
+            'http://127.0.0.1:8002/d/adsfhrn/cmts'
+        );
+
         url.searchParams.set('orgId', '1');
-        url.searchParams.set('from', 'now-3d');
+
+        // Rango seleccionado por el usuario
+        url.searchParams.set('from', `now-${selectedDays}d`);
         url.searchParams.set('to', 'now');
+
         url.searchParams.set('timezone', 'browser');
+
+        // Variables dinámicas
         url.searchParams.set('var-CMTS', row.equipo);
         url.searchParams.set('var-NODO', row.puerto);
-        url.searchParams.set('panelId', 'panel-1');
+
+        // Panel Grafana
+        url.searchParams.set('viewPanel', 'panel-1');
+
+        // Tema claro
+        url.searchParams.set('theme', 'light');
+
         return url.toString();
     }
 
@@ -155,6 +169,49 @@
             panel.setAttribute('aria-busy', 'false');
         }
     }
+    const rangeButtons = [...document.querySelectorAll('.hfc-range button')];
+    const chartTitle = document.getElementById('hfc-chart-title');
+
+    function changeDays(days) {
+        selectedDays = Number(days);
+
+        rangeButtons.forEach((button) => {
+            const active = Number(button.dataset.days) === selectedDays;
+
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+
+        if (chartTitle) {
+            chartTitle.textContent = selectedDays === 1
+                ? 'Gráfica último día'
+                : `Gráfica últimos ${selectedDays} días`;
+        }
+
+        if (selectedRow) {
+            grafana.src = grafanaUrl(selectedRow);
+        }
+    }
+
+    if (
+        !body ||
+        !status ||
+        !panel ||
+        !refresh ||
+        !summary ||
+        !table ||
+        !modal ||
+        !dialog ||
+        !grafana
+    ) return;
+
+    rangeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            changeDays(button.dataset.days);
+        });
+    });
+
+    refresh.addEventListener('click', () => load());
 
     if (!body || !status || !panel || !refresh || !summary || !table || !modal || !dialog || !grafana) return;
     refresh.addEventListener('click', () => load());
