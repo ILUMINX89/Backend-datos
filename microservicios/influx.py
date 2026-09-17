@@ -21,6 +21,16 @@ def crear_cliente_temp() -> InfluxDBClient:
     )
 
 
+def crear_cliente_cmts() -> InfluxDBClient:
+    return InfluxDBClient(
+        url=settings.influx_cmts_url,
+        token=settings.influx_cmts_token,
+        org=settings.influx_cmts_org,
+        timeout=settings.influx_cmts_timeout_ms,
+        verify_ssl=settings.influx_cmts_verify_ssl,
+    )
+
+
 def probar_conexion_temp() -> bool:
     with crear_cliente_temp() as client:
         return bool(client.ping())
@@ -43,6 +53,9 @@ def consultar_flux_temp(
             verify_ssl=settings.influx_red_verify_ssl,
         )
         org = settings.influx_red_org
+    elif fuente == "cmts":
+        cliente = crear_cliente_cmts
+        org = settings.influx_cmts_org
     else:
         raise ValueError("Fuente InfluxDB no permitida")
 

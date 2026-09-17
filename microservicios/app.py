@@ -5,6 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from microservicios.alarmas.app import router as alarmas_router
+from microservicios.cmts.saturacion.router import router as cmts_saturacion_router
 from microservicios.olt.caidas.router import router as caidas_router
 from microservicios.olt.correlacion.router import router as correlacion_router
 from microservicios.olt.crc.router import router as crc_router
@@ -54,6 +55,7 @@ app.include_router(crc_router, prefix="/api/olt")
 app.include_router(correlacion_router, prefix="/api/olt")
 app.include_router(temperatura_router, prefix="/api/olt")
 app.include_router(perdida_latencia_router, prefix="/api/olt")
+app.include_router(cmts_saturacion_router, prefix="/api/cmts")
 
 # Las rutas existentes se conservan mientras el frontend PHP migra al nuevo servicio.
 app.include_router(alarmas_router)

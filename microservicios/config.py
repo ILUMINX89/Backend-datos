@@ -30,6 +30,17 @@ class Settings(BaseSettings):
     influx_temp_timeout_ms: int = 10000
 
     # ==========================================
+    # Influx - CMTS
+    # ==========================================
+
+    influx_cmts_url: str = ""
+    influx_cmts_verify_ssl: bool = False
+    influx_cmts_org: str = ""
+    influx_cmts_token: str = ""
+    influx_cmts_bucket: str = ""
+    influx_cmts_timeout_ms: int = 60000
+
+    # ==========================================
     # MySQL
     # ==========================================
 
