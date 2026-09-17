@@ -1,174 +1,427 @@
+import csv
 import os
-from pathlib import Path
+import sys
 
+import urllib3
 from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient
 
-BASE_DIR = Path(__file__).resolve().parent
-ENV_FILE = BASE_DIR / ".env"
+# ============================================================
+# CARGAR .ENV
+# ============================================================
 
-load_dotenv(dotenv_path=ENV_FILE, override=True)
-
-
-url = os.getenv("INFLUX_CMTS_URL")
-org = os.getenv("INFLUX_CMTS_ORG")
-token = os.getenv("INFLUX_CMTS_TOKEN")
-bucket = os.getenv("INFLUX_CMTS_BUCKET")
-timeout_ms = int(os.getenv("INFLUX_CMTS_TIMEOUT_MS", "60000"))
+load_dotenv()
 
 
-print("URL:", url)
-print("ORG:", org)
-print("BUCKET:", bucket)
-print("TOKEN cargado:", bool(token))
-print("TIMEOUT:", timeout_ms, "ms")
+# ============================================================
+# CONFIGURACIÓN
+# ============================================================
+
+URL = os.getenv("CMTS_INFLUX_URL")
+ORG = os.getenv("CMTS_INFLUX_ORG", "Claro")
+TOKEN = os.getenv("CMTS_INFLUX_TOKEN")
+BUCKET = os.getenv("CMTS_INFLUX_BUCKET", "CMTS")
+
+VERIFY_SSL = os.getenv("CMTS_INFLUX_VERIFY_SSL", "false").strip().lower() in (
+    "true",
+    "1",
+    "yes",
+    "si",
+)
+
+TIMEOUT_MS = int(os.getenv("CMTS_INFLUX_TIMEOUT_MS", "120000"))
 
 
-if not url:
-    raise RuntimeError("Falta INFLUX_CMTS_URL")
+# ============================================================
+# ESTRUCTURA DEL BUCKET
+# ============================================================
 
-if not org:
-    raise RuntimeError("Falta INFLUX_CMTS_ORG")
+MEASUREMENT = "estado_puertos"
 
-if not token:
-    raise RuntimeError("Falta INFLUX_CMTS_TOKEN")
+# Campo que usamos únicamente para obtener una serie
+# representativa por cada combinación de tags.
+FIELD = "cm_registrados"
 
-if not bucket:
-    raise RuntimeError("Falta INFLUX_CMTS_BUCKET")
+# Como buscamos el inventario actual, tomamos información
+# reciente.
+RANGO = "-1h"
 
 
-query_bw = f"""
-from(bucket: "{bucket}")
-  |> range(start: -30m)
-  |> filter(fn: (r) => r._measurement == "estado_puertos")
-  |> filter(fn: (r) => r._field == "bw")
-  |> filter(fn: (r) => exists r.cmts and exists r.descripcion)
-  |> group(columns: ["cmts", "descripcion"])
-  |> last()
-  |> keep(columns: [
-      "_time",
-      "_value",
-      "cmts",
-      "descripcion"
-  ])
+# ============================================================
+# VALIDACIONES
+# ============================================================
+
+if not URL:
+    print("ERROR: Falta CMTS_INFLUX_URL en el .env")
+    sys.exit(1)
+
+if not TOKEN:
+    print("ERROR: Falta CMTS_INFLUX_TOKEN en el .env")
+    sys.exit(1)
+
+if not VERIFY_SSL:
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+# ============================================================
+# NORMALIZACIÓN
+# ============================================================
+
+
+def normalizar_descripcion(descripcion):
+    """
+    Normaliza únicamente:
+    - espacios al inicio/final
+    - espacios múltiples
+    - mayúsculas/minúsculas
+
+    NO elimina:
+    - SEG A
+    - SEG B
+    - números
+    - contenido entre paréntesis
+
+    Ejemplo:
+
+    " NODO ABC   (CENTRO 1) "
+        ->
+    "NODO ABC (CENTRO 1)"
+    """
+
+    if descripcion is None:
+        return ""
+
+    return " ".join(str(descripcion).strip().upper().split())
+
+
+# ============================================================
+# CONSULTA INFLUX
+# ============================================================
+
+
+def consultar_datos(query_api):
+
+    flux = f"""
+from(bucket: "{BUCKET}")
+    |> range(start: {RANGO})
+    |> filter(
+        fn: (r) =>
+            r._measurement == "{MEASUREMENT}"
+            and r._field == "{FIELD}"
+    )
+    |> filter(
+        fn: (r) =>
+            exists r.cmts
+            and exists r.puerto
+            and exists r.descripcion
+    )
+    |> group(
+        columns: [
+            "cmts",
+            "puerto",
+            "descripcion"
+        ]
+    )
+    |> last()
+    |> keep(
+        columns: [
+            "_time",
+            "cmts",
+            "puerto",
+            "cmts_puerto",
+            "descripcion"
+        ]
+    )
 """
 
+    print("Ejecutando consulta en InfluxDB...")
+    print()
 
-query_utilizacion = f"""
-from(bucket: "{bucket}")
-  |> range(start: -30m)
-  |> filter(fn: (r) => r._measurement == "estado_puertos")
-  |> filter(fn: (r) => r._field == "utilizacion")
-  |> filter(fn: (r) => exists r.cmts and exists r.descripcion)
-  |> group(columns: ["cmts", "descripcion"])
-  |> last()
-  |> keep(columns: [
-      "_time",
-      "_value",
-      "cmts",
-      "descripcion"
-  ])
-"""
+    try:
+
+        tablas = query_api.query(query=flux, org=ORG)
+
+        return tablas
+
+    except Exception as error:
+
+        print("ERROR consultando InfluxDB:")
+        print(error)
+
+        sys.exit(1)
 
 
-with InfluxDBClient(
-    url=url,
-    token=token,
-    org=org,
-    verify_ssl=False,
-    timeout=timeout_ms,
-) as client:
+# ============================================================
+# OBTENER NODOS
+# ============================================================
 
-    query_api = client.query_api()
 
-    print("\nConsultando BW...")
+def procesar_nodos(tablas):
 
-    tablas_bw = query_api.query(query=query_bw, org=org)
+    # estructura:
+    #
+    # {
+    #   "NODO ABC (CENTRO)": {
+    #       ("CMTS1", "1/0"),
+    #       ("CMTS2", "2/1")
+    #   }
+    # }
 
-    print("Consultando utilización...")
+    nodos = {}
 
-    tablas_utilizacion = query_api.query(query=query_utilizacion, org=org)
+    registros_leidos = 0
+    registros_nodo = 0
+    ignorados = 0
 
-    datos_bw = {}
+    for tabla in tablas:
 
-    for tabla in tablas_bw:
         for registro in tabla.records:
 
-            cmts = registro.values.get("cmts")
-            descripcion = registro.values.get("descripcion")
-            bw = registro.get_value()
+            registros_leidos += 1
 
-            clave = (cmts, descripcion)
+            valores = registro.values
 
-            datos_bw[clave] = {
-                "bw": bw,
-                "time_bw": registro.get_time(),
-            }
+            descripcion_original = valores.get("descripcion") or ""
 
-    datos_utilizacion = {}
+            descripcion = normalizar_descripcion(descripcion_original)
 
-    for tabla in tablas_utilizacion:
-        for registro in tabla.records:
+            # Solo queremos nodos reales.
+            # Excluye cosas como:
+            #
+            # PUERTO LIBRE
+            # PUERTO AVERIADO
+            # IPV6
+            # SONDA DWH
+            # CM MINTIC
+            #
+            if not descripcion.startswith("NODO "):
+                ignorados += 1
+                continue
 
-            cmts = registro.values.get("cmts")
-            descripcion = registro.values.get("descripcion")
-            utilizacion = registro.get_value()
+            cmts = str(valores.get("cmts") or "SIN_CMTS").strip()
 
-            clave = (cmts, descripcion)
+            puerto = str(valores.get("puerto") or "SIN_PUERTO").strip()
 
-            datos_utilizacion[clave] = {
-                "utilizacion": utilizacion,
-                "time_utilizacion": registro.get_time(),
-            }
+            registros_nodo += 1
 
-    saturados = []
+            if descripcion not in nodos:
 
-    for clave, datos in datos_bw.items():
+                nodos[descripcion] = {
+                    "descripcion_original": (str(descripcion_original).strip()),
+                    "ubicaciones": set(),
+                }
 
-        if clave not in datos_utilizacion:
-            continue
+            # Lo importante para detectar duplicado
+            # es una ubicación distinta.
+            #
+            # Si Influx tiene 500 registros históricos del
+            # mismo nodo en el mismo CMTS/puerto, sigue siendo
+            # UNA sola ubicación.
+            nodos[descripcion]["ubicaciones"].add((cmts, puerto))
 
-        cmts, descripcion = clave
+    return (nodos, registros_leidos, registros_nodo, ignorados)
 
-        bw = datos["bw"]
-        utilizacion = datos_utilizacion[clave]["utilizacion"]
 
-        if bw is None or utilizacion is None:
-            continue
+# ============================================================
+# DETECTAR DUPLICADOS
+# ============================================================
 
-        if bw <= 0:
-            continue
 
-        porcentaje = (float(utilizacion) / float(bw)) * 100.0
+def obtener_duplicados(nodos):
 
-        # SOLO MAYORES A 80 %
-        if porcentaje <= 80.0:
-            continue
+    duplicados = {}
 
-        saturados.append(
-            {
-                "cmts": cmts,
-                "descripcion": descripcion,
-                "bw": bw,
-                "utilizacion": utilizacion,
-                "porcentaje": porcentaje,
-            }
-        )
+    for nombre_nodo, datos in nodos.items():
 
-    saturados.sort(key=lambda x: x["porcentaje"], reverse=True)
+        ubicaciones = datos["ubicaciones"]
 
-    print("\n=== PUERTOS SOBRE 80% ===\n")
+        # Duplicado:
+        #
+        # MISMO nombre completo del nodo
+        # +
+        # más de una ubicación CMTS/puerto
+        if len(ubicaciones) > 1:
 
-    for puerto in saturados:
+            duplicados[nombre_nodo] = datos
 
-        print(
-            {
-                "cmts": puerto["cmts"],
-                "descripcion": puerto["descripcion"],
-                "bw": puerto["bw"],
-                "utilizacion": puerto["utilizacion"],
-                "porcentaje": round(puerto["porcentaje"], 2),
-            }
-        )
+    return duplicados
 
-    print("\nTotal de puertos por encima del 80%:", len(saturados))
+
+# ============================================================
+# EXPORTAR CSV
+# ============================================================
+
+
+def exportar_csv(duplicados):
+
+    nombre_archivo = "nodos_duplicados_cmts.csv"
+
+    with open(nombre_archivo, "w", newline="", encoding="utf-8-sig") as archivo:
+
+        writer = csv.writer(archivo, delimiter=";")
+
+        writer.writerow(["NODO", "CMTS", "PUERTO", "CANTIDAD_UBICACIONES"])
+
+        for nombre_nodo in sorted(duplicados.keys()):
+
+            datos = duplicados[nombre_nodo]
+
+            ubicaciones = sorted(datos["ubicaciones"])
+
+            cantidad = len(ubicaciones)
+
+            for cmts, puerto in ubicaciones:
+
+                writer.writerow([nombre_nodo, cmts, puerto, cantidad])
+
+    return nombre_archivo
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+
+def main():
+
+    print("=" * 80)
+    print("ANÁLISIS DE NODOS - BUCKET CMTS")
+    print("=" * 80)
+
+    print(f"URL         : {URL}")
+    print(f"ORG         : {ORG}")
+    print(f"BUCKET      : {BUCKET}")
+    print(f"MEASUREMENT : {MEASUREMENT}")
+    print(f"RANGO       : {RANGO}")
+
+    print("TOKEN       : " + ("CARGADO" if TOKEN else "NO CARGADO"))
+
+    print()
+
+    # ========================================================
+    # CLIENTE
+    # ========================================================
+
+    client = InfluxDBClient(
+        url=URL, token=TOKEN, org=ORG, verify_ssl=VERIFY_SSL, timeout=TIMEOUT_MS
+    )
+
+    try:
+
+        query_api = client.query_api()
+
+        # ====================================================
+        # CONSULTAR
+        # ====================================================
+
+        tablas = consultar_datos(query_api)
+
+        print("Consulta terminada.")
+
+        print()
+
+        # ====================================================
+        # PROCESAR
+        # ====================================================
+
+        nodos, registros_leidos, registros_nodo, ignorados = procesar_nodos(tablas)
+
+        # ====================================================
+        # DUPLICADOS
+        # ====================================================
+
+        duplicados = obtener_duplicados(nodos)
+
+        total_nodos_unicos = len(nodos)
+
+        total_nodos_duplicados = len(duplicados)
+
+        total_no_duplicados = total_nodos_unicos - total_nodos_duplicados
+
+        # Cantidad física de asociaciones
+        # nodo + CMTS + puerto
+        total_ubicaciones = sum(len(datos["ubicaciones"]) for datos in nodos.values())
+
+        # ====================================================
+        # RESUMEN
+        # ====================================================
+
+        print("=" * 80)
+        print("RESULTADO")
+        print("=" * 80)
+
+        print(f"Registros leídos         : " f"{registros_leidos}")
+
+        print(f"Registros de nodos       : " f"{registros_nodo}")
+
+        print(f"Registros ignorados      : " f"{ignorados}")
+
+        print()
+
+        print(f"Total nombres de nodo    : " f"{total_nodos_unicos}")
+
+        print(f"Total ubicaciones        : " f"{total_ubicaciones}")
+
+        print(f"Nodos duplicados         : " f"{total_nodos_duplicados}")
+
+        print(f"Nodos no duplicados      : " f"{total_no_duplicados}")
+
+        # ====================================================
+        # MOSTRAR DUPLICADOS
+        # ====================================================
+
+        print()
+        print("=" * 80)
+        print("NODOS DUPLICADOS")
+        print("=" * 80)
+
+        if not duplicados:
+
+            print()
+            print("No se encontraron " "nodos duplicados.")
+
+        else:
+
+            for nombre_nodo in sorted(duplicados.keys()):
+
+                datos = duplicados[nombre_nodo]
+
+                ubicaciones = sorted(datos["ubicaciones"])
+
+                print()
+
+                print(f"{nombre_nodo}")
+
+                print(f"Ubicaciones: " f"{len(ubicaciones)}")
+
+                for numero, (cmts, puerto) in enumerate(ubicaciones, start=1):
+
+                    print(f"  {numero}. " f"CMTS: {cmts} " f"| PUERTO: {puerto}")
+
+        # ====================================================
+        # CSV
+        # ====================================================
+
+        print()
+
+        if duplicados:
+
+            archivo_csv = exportar_csv(duplicados)
+
+            print("=" * 80)
+
+            print(f"CSV generado: " f"{archivo_csv}")
+
+            print("=" * 80)
+
+    finally:
+
+        client.close()
+
+
+# ============================================================
+# EJECUTAR
+# ============================================================
+
+if __name__ == "__main__":
+    main()
