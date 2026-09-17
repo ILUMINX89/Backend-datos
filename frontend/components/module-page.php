@@ -11,9 +11,10 @@ if (!isset($pageTitle, $pageDescription, $pageSections) || !is_array($pageSectio
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>RKP | <?= htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8') ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/sidebar.css">
-    <link rel="stylesheet" href="assets/css/module-page.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/sidebar.css">
+<link rel="stylesheet" href="assets/css/gkp.css">
+<link rel="stylesheet" href="assets/css/module-page.css">
 </head>
 <body class="gkp-page">
 <div class="app">

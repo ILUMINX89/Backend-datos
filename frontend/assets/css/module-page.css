@@ -1,6 +1,10 @@
 .module-content {
+    width: 100%;
+    min-width: 0;
     display: grid;
     gap: 16px;
+    padding: 14px;
+    box-sizing: border-box;
 }
 
 .module-heading {
@@ -9,7 +13,7 @@
 
 .module-heading h2 {
     margin: 0;
-    color: #f4f7fb;
+    color: var(--gkp-ink);
     font-size: 24px;
     line-height: 1.2;
     letter-spacing: -.02em;
@@ -17,32 +21,39 @@
 
 .module-heading p {
     margin: 7px 0 0;
-    color: #83919f;
+    color: var(--gkp-muted);
     font-size: 13px;
     line-height: 1.5;
 }
 
 .module-sections {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    grid-template-columns: repeat(auto-fit,
+            minmax(min(100%, 320px), 1fr));
     gap: 13px;
 }
 
 .module-panel {
     min-height: 190px;
     padding: 16px;
+    background: var(--gkp-surface);
+    border: 1px solid var(--gkp-line);
+    border-radius: 12px;
+    box-shadow: none;
 }
 
 .module-panel h3 {
     margin: 0;
-    color: #dce5ee;
+    color: var(--gkp-ink);
     font-size: 16px;
+    line-height: 1.3;
 }
 
 .module-panel p {
     margin: 5px 0 0;
-    color: #83919f;
+    color: var(--gkp-muted);
     font-size: 12px;
+    line-height: 1.45;
 }
 
 .module-empty {
@@ -50,15 +61,170 @@
     display: grid;
     place-content: center;
     margin-top: 14px;
-    color: #83919f;
-    background: #05070a;
-    border: 1px solid #192431;
+    padding: 16px;
+    color: var(--gkp-muted);
+    background: #edf5fa;
+    border: 1px solid var(--gkp-line);
     border-radius: 8px;
     text-align: center;
     font-size: 12px;
 }
 
+.module-empty strong {
+    color: var(--gkp-ink);
+}
+
+.module-empty span {
+    color: var(--gkp-muted);
+}
+
+.module-panel table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    background: var(--gkp-surface);
+}
+
+.module-panel th {
+    padding: 9px 12px;
+    color: #52627a;
+    background: #e7f0f6;
+    border-bottom: 1px solid #c4d1dd;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .035em;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.module-panel td {
+    padding: 9px 12px;
+    color: var(--gkp-ink-2);
+    border-bottom: 1px solid var(--gkp-line-soft);
+    font-size: 13px;
+    vertical-align: middle;
+}
+
+.module-panel tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.module-panel tbody tr:hover {
+    background: #edf6fb;
+}
+
+.module-panel button,
+.module-panel .button {
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 6px 11px;
+    color: #23435f;
+    background: #edf5fa;
+    border: 1px solid #b9cad8;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.module-panel button:hover,
+.module-panel .button:hover {
+    background: #e4f0f7;
+    border-color: #8fb0c8;
+}
+
+.module-panel button:focus-visible,
+.module-panel .button:focus-visible {
+    outline: 2px solid #39a9f8;
+    outline-offset: 2px;
+}
+
+.module-panel input,
+.module-panel select,
+.module-panel textarea {
+    width: 100%;
+    min-height: 34px;
+    padding: 7px 9px;
+    color: var(--gkp-ink);
+    background: #ffffff;
+    border: 1px solid var(--gkp-line);
+    border-radius: 7px;
+    font: inherit;
+    font-size: 12px;
+    box-sizing: border-box;
+}
+
+.module-panel input:focus,
+.module-panel select:focus,
+.module-panel textarea:focus {
+    outline: 2px solid #39a9f8;
+    outline-offset: 1px;
+    border-color: #7aaed2;
+}
+
+.module-panel label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--gkp-ink-2);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.module-panel .muted {
+    color: var(--gkp-muted);
+}
+
+.module-panel .status-ok {
+    color: #167b50;
+}
+
+.module-panel .status-warning {
+    color: #8d6b00;
+}
+
+.module-panel .status-error {
+    color: #a31d31;
+}
+
+@media (max-width: 1023px) {
+    .module-content {
+        padding: 12px;
+    }
+
+    .module-sections {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 700px) {
-    .module-heading h2 { font-size: 21px; }
-    .module-panel { min-height: 160px; }
+    .module-content {
+        gap: 12px;
+        padding: 10px;
+    }
+
+    .module-heading h2 {
+        font-size: 21px;
+    }
+
+    .module-heading p {
+        font-size: 12px;
+    }
+
+    .module-panel {
+        min-height: 160px;
+        padding: 13px;
+    }
+
+    .module-empty {
+        min-height: 90px;
+    }
+
+    .module-panel th,
+    .module-panel td {
+        padding: 8px 9px;
+    }
 }
