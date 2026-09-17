@@ -24,23 +24,23 @@
 
     function grafanaUrl(row) {
         const url = new URL(
-            'http://127.0.0.1:8002/d/adsfhrn/cmts'
+            'http://127.0.0.1:8002/d-solo/adsfhrn/cmts'
         );
 
         url.searchParams.set('orgId', '1');
 
-        // Rango seleccionado por el usuario
+        // Rango seleccionado con los botones 1D / 2D / 3D / 7D
         url.searchParams.set('from', `now-${selectedDays}d`);
         url.searchParams.set('to', 'now');
 
         url.searchParams.set('timezone', 'browser');
 
-        // Variables dinámicas
+        // CMTS y nodo dinámicos
         url.searchParams.set('var-CMTS', row.equipo);
         url.searchParams.set('var-NODO', row.puerto);
 
-        // Panel Grafana
-        url.searchParams.set('viewPanel', 'panel-1');
+        // En d-solo se usa panelId, no viewPanel
+        url.searchParams.set('panelId', 'panel-1');
 
         // Tema claro
         url.searchParams.set('theme', 'light');

@@ -14,9 +14,9 @@
 
 <body class="gkp-page hfc-page">
     <div class="app">
-            <?php require __DIR__ . '/components/sidebar.php'; ?>
+        <?php require __DIR__ . '/components/sidebar.php'; ?>
         <main class="main">
-                <?php require __DIR__ . '/components/header.php'; ?>
+            <?php require __DIR__ . '/components/header.php'; ?>
             <div class="module-content">
                 <header class="module-heading">
                     <h2>Vista general HFC</h2>
@@ -46,7 +46,7 @@
                     <div id="hfc-status" class="module-empty" role="status" aria-live="polite"></div>
                 </section>
             </div>
-                <?php require __DIR__ . '/components/footer.php'; ?>
+            <?php require __DIR__ . '/components/footer.php'; ?>
         </main>
     </div>
     <div id="hfc-modal" class="hfc-modal" hidden>
@@ -79,9 +79,9 @@
 
                         <div class="hfc-range" aria-label="Rango de tiempo">
                             <button type="button" data-days="1">1D</button>
-                            <button type="button" data-days="2" class="is-active">2D</button>
-                            <button type="button" data-days="3">3D</button>
+                            <button type="button" data-days="3" class="is-active">3D</button>
                             <button type="button" data-days="7">7D</button>
+                            <button type="button" data-days="30">30D</button>
                         </div>
                     </div>
                     <div class="hfc-chart-frame">
