@@ -95,6 +95,57 @@
         <?php require __DIR__ . '/components/footer.php'; ?>
     </main>
 </div>
+<div id="ftth-modal" class="ftth-modal" hidden>
+    <div class="ftth-modal__backdrop" data-ftth-close aria-hidden="true"></div>
+    <section class="ftth-dialog" role="dialog" aria-modal="true" aria-labelledby="ftth-modal-title" tabindex="-1">
+        <header class="ftth-dialog__header">
+            <div>
+                <h2 id="ftth-modal-title">Detalle OLT</h2>
+                <p id="ftth-modal-olt"></p>
+            </div>
+            <button id="ftth-modal-close" class="ftth-close" type="button" aria-label="Cerrar detalle OLT" title="Cerrar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+        </header>
+        <div class="ftth-dialog__body">
+            <div class="ftth-controls">
+                <div class="ftth-range" role="group" aria-label="Rango de tiempo">
+                    <button type="button" data-ftth-days="1" class="is-active" aria-pressed="true">1D</button>
+                    <button type="button" data-ftth-days="3" aria-pressed="false">3D</button>
+                    <button type="button" data-ftth-days="7" aria-pressed="false">7D</button>
+                    <button type="button" data-ftth-days="30" aria-pressed="false">30D</button>
+                </div>
+                <div class="ftth-panel-toggles" role="group" aria-label="Gráficas adicionales">
+                    <button id="ftth-toggle-power" type="button" aria-pressed="false">Potencias uplink</button>
+                    <button id="ftth-toggle-crc" type="button" aria-pressed="false">Errores CRC</button>
+                </div>
+            </div>
+            <div class="ftth-charts">
+                <article class="ftth-chart-card">
+                    <h3>Tráfico OLT</h3>
+                    <div class="ftth-chart-frame">
+                        <span class="ftth-loading" aria-live="polite">Cargando gráfica…</span>
+                        <iframe id="ftth-grafana-main" title="Tráfico OLT" loading="eager"></iframe>
+                    </div>
+                </article>
+                <article id="ftth-power-card" class="ftth-chart-card" hidden>
+                    <h3>Potencias uplink</h3>
+                    <div class="ftth-chart-frame">
+                        <span class="ftth-loading" aria-live="polite">Cargando gráfica…</span>
+                        <iframe id="ftth-grafana-power" title="Potencias de puertos uplink" loading="lazy"></iframe>
+                    </div>
+                </article>
+                <article id="ftth-crc-card" class="ftth-chart-card" hidden>
+                    <h3>Errores CRC</h3>
+                    <div class="ftth-chart-frame">
+                        <span class="ftth-loading" aria-live="polite">Cargando gráfica…</span>
+                        <iframe id="ftth-grafana-crc" title="Errores CRC" loading="lazy"></iframe>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+</div>
 <script src="assets/js/sidebar.js" defer></script>
 <script src="assets/js/gkp.js" defer></script>
 <script src="assets/js/temperatura.js" defer></script>

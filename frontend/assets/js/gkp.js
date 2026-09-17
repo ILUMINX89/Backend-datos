@@ -12,6 +12,23 @@
 
     let busy = false;
     let hasValidData = false;
+    let ftthSelectedRow = null;
+    let ftthSelectedDays = 1;
+    let ftthPowerVisible = false;
+    let ftthCrcVisible = false;
+    let ftthReturnFocus = null;
+
+    const app = document.querySelector('.app');
+    const ftthModal = document.getElementById('ftth-modal');
+    const ftthDialog = ftthModal?.querySelector('.ftth-dialog');
+    const ftthModalClose = document.getElementById('ftth-modal-close');
+    const ftthMainFrame = document.getElementById('ftth-grafana-main');
+    const ftthPowerFrame = document.getElementById('ftth-grafana-power');
+    const ftthCrcFrame = document.getElementById('ftth-grafana-crc');
+    const ftthPowerCard = document.getElementById('ftth-power-card');
+    const ftthCrcCard = document.getElementById('ftth-crc-card');
+    const ftthPowerToggle = document.getElementById('ftth-toggle-power');
+    const ftthCrcToggle = document.getElementById('ftth-toggle-crc');
 
     function setText(id, text) {
         const element = document.getElementById(id);
@@ -75,6 +92,116 @@
          * 14,81 CRC/s
          */
         return `${number.format(valor)} ${row.unidad}`;
+    }
+
+    function ftthGrafanaUrl(row, panelId) {
+        const url = new URL(
+            'http://127.0.0.1:8002/d-solo/adqfqpc/olt'
+        );
+
+        url.searchParams.set('orgId', '1');
+        url.searchParams.set('from', `now-${ftthSelectedDays}d`);
+        url.searchParams.set('to', 'now');
+        url.searchParams.set('timezone', 'browser');
+        url.searchParams.set('var-OLT', row.equipo);
+        url.searchParams.set('var-PUERTO', '$__all');
+        url.searchParams.set('var-SLOT', '$__all');
+        url.searchParams.set('refresh', '5m');
+        url.searchParams.set('panelId', panelId);
+        url.searchParams.set('theme', 'light');
+
+        return url.toString();
+    }
+
+    function loadFtthFrame(frame, panelId) {
+        if (!frame || !ftthSelectedRow) {
+            return;
+        }
+
+        const loading = frame.parentElement?.querySelector('.ftth-loading');
+
+        if (loading) {
+            loading.hidden = false;
+            loading.textContent = 'Cargando gráfica…';
+        }
+
+        frame.src = ftthGrafanaUrl(ftthSelectedRow, panelId);
+    }
+
+    function resetFtthToggle(button, active) {
+        button?.classList.toggle('is-active', active);
+        button?.setAttribute('aria-pressed', String(active));
+    }
+
+    function setFtthRange(days) {
+        ftthSelectedDays = days;
+
+        ftthModal?.querySelectorAll('[data-ftth-days]').forEach((button) => {
+            const active = Number(button.dataset.ftthDays) === days;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+
+        loadFtthFrame(ftthMainFrame, 'panel-1');
+
+        if (ftthPowerVisible) {
+            loadFtthFrame(ftthPowerFrame, 'panel-2');
+        }
+
+        if (ftthCrcVisible) {
+            loadFtthFrame(ftthCrcFrame, 'panel-3');
+        }
+    }
+
+    function openFtthModal(row, trigger) {
+        ftthSelectedRow = row;
+        ftthSelectedDays = 1;
+        ftthPowerVisible = false;
+        ftthCrcVisible = false;
+        ftthReturnFocus = trigger;
+
+        setText('ftth-modal-olt', row.equipo);
+        ftthPowerCard.hidden = true;
+        ftthCrcCard.hidden = true;
+        ftthPowerFrame.removeAttribute('src');
+        ftthCrcFrame.removeAttribute('src');
+        resetFtthToggle(ftthPowerToggle, false);
+        resetFtthToggle(ftthCrcToggle, false);
+        ftthModal.hidden = false;
+        document.body.classList.add('ftth-modal-open');
+        app?.setAttribute('inert', '');
+        setFtthRange(1);
+        ftthModalClose?.focus();
+    }
+
+    function closeFtthModal() {
+        if (!ftthModal || ftthModal.hidden) {
+            return;
+        }
+
+        ftthModal.hidden = true;
+        [ftthMainFrame, ftthPowerFrame, ftthCrcFrame].forEach((frame) => {
+            frame?.removeAttribute('src');
+        });
+        ftthSelectedRow = null;
+        ftthSelectedDays = 1;
+        ftthPowerVisible = false;
+        ftthCrcVisible = false;
+        ftthPowerCard.hidden = true;
+        ftthCrcCard.hidden = true;
+        resetFtthToggle(ftthPowerToggle, false);
+        resetFtthToggle(ftthCrcToggle, false);
+        document.body.classList.remove('ftth-modal-open');
+        app?.removeAttribute('inert');
+        if (ftthReturnFocus?.isConnected) {
+            ftthReturnFocus.focus();
+        } else if (ftthReturnFocus) {
+            const label = ftthReturnFocus.getAttribute('aria-label');
+            [...document.querySelectorAll('.ftth-eye-button')]
+                .find((button) => button.getAttribute('aria-label') === label)
+                ?.focus();
+        }
+        ftthReturnFocus = null;
     }
 
     function render(rows) {
@@ -161,7 +288,19 @@
 
             badge.title = row.detalle || '';
 
-            state.append(badge);
+            const stateActions = document.createElement('div');
+            const eyeButton = document.createElement('button');
+
+            stateActions.className = 'gkp-state-actions';
+            eyeButton.className = 'ftth-eye-button';
+            eyeButton.type = 'button';
+            eyeButton.title = 'Ver detalle OLT';
+            eyeButton.setAttribute('aria-label', `Ver detalle de ${row.equipo}`);
+            eyeButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>';
+            eyeButton.addEventListener('click', () => openFtthModal(row, eyeButton));
+
+            stateActions.append(badge, eyeButton);
+            state.append(stateActions);
 
             tr.append(
                 port,
@@ -400,6 +539,74 @@
     if (!body || !status || !panel || !refresh) {
         return;
     }
+
+    ftthModalClose?.addEventListener('click', closeFtthModal);
+    ftthModal?.querySelector('[data-ftth-close]')?.addEventListener('click', closeFtthModal);
+
+    ftthModal?.querySelectorAll('[data-ftth-days]').forEach((button) => {
+        button.addEventListener('click', () => setFtthRange(Number(button.dataset.ftthDays)));
+    });
+
+    ftthPowerToggle?.addEventListener('click', () => {
+        ftthPowerVisible = !ftthPowerVisible;
+        ftthPowerCard.hidden = !ftthPowerVisible;
+        resetFtthToggle(ftthPowerToggle, ftthPowerVisible);
+
+        if (ftthPowerVisible) {
+            loadFtthFrame(ftthPowerFrame, 'panel-2');
+        } else {
+            ftthPowerFrame.removeAttribute('src');
+        }
+    });
+
+    ftthCrcToggle?.addEventListener('click', () => {
+        ftthCrcVisible = !ftthCrcVisible;
+        ftthCrcCard.hidden = !ftthCrcVisible;
+        resetFtthToggle(ftthCrcToggle, ftthCrcVisible);
+
+        if (ftthCrcVisible) {
+            loadFtthFrame(ftthCrcFrame, 'panel-3');
+        } else {
+            ftthCrcFrame.removeAttribute('src');
+        }
+    });
+
+    [ftthMainFrame, ftthPowerFrame, ftthCrcFrame].forEach((frame) => {
+        frame?.addEventListener('load', () => {
+            const loading = frame.parentElement?.querySelector('.ftth-loading');
+            if (loading) loading.hidden = true;
+        });
+        frame?.addEventListener('error', () => {
+            const loading = frame.parentElement?.querySelector('.ftth-loading');
+            if (loading) loading.textContent = 'No se pudo cargar la gráfica.';
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (!ftthModal || ftthModal.hidden) return;
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeFtthModal();
+            return;
+        }
+
+        if (event.key !== 'Tab') return;
+
+        const focusable = [...ftthDialog.querySelectorAll(
+            'button:not([disabled]), iframe[src], [href], [tabindex]:not([tabindex="-1"])'
+        )].filter((element) => !element.closest('[hidden]'));
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+        }
+    });
 
     setText('header-datetime', 'Pendiente');
 
