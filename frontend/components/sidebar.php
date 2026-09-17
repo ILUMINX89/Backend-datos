@@ -1,12 +1,14 @@
 <?php
 $sidebarPage = basename($_SERVER['PHP_SELF'] ?? 'index.php');
-$sidebarModule = isset($_GET['module']) ? (string) $_GET['module'] : '';
-$sidebarView = isset($_GET['view']) ? (string) $_GET['view'] : '';
-$uplinkViews = ['saturaciones', 'caidas', 'atenuaciones', 'intermitencias'];
-$ponViews = ['duplicadas', 'atenuadas'];
-$overviewActive = $sidebarPage === 'index.php' && $sidebarModule === '';
-$uplinkActive = $sidebarModule === 'uplink' && in_array($sidebarView, $uplinkViews, true);
-$ponActive = $sidebarModule === 'pon' && in_array($sidebarView, $ponViews, true);
+$overviewActive = $sidebarPage === 'index.php';
+$routinePages = [
+    'recursos-zte.php' => 'Recursos ZTE',
+    'autofind-hw.php' => 'Autofind HW',
+    'onts.php' => 'ONTs',
+    'troncales-pon.php' => 'Troncales PON',
+    'agotamiento-ip.php' => 'Agotamiento de IP',
+];
+$routinesActive = array_key_exists($sidebarPage, $routinePages);
 ?>
 <aside id="main-sidebar" class="sidebar" aria-label="Navegación principal">
     <div class="sidebar__top">
@@ -31,48 +33,24 @@ $ponActive = $sidebarModule === 'pon' && in_array($sidebarView, $ponViews, true)
         </a>
 
         <span class="nav__section nav__section--ftth">FTTH</span>
-        <div class="nav__group<?= $uplinkActive ? ' is-active' : '' ?>" data-nav-group="uplink">
-            <button class="nav__item nav__toggle" type="button" aria-expanded="<?= $uplinkActive ? 'true' : 'false' ?>" aria-controls="submenu-uplink-ftth">
-                <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 18h14M7 14h10M9 10h6M12 6v12"/></svg></span>
-                <span class="nav__text">Puertos Uplink</span>
+        <div class="nav__group<?= $routinesActive ? ' is-active' : '' ?>" data-nav-group="rutinas">
+            <button class="nav__item nav__toggle" type="button" aria-expanded="<?= $routinesActive ? 'true' : 'false' ?>" aria-controls="submenu-rutinas-ftth">
+                <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14M8 4v6M16 9v6M11 14v6"/></svg></span>
+                <span class="nav__text">Rutinas</span>
                 <svg class="nav__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
             </button>
-            <div id="submenu-uplink-ftth" class="nav__submenu"<?= $uplinkActive ? '' : ' hidden' ?>>
-                <?php foreach (['saturaciones' => 'Saturaciones', 'caidas' => 'Caídas', 'atenuaciones' => 'Atenuaciones', 'intermitencias' => 'Intermitencias'] as $view => $label): ?>
-                    <button class="nav__subitem<?= $sidebarModule === 'uplink' && $sidebarView === $view ? ' active' : '' ?>" type="button" aria-disabled="true" title="Módulo pendiente de implementación"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></button>
+            <div id="submenu-rutinas-ftth" class="nav__submenu"<?= $routinesActive ? '' : ' hidden' ?>>
+                <?php foreach ($routinePages as $page => $label): ?>
+                    <a class="nav__subitem<?= $sidebarPage === $page ? ' active' : '' ?>" href="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>"<?= $sidebarPage === $page ? ' aria-current="page"' : '' ?>><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
                 <?php endforeach; ?>
             </div>
         </div>
 
-        <?php foreach ([
-            ['Recursos ZTE', 'M4 5h16v14H4zM8 9h8M8 13h8M8 17h5'],
-            ['Autofind HW', 'M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5M12 11a1 1 0 1 0 1 1'],
-            ['ONTs Unconfig', 'M5 18V8l7-5 7 5v10M8 18v-5h8v5M3 21h18'],
-        ] as [$label, $icon]): ?>
-            <button class="nav__item nav__item--pending" type="button" aria-disabled="true" title="Módulo pendiente de implementación">
-                <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="<?= $icon ?>"/></svg></span>
-                <span class="nav__text"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></span>
-                <span class="nav__pending" aria-hidden="true">Próx.</span>
-            </button>
-        <?php endforeach; ?>
-
-        <div class="nav__group<?= $ponActive ? ' is-active' : '' ?>" data-nav-group="pon">
-            <button class="nav__item nav__toggle" type="button" aria-expanded="<?= $ponActive ? 'true' : 'false' ?>" aria-controls="submenu-pon-ftth">
-                <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M6 12h12M8 17h8M12 7v10"/></svg></span>
-                <span class="nav__text">Troncales PON</span>
-                <svg class="nav__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
-            </button>
-            <div id="submenu-pon-ftth" class="nav__submenu"<?= $ponActive ? '' : ' hidden' ?>>
-                <?php foreach (['duplicadas' => 'Troncales duplicadas', 'atenuadas' => 'Troncales atenuadas'] as $view => $label): ?>
-                    <button class="nav__subitem<?= $sidebarModule === 'pon' && $sidebarView === $view ? ' active' : '' ?>" type="button" aria-disabled="true" title="Módulo pendiente de implementación"><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></button>
-                <?php endforeach; ?>
-            </div>
-        </div>
-
-        <button class="nav__item nav__item--pending" type="button" aria-disabled="true" title="Módulo pendiente de implementación">
-            <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h5l2-6 3 12 2-6h4"/></svg></span>
-            <span class="nav__text">Agotamiento de IP</span><span class="nav__pending" aria-hidden="true">Próx.</span>
-        </button>
+        <span class="nav__section nav__section--secondary">HFC</span>
+        <a class="nav__item<?= $sidebarPage === 'hfc.php' ? ' active' : '' ?>" href="hfc.php"<?= $sidebarPage === 'hfc.php' ? ' aria-current="page"' : '' ?>>
+            <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h4l2-5 4 10 2-5h4M4 5v14M20 5v14"/></svg></span>
+            <span class="nav__text">Vista general</span>
+        </a>
 
         <span class="nav__section nav__section--secondary">Gestión</span>
         <a class="nav__item<?= $sidebarPage === 'reportes.php' ? ' active' : '' ?>" href="reportes.php"<?= $sidebarPage === 'reportes.php' ? ' aria-current="page"' : '' ?>>
