@@ -146,6 +146,47 @@
         </div>
     </section>
 </div>
+<div id="temperature-detail-modal" class="temperature-detail-modal" hidden>
+    <div class="temperature-detail-modal__backdrop" data-temperature-modal-close aria-hidden="true"></div>
+    <section class="temperature-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="temperature-detail-title" tabindex="-1">
+        <header class="temperature-detail-dialog__header">
+            <div>
+                <h2 id="temperature-detail-title">Detalle de temperatura OLT</h2>
+                <p id="temperature-detail-olt"></p>
+            </div>
+            <button id="temperature-detail-close" class="temperature-detail-close" type="button" aria-label="Cerrar detalle" title="Cerrar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+            </button>
+        </header>
+        <div class="temperature-detail-dialog__body">
+            <div class="temperature-detail-summary">
+                <div>
+                    <span>Temperatura actual</span>
+                    <strong id="temperature-detail-current"></strong>
+                </div>
+                <div>
+                    <span>Nivel</span>
+                    <strong id="temperature-detail-level"></strong>
+                </div>
+            </div>
+            <div class="temperature-detail-toolbar">
+                <div class="temperature-range" role="group" aria-label="Rango de tiempo">
+                    <button type="button" data-temperature-days="1" class="is-active" aria-pressed="true">1D</button>
+                    <button type="button" data-temperature-days="3" aria-pressed="false">3D</button>
+                    <button type="button" data-temperature-days="7" aria-pressed="false">7D</button>
+                    <button type="button" data-temperature-days="30" aria-pressed="false">30D</button>
+                </div>
+            </div>
+            <article class="temperature-chart-card">
+                <header><h3 id="temperature-chart-title">Temperatura · último día</h3></header>
+                <div class="temperature-chart-frame">
+                    <span id="temperature-chart-loading" class="temperature-chart-loading" aria-live="polite">Cargando gráfica…</span>
+                    <iframe id="temperature-grafana" loading="lazy" title="Gráfica de temperatura OLT"></iframe>
+                </div>
+            </article>
+        </div>
+    </section>
+</div>
 <script src="assets/js/sidebar.js" defer></script>
 <script src="assets/js/gkp.js" defer></script>
 <script src="assets/js/temperatura.js" defer></script>

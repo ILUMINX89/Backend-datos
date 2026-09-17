@@ -73,7 +73,7 @@
                     </div>
                     <div class="hfc-chart-heading">
                         <div>
-                            <h3 id="hfc-chart-title">Gráfica últimos 2 días</h3>
+                            <h3 id="hfc-chart-title">Gráfica últimos 3 días</h3>
                             <span>Grafana · actualización según origen</span>
                         </div>
 
