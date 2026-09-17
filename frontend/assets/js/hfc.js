@@ -20,7 +20,8 @@
     let currentRows = [];
     let selectedRow = null;
     let returnFocus = null;
-    let selectedDays = 2;
+    let selectedDays = 3;
+    let selectedPanel = 'panel-1';
 
     function grafanaUrl(row) {
         const url = new URL(
@@ -40,7 +41,7 @@
         url.searchParams.set('var-NODO', row.puerto);
 
         // En d-solo se usa panelId, no viewPanel
-        url.searchParams.set('panelId', 'panel-1');
+        url.searchParams.set('panelId', selectedPanel);
 
         // Tema claro
         url.searchParams.set('theme', 'light');
@@ -169,7 +170,14 @@
             panel.setAttribute('aria-busy', 'false');
         }
     }
-    const rangeButtons = [...document.querySelectorAll('.hfc-range button')];
+    const rangeButtons = [
+        ...document.querySelectorAll('.hfc-time-range button')
+    ];
+
+    const panelButtons = [
+        ...document.querySelectorAll('.hfc-chart-switch button')
+    ];
+
     const chartTitle = document.getElementById('hfc-chart-title');
 
     function changeDays(days) {
@@ -210,6 +218,11 @@
             changeDays(button.dataset.days);
         });
     });
+    panelButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            changePanel(button.dataset.panel);
+        });
+    });
 
     refresh.addEventListener('click', () => load());
 
@@ -236,3 +249,18 @@
     load();
     setInterval(() => load({ silent: true }), 30000);
 })();
+
+function changePanel(panel) {
+    selectedPanel = panel;
+
+    panelButtons.forEach((button) => {
+        const active = button.dataset.panel === selectedPanel;
+
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+
+    if (selectedRow) {
+        grafana.src = grafanaUrl(selectedRow);
+    }
+}

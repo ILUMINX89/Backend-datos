@@ -77,7 +77,17 @@
                             <span>Grafana · actualización según origen</span>
                         </div>
 
-                        <div class="hfc-range" aria-label="Rango de tiempo">
+                        <div class="hfc-chart-switch hfc-range" aria-label="Tipo de gráfica">
+                            <button type="button" data-panel="panel-1" class="is-active">
+                                Gráfica 1
+                            </button>
+
+                            <button type="button" data-panel="panel-7">
+                                Gráfica 2
+                            </button>
+                        </div>
+
+                        <div class="hfc-time-range hfc-range" aria-label="Rango de tiempo">
                             <button type="button" data-days="1">1D</button>
                             <button type="button" data-days="3" class="is-active">3D</button>
                             <button type="button" data-days="7">7D</button>
