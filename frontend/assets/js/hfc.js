@@ -22,7 +22,8 @@
     let returnFocus = null;
 
     function grafanaUrl(row) {
-        const url = new URL('https://100.66.80.175/d-solo/adsfhrn/cmts');
+        // En producción HTTPS, publicar este servicio detrás del reverse proxy HTTPS existente.
+        const url = new URL('http://127.0.0.1:8002/d-solo/adsfhrn/cmts');
         url.searchParams.set('orgId', '1');
         url.searchParams.set('from', 'now-3d');
         url.searchParams.set('to', 'now');

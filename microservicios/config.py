@@ -58,6 +58,17 @@ class Settings(BaseSettings):
     alarmas_service_host: str = "127.0.0.1"
     alarmas_service_port: int = 8001
 
+    # ==========================================
+    # Grafana proxy local
+    # ==========================================
+
+    grafana_proxy_enabled: bool = False
+    grafana_url: str = ""
+    grafana_user: str = ""
+    grafana_password: str = ""
+    grafana_verify_ssl: bool = False
+    grafana_timeout_seconds: int = 30
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
