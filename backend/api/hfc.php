@@ -35,8 +35,13 @@ try {
                 'puerto' => $port['puerto'],
                 'valor' => (float) $port['valor'],
                 'unidad' => '%',
-                'estado' => 'Saturación CMTS',
-                'detalle' => 'Última muestra disponible; utilización superior al 80%',
+                'estado' => (string) ($port['estado'] ?? ''),
+                'tipo' => (string) ($port['tipo'] ?? ''),
+                'detalle' => 'Condición confirmada en 3 muestras consecutivas',
+                'bw' => $port['bw'] ?? null,
+                'utilizacion' => $port['utilizacion'] ?? null,
+                'ruido' => $port['ruido'] ?? null,
+                'muestras_confirmacion' => $port['muestras_confirmacion'] ?? null,
             ];
         }
     }
@@ -44,6 +49,11 @@ try {
 } catch (Throwable $error) {
     error_log('HFC saturacion_cmts: ' . $error->getMessage());
 }
+
+usort(
+    $rows,
+    static fn (array $a, array $b): int => $b['valor'] <=> $a['valor']
+);
 
 $ok = $sources['saturacion_cmts']['ok'];
 jsonResponse(

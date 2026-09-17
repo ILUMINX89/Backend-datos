@@ -3,7 +3,7 @@
 from microservicios.config import settings
 
 
-def _ultima_metrica_flux(campo: str) -> str:
+def _metricas_recientes_flux(campo: str, cantidad: int) -> str:
     return f'''
 from(bucket: "{settings.influx_cmts_bucket}")
   |> range(start: -30m)
@@ -11,14 +11,19 @@ from(bucket: "{settings.influx_cmts_bucket}")
   |> filter(fn: (r) => r._field == "{campo}")
   |> filter(fn: (r) => exists r.cmts and exists r.descripcion)
   |> group(columns: ["cmts", "descripcion"])
-  |> last()
+  |> sort(columns: ["_time"], desc: true)
+  |> limit(n: {cantidad})
   |> keep(columns: ["_time", "_value", "cmts", "descripcion"])
 '''
 
 
 def obtener_bw_flux() -> str:
-    return _ultima_metrica_flux("bw")
+    return _metricas_recientes_flux("bw", 1)
 
 
 def obtener_utilizacion_flux() -> str:
-    return _ultima_metrica_flux("utilizacion")
+    return _metricas_recientes_flux("utilizacion", 3)
+
+
+def obtener_snr_flux() -> str:
+    return _metricas_recientes_flux("snr", 3)
