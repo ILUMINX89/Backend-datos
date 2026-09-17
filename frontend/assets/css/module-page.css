@@ -370,16 +370,16 @@
    ========================================================== */
 
 .hfc-modal {
-    --hfc-canvas: #020305;
-    --hfc-surface: #080b10;
-    --hfc-surface-2: #0b0f15;
-    --hfc-hover: #0e141d;
-    --hfc-border: #192431;
-    --hfc-border-strong: #26384b;
+    --hfc-canvas: #eaf2f8;
+    --hfc-surface: #f9fcfe;
+    --hfc-surface-2: #edf5fa;
+    --hfc-hover: #e4f0f7;
+    --hfc-border: #cfdae5;
+    --hfc-border-strong: #b9cad8;
 
-    --hfc-text: #f4f7fb;
-    --hfc-text-2: #c2ccd6;
-    --hfc-muted: #83919f;
+    --hfc-text: #07132c;
+    --hfc-text-2: #334462;
+    --hfc-muted: #64728a;
 
     --hfc-blue: #128cff;
     --hfc-yellow: #ffd229;
@@ -403,7 +403,8 @@
 .hfc-modal__backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, .78);
+    background: rgba(7, 19, 44, .38);
+    backdrop-filter: blur(2px);
 }
 
 
@@ -428,7 +429,7 @@
     border: 1px solid var(--hfc-border-strong);
     border-radius: 12px;
 
-    box-shadow: 0 24px 60px rgba(0, 0, 0, .55);
+    box-shadow: 0 24px 60px rgba(30, 55, 80, .22);
 }
 
 .hfc-dialog:focus {
@@ -610,11 +611,8 @@
 
 .hfc-chart-frame {
     height: clamp(320px, 42vh, 360px);
-
     overflow: hidden;
-
-    background: #05070a;
-
+    background: #ffffff;
     border: 1px solid var(--hfc-border);
     border-radius: 8px;
 }
@@ -702,10 +700,8 @@
 }
 
 .hfc-port-option.is-selected {
-    color: var(--hfc-text);
-
-    background: #0a1b2b;
-
+    color: #07132c;
+    background: #dceefb;
     border-color: var(--hfc-blue);
 }
 
