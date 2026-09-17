@@ -200,6 +200,20 @@
             grafana.src = grafanaUrl(selectedRow);
         }
     }
+    function changePanel(panel) {
+        selectedPanel = panel;
+
+        panelButtons.forEach((button) => {
+            const active = button.dataset.panel === selectedPanel;
+
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+
+        if (selectedRow) {
+            grafana.src = grafanaUrl(selectedRow);
+        }
+    }
 
     if (
         !body ||
@@ -250,17 +264,3 @@
     setInterval(() => load({ silent: true }), 30000);
 })();
 
-function changePanel(panel) {
-    selectedPanel = panel;
-
-    panelButtons.forEach((button) => {
-        const active = button.dataset.panel === selectedPanel;
-
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', String(active));
-    });
-
-    if (selectedRow) {
-        grafana.src = grafanaUrl(selectedRow);
-    }
-}
