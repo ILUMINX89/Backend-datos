@@ -1,26 +1,42 @@
-"""Consultas Flux para intermitencias HFC."""
+"""Consultas Flux para detectar intermitencias HFC."""
 
 from microservicios.config import settings
 
 
-def obtener_intermitencias_flux() -> str:
+def obtener_intermitencias_flux(
+    periodo: str = "-12d",
+) -> str:
     """
-    Detecta caídas confirmadas durante los últimos 7 días.
+    Detecta caídas de puertos HFC usando cm_registrados.
 
-    Criterio equivalente al usado en OLT:
-    - primero debe existir estado operativo: cm_registrados > 0
-    - 2 muestras consecutivas con cm_registrados == 0
-      confirman una caída
-    - cuando vuelve a > 0, el contador de ceros se reinicia
+    Una caída se confirma cuando existen 2 muestras consecutivas
+    con cm_registrados en 0.
 
-    Flux devuelve únicamente una fila por caída confirmada para
-    evitar transferir a Python todo el histórico de 7 días.
+    stateCount permite que una secuencia:
+
+        20, 0, 0, 0, 0, 15
+
+    genere solamente un evento, porque únicamente conservamos
+    la muestra donde el contador llega exactamente a 2.
+
+    IMPORTANTE:
+    Por seguridad empezamos probando solamente 1 hora.
     """
+
+    periodos_permitidos = {
+        "-1h",
+        "-24h",
+        "-12d",
+    }
+
+    if periodo not in periodos_permitidos:
+        raise ValueError(
+            "Periodo de intermitencias no permitido. " "Use -1h, -24h o -7d."
+        )
 
     return f"""
 from(bucket: "{settings.influx_cmts_bucket}")
-
-  |> range(start: -7d)
+  |> range(start: {periodo})
 
   |> filter(fn: (r) =>
       r._measurement == "estado_puertos"
@@ -34,6 +50,10 @@ from(bucket: "{settings.influx_cmts_bucket}")
       exists r.cmts and
       exists r.puerto and
       exists r.descripcion
+  )
+
+  |> filter(fn: (r) =>
+      r.descripcion =~ /^NODO /
   )
 
   |> keep(
@@ -58,44 +78,50 @@ from(bucket: "{settings.influx_cmts_bucket}")
       columns: ["_time"]
   )
 
-  |> map(fn: (r) => ({{
-      r with
-      operativo_visto:
-          if r._value > 0 then 1
-          else 0
-  }}))
-
-  |> cumulativeSum(
-      columns: ["operativo_visto"]
-  )
-
-  |> stateTracking(
-      fn: (r) => r._value == 0,
-      countColumn: "muestras_cero"
+  |> stateCount(
+      fn: (r) => float(v: r._value) <= 0.0,
+      column: "muestras_cero"
   )
 
   |> filter(fn: (r) =>
-      r.operativo_visto > 0 and
       r.muestras_cero == 2
   )
 
-  |> keep(
+  |> group(
       columns: [
-          "_time",
           "cmts",
           "puerto",
           "descripcion"
       ]
   )
 
-  |> group(columns: [])
+  |> count(
+      column: "muestras_cero"
+  )
 
-  |> sort(
+  |> rename(
+      columns: {{
+          muestras_cero: "cantidad_intermitencias"
+      }}
+  )
+
+  |> filter(fn: (r) =>
+      r.cantidad_intermitencias >= 2
+  )
+
+  |> keep(
       columns: [
           "cmts",
           "puerto",
           "descripcion",
-          "_time"
+          "cantidad_intermitencias"
       ]
+  )
+
+  |> group(columns: [])
+
+  |> sort(
+      columns: ["cantidad_intermitencias"],
+      desc: true
   )
 """
