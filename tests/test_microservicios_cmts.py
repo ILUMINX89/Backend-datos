@@ -1,0 +1,124 @@
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+import sys
+
+# Compatibilidad con: python .\tests\test_microservicios_cmts.py
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from microservicios.cmts.saturacion import service as saturacion_service
+from microservicios.cmts.saturacion.queries import (
+    obtener_bw_flux,
+    obtener_snr_flux,
+    obtener_utilizacion_flux,
+)
+
+
+BASE = datetime(2026, 9, 18, tzinfo=timezone.utc)
+
+
+def test_consulta_utilizacion_lee_todos_los_puntos_de_la_ventana():
+    utilizacion = obtener_utilizacion_flux()
+
+    assert "range(start: -30m)" in utilizacion
+    assert "limit(n:" not in utilizacion
+    assert "limit(n: 1)" in obtener_bw_flux()
+    assert "limit(n: 3)" in obtener_snr_flux()
+
+
+def test_criticidad_prioriza_cantidad_de_puntos_sobre_80(monkeypatch):
+    monkeypatch.setattr(saturacion_service, "obtener_bw_flux", lambda: "bw")
+    monkeypatch.setattr(
+        saturacion_service,
+        "obtener_utilizacion_flux",
+        lambda: "utilizacion",
+    )
+    monkeypatch.setattr(saturacion_service, "obtener_snr_flux", lambda: "snr")
+
+    datos = {
+        "bw": [
+            {"cmts": "CMTS-1", "descripcion": "NODO A", "_value": 100, "_time": BASE},
+            {"cmts": "CMTS-1", "descripcion": "NODO B", "_value": 100, "_time": BASE},
+        ],
+        "utilizacion": [
+            {
+                "cmts": "CMTS-1",
+                "descripcion": "NODO A",
+                "_value": valor,
+                "_time": BASE - timedelta(minutes=indice),
+            }
+            for indice, valor in enumerate([90, 85, 82, 70])
+        ]
+        + [
+            {
+                "cmts": "CMTS-1",
+                "descripcion": "NODO B",
+                "_value": valor,
+                "_time": BASE - timedelta(minutes=indice),
+            }
+            for indice, valor in enumerate([99, 95, 20, 10])
+        ],
+        "snr": [],
+    }
+
+    monkeypatch.setattr(
+        saturacion_service,
+        "consultar_flux_temp",
+        lambda consulta, **_kwargs: datos[consulta],
+    )
+
+    resultado = saturacion_service.obtener_saturacion_actual()
+    puertos = resultado["datos"][0]["puertos"]
+
+    assert [puerto["puerto"] for puerto in puertos] == ["NODO A", "NODO B"]
+    assert puertos[0]["puntos_sobre_80"] == 3
+    assert puertos[0]["valor"] == 85.67
+    assert puertos[1]["puntos_sobre_80"] == 2
+    assert puertos[1]["valor"] == 97.0
+
+
+def test_porcentaje_de_utilizacion_nunca_supera_100(monkeypatch):
+    monkeypatch.setattr(saturacion_service, "obtener_bw_flux", lambda: "bw")
+    monkeypatch.setattr(
+        saturacion_service,
+        "obtener_utilizacion_flux",
+        lambda: "utilizacion",
+    )
+    monkeypatch.setattr(saturacion_service, "obtener_snr_flux", lambda: "snr")
+
+    datos = {
+        "bw": [
+            {
+                "cmts": "CMTS-1",
+                "descripcion": "NODO A",
+                "_value": 80,
+                "_time": BASE,
+            }
+        ],
+        "utilizacion": [
+            {
+                "cmts": "CMTS-1",
+                "descripcion": "NODO A",
+                "_value": 100,
+                "_time": BASE,
+            },
+            {
+                "cmts": "CMTS-1",
+                "descripcion": "NODO A",
+                "_value": 96,
+                "_time": BASE - timedelta(minutes=1),
+            },
+        ],
+        "snr": [],
+    }
+
+    monkeypatch.setattr(
+        saturacion_service,
+        "consultar_flux_temp",
+        lambda consulta, **_kwargs: datos[consulta],
+    )
+
+    puerto = saturacion_service.obtener_saturacion_actual()["datos"][0]["puertos"][0]
+
+    assert puerto["puntos_sobre_80"] == 2
+    assert puerto["valor"] == 100.0
