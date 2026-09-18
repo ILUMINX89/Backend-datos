@@ -9,6 +9,11 @@ $routinePages = [
     'agotamiento-ip.php' => 'Agotamiento de IP',
 ];
 $routinesActive = array_key_exists($sidebarPage, $routinePages);
+$hfcRoutinePages = [
+    'puertos-docsis.php' => 'Puertos DOCSIS',
+    'intermitencias.php' => 'Intermitencias',
+];
+$hfcRoutinesActive = array_key_exists($sidebarPage, $hfcRoutinePages);
 ?>
 <aside id="main-sidebar" class="sidebar" aria-label="Navegación principal">
     <div class="sidebar__top">
@@ -51,6 +56,18 @@ $routinesActive = array_key_exists($sidebarPage, $routinePages);
             <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h4l2-5 4 10 2-5h4M4 5v14M20 5v14"/></svg></span>
             <span class="nav__text">Vista general</span>
         </a>
+        <div class="nav__group<?= $hfcRoutinesActive ? ' is-active' : '' ?>" data-nav-group="rutinas-hfc">
+            <button class="nav__item nav__toggle" type="button" aria-expanded="<?= $hfcRoutinesActive ? 'true' : 'false' ?>" aria-controls="submenu-rutinas-hfc">
+                <span class="nav__icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14M8 4v6M16 9v6M11 14v6"/></svg></span>
+                <span class="nav__text">Rutinas</span>
+                <svg class="nav__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+            </button>
+            <div id="submenu-rutinas-hfc" class="nav__submenu"<?= $hfcRoutinesActive ? '' : ' hidden' ?>>
+                <?php foreach ($hfcRoutinePages as $page => $label): ?>
+                    <a class="nav__subitem<?= $sidebarPage === $page ? ' active' : '' ?>" href="<?= htmlspecialchars($page, ENT_QUOTES, 'UTF-8') ?>"<?= $sidebarPage === $page ? ' aria-current="page"' : '' ?>><?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
 
         <span class="nav__section nav__section--secondary">Gestión</span>
         <a class="nav__item<?= $sidebarPage === 'reportes.php' ? ' active' : '' ?>" href="reportes.php"<?= $sidebarPage === 'reportes.php' ? ' aria-current="page"' : '' ?>>

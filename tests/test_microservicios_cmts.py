@@ -12,9 +12,29 @@ from microservicios.cmts.saturacion.queries import (
     obtener_snr_flux,
     obtener_utilizacion_flux,
 )
+from fastapi.testclient import TestClient
+from microservicios.app import app
 
 
 BASE = datetime(2026, 9, 18, tzinfo=timezone.utc)
+
+
+def test_puertos_docsis_actual_responde_con_lista():
+    response = TestClient(app).get("/api/cmts/puertos-docsis/actual")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert isinstance(payload["data"]["datos"], list)
+
+
+def test_intermitencias_actual_responde_con_lista():
+    response = TestClient(app).get("/api/cmts/intermitencias/actual")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert isinstance(payload["data"]["datos"], list)
 
 
 def test_consulta_utilizacion_lee_todos_los_puntos_de_la_ventana():
