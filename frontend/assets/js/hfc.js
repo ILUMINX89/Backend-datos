@@ -62,10 +62,15 @@
         return button;
     }
 
+    function compareCriticality(a, b) {
+        const byPoints = Number(b.puntos_sobre_80 ?? 0) - Number(a.puntos_sobre_80 ?? 0);
+        return byPoints || (Number(b.valor) - Number(a.valor));
+    }
+
     function renderRelated() {
         const related = currentRows
             .filter((row) => row.equipo === selectedRow.equipo)
-            .sort((a, b) => Number(b.valor) - Number(a.valor));
+            .sort(compareCriticality);
         [['uso', 'hfc-use-list', 'hfc-use-group'], ['degradacion', 'hfc-degradation-list', 'hfc-degradation-group']]
             .forEach(([type, listId, groupId]) => {
                 const rows = related.filter((row) => row.tipo === type);
@@ -155,7 +160,7 @@
             if (!response.ok || !payload.ok || !Array.isArray(rows)) {
                 throw new Error('Respuesta no disponible');
             }
-            currentRows = [...rows].sort((a, b) => Number(b.valor) - Number(a.valor));
+            currentRows = [...rows].sort(compareCriticality);
             render(currentRows);
             table.hidden = currentRows.length === 0;
             summary.textContent = currentRows.length === 1
