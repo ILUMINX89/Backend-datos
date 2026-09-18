@@ -26,10 +26,26 @@ try {
         if (!is_string($group['cmts'] ?? null) || !is_array($group['puertos'] ?? null)) {
             throw new RuntimeException('Grupo CMTS inválido');
         }
+
         foreach ($group['puertos'] as $port) {
             if (!is_string($port['puerto'] ?? null) || !is_numeric($port['valor'] ?? null)) {
                 throw new RuntimeException('Puerto CMTS inválido');
             }
+
+            $puntosSobre80 = is_numeric($port['puntos_sobre_80'] ?? null)
+                ? (int) $port['puntos_sobre_80']
+                : 0;
+            $muestrasAnalizadas = is_numeric($port['muestras_analizadas'] ?? null)
+                ? (int) $port['muestras_analizadas']
+                : 0;
+
+            $detalle = $puntosSobre80 > 0
+                ? sprintf(
+                    '%d puntos por encima del 80%%; porcentaje mostrado = promedio de esos puntos',
+                    $puntosSobre80
+                )
+                : 'Degradación de señal confirmada por SNR';
+
             $rows[] = [
                 'equipo' => $group['cmts'],
                 'puerto' => $port['puerto'],
@@ -37,14 +53,15 @@ try {
                 'unidad' => '%',
                 'estado' => (string) ($port['estado'] ?? ''),
                 'tipo' => (string) ($port['tipo'] ?? ''),
-                'detalle' => 'Condición confirmada en 3 muestras consecutivas',
+                'detalle' => $detalle,
                 'bw' => $port['bw'] ?? null,
-                'utilizacion' => $port['utilizacion'] ?? null,
                 'ruido' => $port['ruido'] ?? null,
-                'muestras_confirmacion' => $port['muestras_confirmacion'] ?? null,
+                'puntos_sobre_80' => $puntosSobre80,
+                'muestras_analizadas' => $muestrasAnalizadas,
             ];
         }
     }
+
     $sources['saturacion_cmts']['ok'] = true;
 } catch (Throwable $error) {
     error_log('HFC saturacion_cmts: ' . $error->getMessage());
@@ -52,7 +69,14 @@ try {
 
 usort(
     $rows,
-    static fn (array $a, array $b): int => $b['valor'] <=> $a['valor']
+    static function (array $a, array $b): int {
+        $porPuntos = $b['puntos_sobre_80'] <=> $a['puntos_sobre_80'];
+        if ($porPuntos !== 0) {
+            return $porPuntos;
+        }
+
+        return $b['valor'] <=> $a['valor'];
+    }
 );
 
 $ok = $sources['saturacion_cmts']['ok'];
