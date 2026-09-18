@@ -12,11 +12,53 @@ from microservicios.cmts.saturacion.queries import (
     obtener_snr_flux,
     obtener_utilizacion_flux,
 )
+from microservicios.cmts.intermitencias.queries import obtener_intermitencias_flux
+from microservicios.cmts.intermitencias.service import analizar_intermitencias
 from fastapi.testclient import TestClient
 from microservicios.app import app
 
 
 BASE = datetime(2026, 9, 18, tzinfo=timezone.utc)
+
+
+def test_consulta_intermitencias_limita_la_ventana_a_siete_dias():
+    consulta = obtener_intermitencias_flux()
+
+    assert "range(start: -7d)" in consulta
+
+
+def test_intermitencias_filtra_deduplica_y_ordena_por_cantidad():
+    filas = [
+        # Una intermitencia: no aparece aunque tenga muestras repetidas.
+        {"cmts": "CMTS-1", "descripcion": "PUERTO-1", "evento": "A", "_time": BASE},
+        {"cmts": "CMTS-1", "descripcion": "PUERTO-1", "evento": "A", "_time": BASE},
+        # Dos intermitencias: aparece.
+        {"cmts": "CMTS-1", "descripcion": "PUERTO-2", "evento": "A", "_time": BASE},
+        {"cmts": "CMTS-1", "descripcion": "PUERTO-2", "evento": "B", "_time": BASE},
+        # Tres intermitencias: aparece primero.
+        {"cmts": "CMTS-2", "descripcion": "PUERTO-3", "evento": "A", "_time": BASE},
+        {"cmts": "CMTS-2", "descripcion": "PUERTO-3", "evento": "B", "_time": BASE},
+        {"cmts": "CMTS-2", "descripcion": "PUERTO-3", "evento": "C", "_time": BASE},
+        # Un segundo evento fuera de la ventana no completa el minimo.
+        {"cmts": "CMTS-3", "descripcion": "PUERTO-4", "evento": "A", "_time": BASE},
+        {
+            "cmts": "CMTS-3",
+            "descripcion": "PUERTO-4",
+            "evento": "B",
+            "_time": BASE - timedelta(days=7, seconds=1),
+        },
+    ]
+
+    resultado = analizar_intermitencias(
+        filas,
+        campo_evento="evento",
+        ahora=BASE,
+    )
+
+    assert [(item["puerto"], item["cantidad_intermitencias"]) for item in resultado] == [
+        ("PUERTO-3", 3),
+        ("PUERTO-2", 2),
+    ]
 
 
 def test_puertos_docsis_actual_responde_con_lista():
