@@ -20,7 +20,7 @@
             <div class="module-content">
                 <header class="module-heading">
                     <h2>Vista general HFC</h2>
-                    <p>Afectaciones persistentes por utilización o degradación de señal.</p>
+                    <p>Afectaciones por utilización o degradación de señal.</p>
                 </header>
                 <section class="card module-panel" id="alarmas" aria-labelledby="hfc-title">
                     <div class="gkp-section__heading">
@@ -36,7 +36,7 @@
                                 <tr>
                                     <th>CMTS</th>
                                     <th>Nodo / puerto</th>
-                                    <th>Utilización</th>
+                                    <th>Utilización promedio</th>
                                     <th>Estado</th>
                                 </tr>
                             </thead>
@@ -69,7 +69,7 @@
                     <div class="hfc-selected">
                         <div><span>Nodo seleccionado</span><strong id="hfc-modal-node"></strong></div>
                         <div><span>Estado</span><strong id="hfc-modal-state"></strong></div>
-                        <div><span>Utilización actual</span><strong id="hfc-modal-value"></strong></div>
+                        <div><span>Utilización promedio</span><strong id="hfc-modal-value"></strong></div>
                     </div>
                     <div class="hfc-chart-heading">
                         <div>
