@@ -11,7 +11,7 @@ $routinePages = [
 $routinesActive = array_key_exists($sidebarPage, $routinePages);
 $hfcRoutinePages = [
     'puertos-docsis.php' => 'Puertos DOCSIS',
-    'intermitencias.php' => 'Intermitencias',
+    'intermitencias.php' => 'Intermitencias y puertos duplicados',
 ];
 $hfcRoutinesActive = array_key_exists($sidebarPage, $hfcRoutinePages);
 ?>
