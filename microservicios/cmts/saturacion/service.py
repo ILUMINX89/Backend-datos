@@ -10,7 +10,7 @@ from microservicios.cmts.saturacion.queries import (
 )
 from microservicios.influx import consultar_flux_temp
 
-MUESTRAS_CONFIRMACION_SNR = 3
+MUESTRAS_CONFIRMACION_SNR = 60
 UMBRAL_UTILIZACION = 90.0
 
 # Regla aislada para ajuste operacional:

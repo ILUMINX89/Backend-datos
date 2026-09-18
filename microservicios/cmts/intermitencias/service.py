@@ -56,7 +56,6 @@ def procesar_intermitencias(
                 "cmts": cmts,
                 "puerto": puerto,
                 "descripcion": descripcion,
-                "estado": "INTERMITENTE",
                 "cantidad_intermitencias": cantidad,
             }
         )

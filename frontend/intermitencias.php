@@ -36,46 +36,45 @@
                 <div class="intermitencias-grid">
                     <section id="intermitencias-panel" class="card module-panel" aria-labelledby="intermitencias-title">
 
-                    <div class="gkp-section__heading">
+                        <div class="gkp-section__heading">
 
-                        <div>
-                            <h3 id="intermitencias-title">
-                                Intermitencias
-                            </h3>
+                            <div>
+                                <h3 id="intermitencias-title">
+                                    Intermitencias
+                                </h3>
 
-                            <p id="intermitencias-summary">
-                                Consultando información disponible…
-                            </p>
+                                <p id="intermitencias-summary">
+                                    Consultando información disponible…
+                                </p>
+                            </div>
+
+                            <button id="intermitencias-refresh" type="button">
+                                Actualizar
+                            </button>
+
                         </div>
 
-                        <button id="intermitencias-refresh" type="button">
-                            Actualizar
-                        </button>
+                        <div id="intermitencias-table" class="gkp-table-wrap" hidden>
+                            <table class="gkp-table">
 
-                    </div>
+                                <thead>
+                                    <tr>
+                                        <th>CMTS</th>
+                                        <th>Puerto</th>
+                                        <th>Nodo</th>
+                                        <th>Cantidad</th>
+                                    </tr>
+                                </thead>
 
-                    <div id="intermitencias-table" class="gkp-table-wrap" hidden>
-                        <table class="gkp-table">
+                                <tbody id="intermitencias-rows">
+                                </tbody>
 
-                            <thead>
-                                <tr>
-                                    <th>CMTS</th>
-                                    <th>Puerto</th>
-                                    <th>Nodo</th>
-                                    <th>Intermitencias</th>
-                                    <th>Estado</th>
-                                </tr>
-                            </thead>
+                            </table>
+                        </div>
 
-                            <tbody id="intermitencias-rows">
-                            </tbody>
-
-                        </table>
-                    </div>
-
-                    <div id="intermitencias-status" class="module-empty" role="status" aria-live="polite">
-                        Cargando…
-                    </div>
+                        <div id="intermitencias-status" class="module-empty" role="status" aria-live="polite">
+                            Cargando…
+                        </div>
 
                     </section>
 

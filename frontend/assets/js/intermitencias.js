@@ -110,7 +110,6 @@
                 crearCelda(item.puerto),
                 crearCelda(item.descripcion),
                 crearCelda(item.cantidad_intermitencias),
-                crearCelda(item.estado)
             );
             return tr;
         }),
