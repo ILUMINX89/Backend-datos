@@ -1,236 +1,101 @@
-"""Logica de negocio para saturacion actual CMTS."""
+"""Calculo y persistencia de la saturacion actual CMTS."""
 
 from collections import defaultdict
+from datetime import datetime
 from typing import Any
 
-from microservicios.cmts.saturacion.queries import (
-    obtener_bw_flux,
-    obtener_snr_flux,
-    obtener_utilizacion_flux,
-)
+from microservicios.cmts.saturacion.cache import guardar_saturacion
+from microservicios.cmts.saturacion.queries import obtener_snr_flux, obtener_utilizacion_flux
 from microservicios.influx import consultar_flux_temp
 
 MUESTRAS_CONFIRMACION_SNR = 60
 UMBRAL_UTILIZACION = 90.0
-
-# Regla aislada para ajuste operacional:
-# el bucket no define un umbral verificable.
 UMBRAL_SNR_DEGRADADO_DB = 30.0
 
 
-def _agrupar(
-    filas: list[dict[str, Any]],
-) -> dict[tuple[str, str], list[dict[str, Any]]]:
+def _agrupar_snr(filas: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, Any]]]:
     resultado: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
-
     for fila in filas:
         cmts = fila.get("cmts")
         descripcion = fila.get("descripcion")
-
-        if not cmts or not descripcion or fila.get("_value") is None:
-            continue
-
-        resultado[(str(cmts), str(descripcion))].append(fila)
-
+        if cmts and descripcion and fila.get("_value") is not None:
+            resultado[(str(cmts), str(descripcion))].append(fila)
     for muestras in resultado.values():
-        muestras.sort(
-            key=lambda fila: fila.get("_time"),
-            reverse=True,
-        )
-
+        muestras.sort(key=lambda fila: fila.get("_time"), reverse=True)
     return dict(resultado)
 
 
-def _porcentajes_utilizacion(
-    filas_utilizacion: list[dict[str, Any]],
-    bw: float,
-) -> list[float]:
-    porcentajes: list[float] = []
-
-    for fila in filas_utilizacion:
-        try:
-            utilizacion = float(fila["_value"])
-        except (KeyError, TypeError, ValueError):
-            continue
-
-        porcentaje = (utilizacion / bw) * 100.0
-
-        # La ocupacion representa un porcentaje de capacidad,
-        # por lo que nunca debe salir del rango 0-100.
-        porcentaje = max(0.0, min(100.0, porcentaje))
-
-        porcentajes.append(porcentaje)
-
-    return porcentajes
+def _valor_numerico(fila: dict[str, Any], campo: str) -> float | None:
+    try:
+        return float(fila[campo])
+    except (KeyError, TypeError, ValueError):
+        return None
 
 
-def obtener_saturacion_actual() -> dict[str, Any]:
-    muestras_bw = _agrupar(
-        consultar_flux_temp(
-            obtener_bw_flux(),
-            fuente="cmts",
-        )
-    )
-
-    muestras_utilizacion = _agrupar(
-        consultar_flux_temp(
-            obtener_utilizacion_flux(),
-            fuente="cmts",
-        )
-    )
-
-    muestras_snr = _agrupar(
-        consultar_flux_temp(
-            obtener_snr_flux(),
-            fuente="cmts",
-        )
-    )
-
+def calcular_saturacion_actual() -> dict[str, Any]:
+    """Ejecuta las consultas pesadas y construye el resultado cacheable."""
+    agregados = consultar_flux_temp(obtener_utilizacion_flux(), fuente="cmts")
+    muestras_snr = _agrupar_snr(consultar_flux_temp(obtener_snr_flux(), fuente="cmts"))
     resultado: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
-    for (cmts, descripcion), filas_bw in muestras_bw.items():
-        clave = (cmts, descripcion)
-
-        filas_utilizacion = muestras_utilizacion.get(clave, [])
-
-        if not filas_bw or not filas_utilizacion:
-            continue
-
+    for fila in agregados:
+        cmts = fila.get("cmts")
+        descripcion = fila.get("descripcion")
+        bw = _valor_numerico(fila, "bw")
+        promedio_umbral = _valor_numerico(fila, "promedio_sobre_90")
+        promedio_total = _valor_numerico(fila, "promedio_total")
         try:
-            bw_origen = filas_bw[0]["_value"]
-            bw = float(bw_origen)
+            muestras_analizadas = int(fila["muestras_analizadas"])
+            puntos_sobre_90 = int(fila["puntos_sobre_90"])
         except (KeyError, TypeError, ValueError):
             continue
-
-        if bw <= 0:
+        if not cmts or not descripcion or bw is None or bw <= 0 or muestras_analizadas <= 0:
             continue
-
-        porcentajes = _porcentajes_utilizacion(
-            filas_utilizacion,
-            bw,
-        )
-
-        if not porcentajes:
-            continue
-
-        # Tomamos solamente las muestras cuya utilizacion sea
-        # igual o superior al 90%.
-        porcentajes_sobre_umbral = [
-            valor for valor in porcentajes if valor >= UMBRAL_UTILIZACION
-        ]
-
-        # Cantidad de puntos >= 90%.
-        # Esta es la principal medida de criticidad.
-        puntos_sobre_umbral = len(porcentajes_sobre_umbral)
-
-        # Promedio exclusivamente de los puntos >= 90%.
-        promedio_sobre_umbral = (
-            sum(porcentajes_sobre_umbral) / puntos_sobre_umbral
-            if puntos_sobre_umbral
-            else None
-        )
-
-        # Revisar las ultimas muestras de SNR.
-        filas_ruido = muestras_snr.get(
-            clave,
-            [],
-        )[:MUESTRAS_CONFIRMACION_SNR]
 
         valores_ruido: list[float] = []
-
-        for fila in filas_ruido:
-            try:
-                valor_ruido = float(fila["_value"])
-            except (KeyError, TypeError, ValueError):
+        for muestra in muestras_snr.get((str(cmts), str(descripcion)), []):
+            valor = _valor_numerico(muestra, "_value")
+            if valor is None or valor <= 0:
                 break
+            valores_ruido.append(valor)
 
-            if valor_ruido <= 0:
-                break
-
-            valores_ruido.append(valor_ruido)
-
-        # Hay saturacion por uso si existe al menos
-        # una muestra con utilizacion >= 90%.
-        uso_confirmado = puntos_sobre_umbral > 0
-
-        # Hay degradacion si las ultimas muestras de SNR
-        # estan todas por debajo del umbral configurado.
-        degradacion_confirmada = len(
-            valores_ruido
-        ) == MUESTRAS_CONFIRMACION_SNR and all(
-            valor < UMBRAL_SNR_DEGRADADO_DB for valor in valores_ruido
+        uso_confirmado = puntos_sobre_90 > 0
+        degradacion_confirmada = (
+            len(valores_ruido) == MUESTRAS_CONFIRMACION_SNR
+            and all(valor < UMBRAL_SNR_DEGRADADO_DB for valor in valores_ruido)
         )
-
         if not uso_confirmado and not degradacion_confirmada:
             continue
+        porcentaje = promedio_umbral if uso_confirmado else promedio_total
+        if porcentaje is None:
+            continue
+        porcentaje = max(0.0, min(100.0, porcentaje))
+        resultado[str(cmts)].append({
+            "puerto": str(descripcion), "valor": round(porcentaje, 2), "bw": bw,
+            "estado": "Saturación por degradación" if degradacion_confirmada else "Saturación",
+            "tipo": "degradacion" if degradacion_confirmada else "uso",
+            "puntos_sobre_90": puntos_sobre_90,
+            "muestras_analizadas": muestras_analizadas,
+            "ruido": valores_ruido[0] if valores_ruido else None,
+        })
 
-        tipo = "degradacion" if degradacion_confirmada else "uso"
+    def criticidad(item: dict[str, Any]) -> tuple[int, float]:
+        return int(item["puntos_sobre_90"]), float(item["valor"])
 
-        estado = (
-            "Saturación por degradación" if degradacion_confirmada else "Saturación"
-        )
+    datos = [
+        {"cmts": cmts, "puertos": sorted(puertos, key=criticidad, reverse=True)}
+        for cmts, puertos in resultado.items()
+    ]
+    datos.sort(key=lambda grupo: criticidad(grupo["puertos"][0]), reverse=True)
+    return {"datos": datos}
 
-        # Para saturacion por uso mostramos el promedio
-        # exclusivamente de los puntos >= 90%.
-        #
-        # Si el puerto entra solamente por degradacion SNR,
-        # usamos el promedio completo de utilizacion.
-        porcentaje_mostrado = (
-            promedio_sobre_umbral
-            if promedio_sobre_umbral is not None
-            else sum(porcentajes) / len(porcentajes)
-        )
 
-        resultado[cmts].append(
-            {
-                "puerto": descripcion,
-                "valor": round(porcentaje_mostrado, 2),
-                "bw": bw_origen,
-                "estado": estado,
-                "tipo": tipo,
-                "puntos_sobre_90": puntos_sobre_umbral,
-                "muestras_analizadas": len(porcentajes),
-                "ruido": (valores_ruido[0] if valores_ruido else None),
-            }
-        )
-
-    def clave_criticidad(
-        item: dict[str, Any],
-    ) -> tuple[int, float]:
-        """
-        Orden de criticidad:
-
-        1. Mayor cantidad de puntos >= 90%.
-        2. En caso de empate, mayor porcentaje promedio.
-        """
-        return (
-            int(item["puntos_sobre_90"]),
-            float(item["valor"]),
-        )
-
-    datos: list[dict[str, Any]] = []
-
-    # Ordenar los puertos dentro de cada CMTS.
-    for cmts in resultado:
-        puertos = sorted(
-            resultado[cmts],
-            key=clave_criticidad,
-            reverse=True,
-        )
-
-        datos.append(
-            {
-                "cmts": cmts,
-                "puertos": puertos,
-            }
-        )
-
-    # Ordenar también los CMTS según su puerto más crítico.
-    datos.sort(
-        key=lambda grupo: clave_criticidad(grupo["puertos"][0]),
-        reverse=True,
-    )
-
-    return {
-        "datos": datos,
+def actualizar_saturacion() -> dict[str, Any]:
+    """Calcula y reemplaza el cache solo después de finalizar correctamente."""
+    resultado = calcular_saturacion_actual()
+    cache = {
+        "generado_en": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "ventana": "4d", "datos": resultado["datos"],
     }
+    guardar_saturacion(cache)
+    return cache

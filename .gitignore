@@ -9,3 +9,5 @@ venv/
 .idea/
 .vscode/
 .DS_Store
+backend/storage/hfc_estado.json
+backend/storage/.hfc_estado.json.*.tmp

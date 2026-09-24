@@ -88,7 +88,7 @@ def test_consulta_utilizacion_lee_todos_los_puntos_de_la_ventana():
     assert "limit(n: 3)" in obtener_snr_flux()
 
 
-def test_criticidad_prioriza_cantidad_de_puntos_sobre_80(monkeypatch):
+def test_criticidad_prioriza_cantidad_de_puntos_sobre_90(monkeypatch):
     monkeypatch.setattr(saturacion_service, "obtener_bw_flux", lambda: "bw")
     monkeypatch.setattr(
         saturacion_service,
@@ -133,9 +133,9 @@ def test_criticidad_prioriza_cantidad_de_puntos_sobre_80(monkeypatch):
     puertos = resultado["datos"][0]["puertos"]
 
     assert [puerto["puerto"] for puerto in puertos] == ["NODO A", "NODO B"]
-    assert puertos[0]["puntos_sobre_80"] == 3
+    assert puertos[0]["puntos_sobre_90"] == 3
     assert puertos[0]["valor"] == 85.67
-    assert puertos[1]["puntos_sobre_80"] == 2
+    assert puertos[1]["puntos_sobre_90"] == 2
     assert puertos[1]["valor"] == 97.0
 
 
@@ -182,5 +182,5 @@ def test_porcentaje_de_utilizacion_nunca_supera_100(monkeypatch):
 
     puerto = saturacion_service.obtener_saturacion_actual()["datos"][0]["puertos"][0]
 
-    assert puerto["puntos_sobre_80"] == 2
+    assert puerto["puntos_sobre_90"] == 2
     assert puerto["valor"] == 100.0

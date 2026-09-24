@@ -63,7 +63,7 @@
     }
 
     function compareCriticality(a, b) {
-        const byPoints = Number(b.puntos_sobre_80 ?? 0) - Number(a.puntos_sobre_80 ?? 0);
+        const byPoints = Number(b.puntos_sobre_90 ?? 0) - Number(a.puntos_sobre_90 ?? 0);
         return byPoints || (Number(b.valor) - Number(a.valor));
     }
 
@@ -146,14 +146,17 @@
         body.replaceChildren(fragment);
     }
 
-    async function load({ silent = false } = {}) {
+    async function load({ refreshData = false } = {}) {
         if (busy) return;
         busy = true;
         refresh.disabled = true;
         panel.setAttribute('aria-busy', 'true');
-        if (!silent) status.textContent = 'Consultando afectaciones CMTS…';
+        status.textContent = refreshData
+            ? 'Actualizando datos HFC de los últimos 4 días...'
+            : 'Cargando último estado HFC…';
         try {
             const endpoint = new URL('../backend/api/hfc.php', window.location.href);
+            if (refreshData) endpoint.searchParams.set('refresh', '1');
             const response = await fetch(endpoint, { cache: 'no-store' });
             const payload = await response.json();
             const rows = payload.data?.estado_actual_hfc;
@@ -167,14 +170,18 @@
                 ? '1 puerto requiere revisión'
                 : `${currentRows.length} puertos requieren revisión`;
             status.textContent = currentRows.length ? '' : 'Sin afectaciones CMTS confirmadas';
+            if (payload.actualizacion_fallida) {
+                status.textContent = payload.error || 'La actualización falló; se muestran los últimos datos válidos.';
+            }
         } catch (_error) {
-            status.textContent = 'No se pudo consultar el estado HFC. Se reintentará automáticamente.';
+            status.textContent = 'No se pudo consultar el estado HFC.';
         } finally {
             busy = false;
             refresh.disabled = false;
             panel.setAttribute('aria-busy', 'false');
         }
     }
+
     const rangeButtons = [
         ...document.querySelectorAll('.hfc-time-range button')
     ];
@@ -243,10 +250,7 @@
         });
     });
 
-    refresh.addEventListener('click', () => load());
-
-    if (!body || !status || !panel || !refresh || !summary || !table || !modal || !dialog || !grafana) return;
-    refresh.addEventListener('click', () => load());
+    refresh.addEventListener('click', () => load({ refreshData: true }));
     closeButton.addEventListener('click', closeModal);
     modal.querySelector('[data-modal-close]').addEventListener('click', closeModal);
     document.addEventListener('keydown', (event) => {
@@ -266,6 +270,5 @@
         }
     });
     load();
-    setInterval(() => load({ silent: true }), 30000);
 })();
 

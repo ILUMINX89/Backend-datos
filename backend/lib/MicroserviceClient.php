@@ -41,7 +41,7 @@ final class MicroserviceClient
         $headers = ['Accept: application/json'];
         $options = [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => $this->timeout,
+            CURLOPT_TIMEOUT => max(0, $this->timeout),
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HTTPHEADER => $headers,

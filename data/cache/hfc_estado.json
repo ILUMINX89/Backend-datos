@@ -1,0 +1,6 @@
+{
+  "estado": "error",
+  "iniciado_en": "2026-09-24T09:22:14-05:00",
+  "finalizado_en": "2026-09-24T09:25:15-05:00",
+  "error": "HTTPSConnectionPool(host='100.66.80.175', port=443): Read timed out. (read timeout=179.94726319995243)"
+}
