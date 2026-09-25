@@ -40,7 +40,7 @@
     gap: 16px;
 }
 
-.intermitencias-grid > .module-panel {
+.intermitencias-grid>.module-panel {
     min-width: 0;
 }
 
@@ -547,11 +547,13 @@
 
 .hfc-dialog__body {
     min-height: 0;
+    flex: 1 1 auto;
 
     display: grid;
     grid-template-columns: minmax(0, 1fr) 310px;
 
-    overflow: auto;
+    /* El cuerpo del modal ya no hace scroll completo */
+    overflow: hidden;
 }
 
 
@@ -724,12 +726,36 @@
 
 .hfc-related {
     min-width: 0;
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
 
     padding: 16px;
 
     background: var(--hfc-surface-2);
 
     border-left: 1px solid var(--hfc-border);
+
+    /* Solo esta columna hace scroll */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+
+    scrollbar-width: thin;
+    scrollbar-color: #7894aa #e4edf4;
+}
+
+.hfc-related::-webkit-scrollbar {
+    width: 8px;
+}
+
+.hfc-related::-webkit-scrollbar-track {
+    background: #e4edf4;
+}
+
+.hfc-related::-webkit-scrollbar-thumb {
+    background: #7894aa;
+    border-radius: 8px;
 }
 
 .hfc-related>h3 {
