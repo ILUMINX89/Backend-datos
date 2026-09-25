@@ -13,14 +13,14 @@ from fastapi.testclient import TestClient
 
 from microservicios.app import app
 from microservicios.cmts.saturacion import cache, router, service
-from microservicios.cmts.saturacion.queries import obtener_bw_flux, obtener_snr_flux
+from microservicios.cmts.saturacion.queries import obtener_bw_flux
 
 
 def validar_consultas() -> None:
-    assert "range(start: -4d)" in obtener_bw_flux()
-    snr = obtener_snr_flux()
-    assert "range(start: -4d)" in snr
-    assert "tail(n: 60)" in snr
+    bw = obtener_bw_flux()
+    assert "range(start: -4d)" in bw
+    assert 'keep(columns: ["_time", "_value", "cmts", "descripcion"])' in bw
+    assert all(operacion not in bw for operacion in ("join(", "group(", "max(", "last("))
 
 
 def validar_calculo() -> None:
@@ -34,38 +34,45 @@ def validar_calculo() -> None:
     def consultar(consulta: str, **_kwargs: object) -> list[dict[str, object]]:
         consultas.append(consulta)
         if consulta == "bw":
+            antiguo = datetime(2026, 9, 20, tzinfo=timezone.utc)
+            reciente = datetime(2026, 9, 21, tzinfo=timezone.utc)
             return [
-                {"cmts": "CMTS-1", "descripcion": puerto, "_value": 100}
-                for puerto in ("A", "B", "C")
+                {"cmts": "CMTS-1", "descripcion": puerto, "_value": valor, "_time": fecha}
+                for puerto in ("A", "B", "C", "D", "E")
+                for valor, fecha in ((80 if puerto == "C" else 79 if puerto in ("D", "E") else 100, reciente),
+                                     (100, antiguo))
             ]
         if consulta == "utilizacion" and consultas.count("utilizacion") == 1:
             return [
                 {"cmts": "CMTS-1", "descripcion": puerto, "_value": valor}
-                for puerto, valores in (("A", (95, 96, 96)), ("B", (99, 99)), ("C", (120,)))
-                for valor in valores
+                for puerto, cantidad, valor in (("A", 99, 95), ("B", 100, 96),
+                                                ("C", 100, 76), ("D", 100, 55.3),
+                                                ("E", 99, 55.3))
+                for _ in range(cantidad)
             ]
         return []
 
     with ExitStack() as parches:
         parches.enter_context(patch.object(service, "obtener_bw_flux", return_value="bw"))
-        parches.enter_context(patch.object(service, "obtener_snr_flux", return_value="snr"))
         parches.enter_context(patch.object(service, "obtener_utilizacion_flux", side_effect=consulta_utilizacion))
         parches.enter_context(patch.object(service, "consultar_flux_temp", side_effect=consultar))
         parches.enter_context(patch.object(service.time, "sleep", return_value=None))
         datos = service.calcular_saturacion_actual()["datos"]
 
     assert len(bloques) == 16
-    assert consultas == ["bw", *("utilizacion" for _ in range(16)), "snr"]
+    assert consultas == ["bw", *("utilizacion" for _ in range(16))]
     assert all(fin - inicio == timedelta(hours=6) for inicio, fin in bloques)
     assert all(actual[1] == siguiente[0] for actual, siguiente in zip(bloques, bloques[1:]))
     assert bloques[-1][1] - bloques[0][0] == timedelta(days=4)
     assert abs(datetime.now(timezone.utc) - bloques[-1][1]) < timedelta(minutes=1)
 
     puertos = datos[0]["puertos"]
-    assert [puerto["puerto"] for puerto in puertos] == ["A", "B", "C"]
-    assert [puerto["puntos_sobre_90"] for puerto in puertos] == [3, 2, 1]
-    assert puertos[0]["valor"] == 95.67
-    assert puertos[2]["valor"] == 100.0
+    assert [puerto["puerto"] for puerto in puertos] == ["B", "C", "D"]
+    assert [puerto["puntos_sobre_90"] for puerto in puertos] == [100, 100, 100]
+    assert [puerto["valor"] for puerto in puertos] == [96.0, 95.0, 70.0]
+    assert [puerto["bw"] for puerto in puertos] == [100, 80, 79]
+    assert [puerto["tipo"] for puerto in puertos] == ["uso", "uso", "degradacion"]
+    assert puertos[2]["estado"] == "Saturación por degradación"
     assert all(0 <= puerto["valor"] <= 100 for puerto in puertos)
 
 

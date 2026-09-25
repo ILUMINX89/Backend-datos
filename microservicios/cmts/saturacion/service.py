@@ -8,27 +8,15 @@ import time
 from typing import Any
 
 from microservicios.cmts.saturacion.cache import guardar_saturacion
-from microservicios.cmts.saturacion.queries import obtener_bw_flux, obtener_snr_flux, obtener_utilizacion_flux
+from microservicios.cmts.saturacion.queries import obtener_bw_flux, obtener_utilizacion_flux
 from microservicios.influx import consultar_flux_temp
 
-MUESTRAS_CONFIRMACION_SNR = 60
+MIN_PUNTOS_SATURACION = 100
 UMBRAL_UTILIZACION = 90.0
-UMBRAL_SNR_DEGRADADO_DB = 30.0
+UMBRAL_CAPACIDAD_DEGRADADA = 80.0
 VENTANA_DIAS = 4
 CHUNK_HORAS = 6
 logger = logging.getLogger(__name__)
-
-
-def _agrupar_snr(filas: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, Any]]]:
-    resultado: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
-    for fila in filas:
-        cmts = fila.get("cmts")
-        descripcion = fila.get("descripcion")
-        if cmts and descripcion and fila.get("_value") is not None:
-            resultado[(str(cmts), str(descripcion))].append(fila)
-    for muestras in resultado.values():
-        muestras.sort(key=lambda fila: fila.get("_time"), reverse=True)
-    return dict(resultado)
 
 
 def _valor_numerico(fila: dict[str, Any], campo: str) -> float | None:
@@ -43,11 +31,29 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     logger.info("HFC: iniciando actualización")
     fin = datetime.now(timezone.utc)
     inicio = fin - timedelta(days=VENTANA_DIAS)
-    bw_por_puerto: dict[tuple[str, str], float] = {}
+    # Una sola lectura de BW: último valor por fecha y máximo de la ventana.
+    bw_por_puerto: dict[tuple[str, str], tuple[datetime, float, float]] = {}
     for fila in consultar_flux_temp(obtener_bw_flux(), fuente="cmts"):
         bw = _valor_numerico(fila, "_value")
-        if fila.get("cmts") and fila.get("descripcion") and bw is not None and math.isfinite(bw) and bw > 0:
-            bw_por_puerto[(str(fila["cmts"]), str(fila["descripcion"]))] = bw
+        fecha = fila.get("_time")
+        if not (fila.get("cmts") and fila.get("descripcion") and isinstance(fecha, datetime)
+                and bw is not None and math.isfinite(bw) and bw > 0):
+            continue
+        clave = (str(fila["cmts"]), str(fila["descripcion"]))
+        anterior = bw_por_puerto.get(clave)
+        if anterior is None:
+            bw_por_puerto[clave] = (fecha, bw, bw)
+        else:
+            fecha_actual, capacidad_actual, capacidad_normal = anterior
+            if fecha > fecha_actual:
+                fecha_actual, capacidad_actual = fecha, bw
+            bw_por_puerto[clave] = (fecha_actual, capacidad_actual, max(capacidad_normal, bw))
+    umbrales: dict[tuple[str, str], tuple[float, bool]] = {}
+    for clave, (_, actual, normal) in bw_por_puerto.items():
+        porcentaje_capacidad = actual / normal * 100.0
+        degradado = porcentaje_capacidad < UMBRAL_CAPACIDAD_DEGRADADA
+        umbral = UMBRAL_UTILIZACION - (100.0 - porcentaje_capacidad) if degradado else UMBRAL_UTILIZACION
+        umbrales[clave] = (umbral, degradado)
     logger.info("HFC: BW cargado")
 
     acumulados: dict[tuple[str, str], dict[str, float | int]] = {}
@@ -58,60 +64,41 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         filas = consultar_flux_temp(obtener_utilizacion_flux(bloque_inicio, bloque_fin), fuente="cmts")
         for fila in filas:
             clave = (str(fila.get("cmts") or ""), str(fila.get("descripcion") or ""))
-            bw = bw_por_puerto.get(clave)
+            capacidad = bw_por_puerto.get(clave)
             utilizacion = _valor_numerico(fila, "_value")
-            if bw is None or utilizacion is None or not math.isfinite(utilizacion):
+            if capacidad is None or utilizacion is None or not math.isfinite(utilizacion):
                 continue
-            porcentaje = max(0.0, min(100.0, utilizacion / bw * 100.0))
+            porcentaje = max(0.0, min(100.0, utilizacion / capacidad[1] * 100.0))
             acumulado = acumulados.setdefault(clave, {
                 "muestras_analizadas": 0, "puntos_sobre_90": 0,
-                "suma_sobre_90": 0.0, "suma_total": 0.0,
+                "suma_sobre_90": 0.0,
             })
             acumulado["muestras_analizadas"] += 1
-            acumulado["suma_total"] += porcentaje
-            if porcentaje >= UMBRAL_UTILIZACION:
+            if porcentaje >= umbrales[clave][0]:
                 acumulado["puntos_sobre_90"] += 1
                 acumulado["suma_sobre_90"] += porcentaje
         logger.info("HFC: bloque utilización %d/%d completado", indice + 1, total_bloques)
         if indice + 1 < total_bloques:
             time.sleep(0.5)
 
-    muestras_snr = _agrupar_snr(consultar_flux_temp(obtener_snr_flux(), fuente="cmts"))
-    logger.info("HFC: SNR cargado")
     resultado: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for (cmts, descripcion), acumulado in acumulados.items():
-        bw = bw_por_puerto[(cmts, descripcion)]
+        bw = bw_por_puerto[(cmts, descripcion)][1]
         muestras_analizadas = int(acumulado["muestras_analizadas"])
         puntos_sobre_90 = int(acumulado["puntos_sobre_90"])
-        promedio_umbral = acumulado["suma_sobre_90"] / puntos_sobre_90 if puntos_sobre_90 else None
-        promedio_total = acumulado["suma_total"] / muestras_analizadas if muestras_analizadas else None
-
-        valores_ruido: list[float] = []
-        for muestra in muestras_snr.get((cmts, descripcion), []):
-            valor = _valor_numerico(muestra, "_value")
-            if valor is None or valor <= 0:
-                break
-            valores_ruido.append(valor)
-
-        uso_confirmado = puntos_sobre_90 > 0
-        degradacion_confirmada = (
-            len(valores_ruido) == MUESTRAS_CONFIRMACION_SNR
-            and all(valor < UMBRAL_SNR_DEGRADADO_DB for valor in valores_ruido)
-        )
-        if not uso_confirmado and not degradacion_confirmada:
+        if puntos_sobre_90 < MIN_PUNTOS_SATURACION:
             continue
-        porcentaje = promedio_umbral if uso_confirmado else promedio_total
-        if porcentaje is None:
-            continue
+        porcentaje = acumulado["suma_sobre_90"] / puntos_sobre_90
         porcentaje = max(0.0, min(100.0, porcentaje))
+        degradado = umbrales[(cmts, descripcion)][1]
         resultado[cmts].append({
             "puerto": descripcion, "valor": round(porcentaje, 2), "bw": bw,
-            "estado": "Saturación por degradación" if degradacion_confirmada else "Saturación",
-            "tipo": "degradacion" if degradacion_confirmada else "uso",
+            "estado": "Saturación por degradación" if degradado else "Saturación",
+            "tipo": "degradacion" if degradado else "uso",
             "puntos_sobre_90": puntos_sobre_90,
             "muestras_analizadas": muestras_analizadas,
-            "ruido": valores_ruido[0] if valores_ruido else None,
+            "ruido": None,
         })
 
     def criticidad(item: dict[str, Any]) -> tuple[int, float]:
