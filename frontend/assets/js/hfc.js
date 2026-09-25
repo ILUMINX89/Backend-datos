@@ -23,7 +23,7 @@
     let selectedRow = null;
     let returnFocus = null;
     let selectedDays = 3;
-    let selectedPanel = 'panel-1';
+    let selectedPanel = 'panel-15';
 
     function grafanaUrl(row) {
         const url = new URL(
@@ -32,7 +32,6 @@
 
         url.searchParams.set('orgId', '1');
 
-        // Rango seleccionado con los botones 1D / 2D / 3D / 7D
         url.searchParams.set('from', `now-${selectedDays}d`);
         url.searchParams.set('to', 'now');
 
@@ -42,10 +41,12 @@
         url.searchParams.set('var-CMTS', row.equipo);
         url.searchParams.set('var-NODO', row.puerto);
 
-        // En d-solo se usa panelId, no viewPanel
+        // Pestaña DOCSIS
+        url.searchParams.set('dtab', 'DOCSIS-CMTS');
+
+        // Gráfica seleccionada
         url.searchParams.set('panelId', selectedPanel);
 
-        // Tema claro
         url.searchParams.set('theme', 'light');
 
         return url.toString();

@@ -78,11 +78,11 @@
                         </div>
 
                         <div class="hfc-chart-switch hfc-range" aria-label="Tipo de gráfica">
-                            <button type="button" data-panel="panel-1" class="is-active">
+                            <button type="button" data-panel="panel-15" class="is-active">
                                 Tráfico
                             </button>
 
-                            <button type="button" data-panel="panel-7">
+                            <button type="button" data-panel="panel-20">
                                 SNR UP
                             </button>
                         </div>
