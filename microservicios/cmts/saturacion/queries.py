@@ -8,7 +8,7 @@ from microservicios.config import settings
 def obtener_bw_flux() -> str:
     return f"""
 from(bucket: "{settings.influx_cmts_bucket}")
-  |> range(start: -1d)
+  |> range(start: -4d)
   |> filter(fn: (r) => r._measurement == "estado_puertos")
   |> filter(fn: (r) => r._field == "bw")
   |> filter(fn: (r) => exists r.cmts and exists r.descripcion)
@@ -32,7 +32,7 @@ from(bucket: "{settings.influx_cmts_bucket}")
 def obtener_snr_flux() -> str:
     return f"""
 from(bucket: "{settings.influx_cmts_bucket}")
-  |> range(start: -1d)
+  |> range(start: -4d)
   |> filter(fn: (r) => r._measurement == "estado_puertos")
   |> filter(fn: (r) => r._field == "snr")
   |> filter(fn: (r) => exists r.cmts and exists r.descripcion)

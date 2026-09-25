@@ -5,7 +5,11 @@ from threading import Lock
 
 from fastapi import APIRouter, BackgroundTasks
 
-from microservicios.cmts.saturacion.cache import guardar_estado, leer_estado, leer_saturacion
+from microservicios.cmts.saturacion.cache import (
+    guardar_estado,
+    leer_estado,
+    leer_saturacion,
+)
 from microservicios.cmts.saturacion.service import actualizar_saturacion
 
 router = APIRouter(tags=["CMTS - Saturación"])
@@ -21,15 +25,23 @@ def _ejecutar_actualizacion() -> None:
     try:
         actualizar_saturacion()
     except Exception as exc:
-        guardar_estado({
-            "estado": "error", "iniciado_en": iniciado_en,
-            "finalizado_en": _ahora(), "error": str(exc),
-        })
+        guardar_estado(
+            {
+                "estado": "error",
+                "iniciado_en": iniciado_en,
+                "finalizado_en": _ahora(),
+                "error": str(exc),
+            }
+        )
     else:
-        guardar_estado({
-            "estado": "listo", "iniciado_en": iniciado_en,
-            "finalizado_en": _ahora(), "error": None,
-        })
+        guardar_estado(
+            {
+                "estado": "listo",
+                "iniciado_en": iniciado_en,
+                "finalizado_en": _ahora(),
+                "error": None,
+            }
+        )
     finally:
         _actualizacion_lock.release()
 
@@ -44,10 +56,14 @@ def saturacion_actualizar(background_tasks: BackgroundTasks) -> dict:
     if not _actualizacion_lock.acquire(blocking=False):
         return {"ok": True, "estado": "procesando"}
     try:
-        guardar_estado({
-            "estado": "procesando", "iniciado_en": _ahora(),
-            "finalizado_en": None, "error": None,
-        })
+        guardar_estado(
+            {
+                "estado": "procesando",
+                "iniciado_en": _ahora(),
+                "finalizado_en": None,
+                "error": None,
+            }
+        )
     except Exception:
         _actualizacion_lock.release()
         raise
