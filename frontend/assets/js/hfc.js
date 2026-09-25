@@ -17,6 +17,8 @@
         maximumFractionDigits: 2
     });
     let busy = false;
+    let updating = false;
+    let statusTimer = null;
     let currentRows = [];
     let selectedRow = null;
     let returnFocus = null;
@@ -146,17 +148,14 @@
         body.replaceChildren(fragment);
     }
 
-    async function load({ refreshData = false } = {}) {
+    async function load() {
         if (busy) return;
         busy = true;
         refresh.disabled = true;
         panel.setAttribute('aria-busy', 'true');
-        status.textContent = refreshData
-            ? 'Actualizando datos HFC de los últimos 4 días...'
-            : 'Cargando último estado HFC…';
+        status.textContent = 'Cargando último estado HFC…';
         try {
             const endpoint = new URL('../backend/api/hfc.php', window.location.href);
-            if (refreshData) endpoint.searchParams.set('refresh', '1');
             const response = await fetch(endpoint, { cache: 'no-store' });
             const payload = await response.json();
             const rows = payload.data?.estado_actual_hfc;
@@ -169,16 +168,62 @@
             summary.textContent = currentRows.length === 1
                 ? '1 puerto requiere revisión'
                 : `${currentRows.length} puertos requieren revisión`;
-            status.textContent = currentRows.length ? '' : 'Sin afectaciones CMTS confirmadas';
-            if (payload.actualizacion_fallida) {
-                status.textContent = payload.error || 'La actualización falló; se muestran los últimos datos válidos.';
-            }
+            status.textContent = !payload.data?.actualizado_en
+                ? 'No hay datos HFC almacenados. Pulsa Actualizar para generar el primer estado.'
+                : currentRows.length ? '' : 'Sin afectaciones CMTS confirmadas';
         } catch (_error) {
             status.textContent = 'No se pudo consultar el estado HFC.';
         } finally {
             busy = false;
-            refresh.disabled = false;
+            refresh.disabled = updating;
             panel.setAttribute('aria-busy', 'false');
+        }
+    }
+
+    async function checkUpdateStatus() {
+        try {
+            const endpoint = new URL('../backend/api/hfc_estado.php', window.location.href);
+            const response = await fetch(endpoint, { cache: 'no-store' });
+            const payload = await response.json();
+            if (!response.ok || !payload.ok) throw new Error('No se pudo consultar el estado HFC.');
+            const state = payload.data?.estado;
+            if (state === 'procesando') {
+                statusTimer = window.setTimeout(checkUpdateStatus, 5000);
+                return;
+            }
+            updating = false;
+            refresh.disabled = false;
+            if (state === 'listo') {
+                await load();
+            } else if (state === 'error') {
+                status.textContent = payload.data?.error || 'Falló la actualización HFC; se conservan los últimos datos.';
+            } else {
+                throw new Error('Estado de actualización HFC no reconocido.');
+            }
+        } catch (error) {
+            updating = false;
+            refresh.disabled = false;
+            status.textContent = error.message || 'No se pudo consultar el estado HFC.';
+        }
+    }
+
+    async function startUpdate() {
+        if (updating || busy) return;
+        updating = true;
+        refresh.disabled = true;
+        status.textContent = 'Actualizando datos HFC de los últimos 4 días...';
+        try {
+            const endpoint = new URL('../backend/api/hfc_actualizar.php', window.location.href);
+            const response = await fetch(endpoint, { method: 'POST', cache: 'no-store' });
+            const payload = await response.json();
+            if (!response.ok || !payload.ok || payload.estado !== 'procesando') {
+                throw new Error(payload.error || 'No se pudo iniciar la actualización HFC.');
+            }
+            statusTimer = window.setTimeout(checkUpdateStatus, 5000);
+        } catch (error) {
+            updating = false;
+            refresh.disabled = false;
+            status.textContent = error.message || 'No se pudo iniciar la actualización HFC.';
         }
     }
 
@@ -250,7 +295,7 @@
         });
     });
 
-    refresh.addEventListener('click', () => load({ refreshData: true }));
+    refresh.addEventListener('click', startUpdate);
     closeButton.addEventListener('click', closeModal);
     modal.querySelector('[data-modal-close]').addEventListener('click', closeModal);
     document.addEventListener('keydown', (event) => {

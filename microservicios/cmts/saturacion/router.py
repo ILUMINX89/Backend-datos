@@ -35,9 +35,8 @@ def _ejecutar_actualizacion() -> None:
 
 
 @router.get("/saturacion/actual")
-def saturacion_actual(refresh: bool = False) -> dict:
-    datos = actualizar_saturacion() if refresh else leer_saturacion()
-    return {"ok": True, "data": datos}
+def saturacion_actual() -> dict:
+    return {"ok": True, "data": leer_saturacion()}
 
 
 @router.post("/saturacion/actualizar")
