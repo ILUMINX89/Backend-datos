@@ -6,10 +6,10 @@ $overviewActive = $sidebarPage === 'index.php';
 
 $routinePages = [
     'recursos-zte.php' => 'Recursos ZTE',
+    'agotamiento-ip.php' => 'Agotamiento IP e intermitencias',
     'autofind-hw.php' => 'Autofind HW',
     'onts.php' => 'ONTs',
     'troncales-pon.php' => 'Troncales PON',
-    'agotamiento-ip.php' => 'Agotamiento de IP',
 ];
 
 $routinesActive = array_key_exists(

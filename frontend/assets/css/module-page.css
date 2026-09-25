@@ -49,6 +49,29 @@
     gap: 12px;
 }
 
+.module-panel .gkp-section__heading {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.module-panel .gkp-section__heading > div {
+    min-width: 0;
+}
+
+.module-panel .gkp-section__heading > button {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.module-panel .gkp-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
 .intermitencias-grid .gkp-table-wrap .gkp-table {
     min-width: 620px;
 }
