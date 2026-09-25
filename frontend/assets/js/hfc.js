@@ -249,6 +249,38 @@
             render(currentRows);
             table.hidden = currentRows.length === 0;
             updateHeaderStatus(payload.data?.actualizado_en);
+            const headerConnection = document.getElementById('header-connection');
+            const headerConnectionDetail = document.getElementById('header-connection-detail');
+
+            const headerSources = document.getElementById('header-sources');
+            const headerSourcesDetail = document.getElementById('header-sources-detail');
+
+            const connectionDot = document.querySelector('.connection-dot');
+            const connectionCard = document.querySelector('.topbar-card--connection');
+            if (headerConnection) {
+                headerConnection.textContent = 'Conectado';
+            }
+
+            if (headerConnectionDetail) {
+                headerConnectionDetail.textContent = 'API HFC disponible';
+            }
+
+            if (headerSources) {
+                headerSources.textContent = 'CMTS';
+            }
+
+            if (headerSourcesDetail) {
+                headerSourcesDetail.textContent = 'Saturación HFC';
+            }
+
+            if (connectionDot) {
+                connectionDot.classList.remove('offline');
+                connectionDot.classList.add('online');
+            }
+
+            if (connectionCard) {
+                connectionCard.classList.add('is-online');
+            }
             summary.textContent = currentRows.length === 1
                 ? '1 puerto requiere revisión'
                 : `${currentRows.length} puertos requieren revisión`;
