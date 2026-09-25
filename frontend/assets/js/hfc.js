@@ -16,6 +16,88 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
+    function formatUpdatedAt(value) {
+        if (!value) return null;
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+
+        return date.toLocaleString('es-CO', {
+            dateStyle: 'short',
+            timeStyle: 'medium'
+        });
+    }
+
+    function updateHeaderStatus(updatedAt) {
+        const formatted = formatUpdatedAt(updatedAt);
+
+        const headerMonitoring = document.getElementById('header-monitoring');
+        const headerMonitoringDetail = document.getElementById('header-monitoring-detail');
+        const headerDatetime = document.getElementById('header-datetime');
+
+        const sidebarMonitoring = document.getElementById('sidebar-monitoring');
+        const sidebarMonitoringDetail = document.getElementById('sidebar-monitoring-detail');
+
+        const monitorDot = document.querySelector('.monitor-dot');
+        const monitoringCard = document.querySelector('.topbar-card--monitoring');
+
+        if (!formatted) {
+            if (headerMonitoring) {
+                headerMonitoring.textContent = 'Sin datos';
+            }
+
+            if (headerMonitoringDetail) {
+                headerMonitoringDetail.textContent = 'Aún no se ha actualizado HFC';
+            }
+
+            if (sidebarMonitoring) {
+                sidebarMonitoring.textContent = 'Sin datos';
+            }
+
+            if (sidebarMonitoringDetail) {
+                sidebarMonitoringDetail.textContent = 'HFC sin actualizar';
+            }
+
+            if (headerDatetime) {
+                headerDatetime.textContent = 'Pendiente';
+            }
+
+            return;
+        }
+
+        if (headerMonitoring) {
+            headerMonitoring.textContent = 'Disponible';
+        }
+
+        if (headerMonitoringDetail) {
+            headerMonitoringDetail.textContent = `Datos del ${formatted}`;
+        }
+
+        if (sidebarMonitoring) {
+            sidebarMonitoring.textContent = 'Disponible';
+        }
+
+        if (sidebarMonitoringDetail) {
+            sidebarMonitoringDetail.textContent = `Datos del ${formatted}`;
+        }
+
+        if (headerDatetime) {
+            headerDatetime.textContent = formatted;
+        }
+
+        if (monitorDot) {
+            monitorDot.classList.remove('partial', 'error');
+            monitorDot.classList.add('available');
+        }
+
+        if (monitoringCard) {
+            monitoringCard.classList.remove('is-partial', 'is-error');
+            monitoringCard.classList.add('is-available');
+        }
+    }
     let busy = false;
     let updating = false;
     let statusTimer = null;
@@ -166,6 +248,7 @@
             currentRows = [...rows].sort(compareCriticality);
             render(currentRows);
             table.hidden = currentRows.length === 0;
+            updateHeaderStatus(payload.data?.actualizado_en);
             summary.textContent = currentRows.length === 1
                 ? '1 puerto requiere revisión'
                 : `${currentRows.length} puertos requieren revisión`;
