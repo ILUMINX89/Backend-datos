@@ -12,7 +12,10 @@ import time
 from typing import Any
 
 from microservicios.cmts.saturacion.cache import guardar_saturacion
-from microservicios.cmts.saturacion.queries import obtener_bw_flux, obtener_muestras_flux
+from microservicios.cmts.saturacion.queries import (
+    obtener_bw_flux,
+    obtener_muestras_flux,
+)
 from microservicios.influx import consultar_flux_temp
 
 MIN_PUNTOS_SATURACION = 100
@@ -39,7 +42,12 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     bw_por_puerto: dict[tuple[str, str], float] = {}
     for fila in consultar_flux_temp(obtener_bw_flux(), fuente="cmts"):
         valor = _valor_numerico(fila)
-        if fila.get("cmts") and fila.get("descripcion") and valor is not None and valor > 0:
+        if (
+            fila.get("cmts")
+            and fila.get("descripcion")
+            and valor is not None
+            and valor > 0
+        ):
             bw_por_puerto[(str(fila["cmts"]), str(fila["descripcion"]))] = valor
     logger.info("HFC: BW puertos=%d", len(bw_por_puerto))
     if not bw_por_puerto:
@@ -52,11 +60,15 @@ def calcular_saturacion_actual() -> dict[str, Any]:
 
     with TemporaryDirectory(prefix="hfc_saturacion_") as temporal:
         with closing(sqlite3.connect(Path(temporal) / "muestras.sqlite3")) as base:
-            base.execute("CREATE TABLE muestras (cmts TEXT, descripcion TEXT, utilizacion REAL)")
+            base.execute(
+                "CREATE TABLE muestras (cmts TEXT, descripcion TEXT, utilizacion REAL)"
+            )
             for indice in range(total_bloques):
                 bloque_inicio = inicio + timedelta(hours=indice * CHUNK_HORAS)
                 bloque_fin = min(bloque_inicio + timedelta(hours=CHUNK_HORAS), fin)
-                filas = consultar_flux_temp(obtener_muestras_flux(bloque_inicio, bloque_fin), fuente="cmts")
+                filas = consultar_flux_temp(
+                    obtener_muestras_flux(bloque_inicio, bloque_fin), fuente="cmts"
+                )
                 for fila in filas:
                     cmts, descripcion = fila.get("cmts"), fila.get("descripcion")
                     valor = _valor_numerico(fila)
@@ -74,9 +86,15 @@ def calcular_saturacion_actual() -> dict[str, Any]:
                             fecha_actual, actual, normal = anterior
                             if fecha > fecha_actual:
                                 fecha_actual, actual = fecha, valor
-                            portadoras_por_puerto[clave] = (fecha_actual, actual, max(normal, valor))
+                            portadoras_por_puerto[clave] = (
+                                fecha_actual,
+                                actual,
+                                max(normal, valor),
+                            )
                     elif fila.get("_field") == "utilizacion":
-                        base.execute("INSERT INTO muestras VALUES (?, ?, ?)", (*clave, valor))
+                        base.execute(
+                            "INSERT INTO muestras VALUES (?, ?, ?)", (*clave, valor)
+                        )
                         cantidad_muestras_utilizacion += 1
                 del filas
                 base.commit()
@@ -98,9 +116,12 @@ def calcular_saturacion_actual() -> dict[str, Any]:
                     continue
                 porcentaje_capacidad = actual / normal * 100.0
                 degradado = porcentaje_capacidad <= UMBRAL_CAPACIDAD_DEGRADADA
-                umbral = UMBRAL_UTILIZACION - (100.0 - porcentaje_capacidad) if degradado else UMBRAL_UTILIZACION
-                bw_normal = bw_actual * normal / actual
-                capacidades[clave] = (bw_normal, umbral, degradado)
+                umbral = (
+                    UMBRAL_UTILIZACION - (100.0 - porcentaje_capacidad)
+                    if degradado
+                    else UMBRAL_UTILIZACION
+                )
+                capacidades[clave] = (bw_actual, umbral, degradado)
 
             for cmts, descripcion, utilizacion in base.execute(
                 "SELECT cmts, descripcion, utilizacion FROM muestras"
@@ -109,11 +130,16 @@ def calcular_saturacion_actual() -> dict[str, Any]:
                 capacidad = capacidades.get(clave)
                 if capacidad is None:
                     continue
-                bw_normal, umbral, _ = capacidad
-                porcentaje = max(0.0, min(100.0, utilizacion / bw_normal * 100.0))
-                acumulado = acumulados.setdefault(clave, {
-                    "muestras_analizadas": 0, "puntos_sobre_90": 0, "suma_sobre_90": 0.0,
-                })
+                bw_actual, umbral, _ = capacidad
+                porcentaje = max(0.0, min(100.0, utilizacion / bw_actual * 100.0))
+                acumulado = acumulados.setdefault(
+                    clave,
+                    {
+                        "muestras_analizadas": 0,
+                        "puntos_sobre_90": 0,
+                        "suma_sobre_90": 0.0,
+                    },
+                )
                 acumulado["muestras_analizadas"] += 1
                 if porcentaje >= umbral:
                     acumulado["puntos_sobre_90"] += 1
@@ -126,15 +152,18 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         if puntos_sobre_90 < MIN_PUNTOS_SATURACION:
             continue
         porcentaje = acumulado["suma_sobre_90"] / puntos_sobre_90
-        resultado[cmts].append({
-            "puerto": descripcion, "valor": round(porcentaje, 2),
-            "bw": bw_por_puerto[(cmts, descripcion)],
-            "estado": "Saturación por degradación" if degradado else "Saturación",
-            "tipo": "degradacion" if degradado else "uso",
-            "puntos_sobre_90": puntos_sobre_90,
-            "muestras_analizadas": int(acumulado["muestras_analizadas"]),
-            "ruido": None,
-        })
+        resultado[cmts].append(
+            {
+                "puerto": descripcion,
+                "valor": round(porcentaje, 2),
+                "bw": bw_por_puerto[(cmts, descripcion)],
+                "estado": "Saturación por degradación" if degradado else "Saturación",
+                "tipo": "degradacion" if degradado else "uso",
+                "puntos_sobre_90": puntos_sobre_90,
+                "muestras_analizadas": int(acumulado["muestras_analizadas"]),
+                "ruido": None,
+            }
+        )
 
     def criticidad(item: dict[str, Any]) -> tuple[int, float]:
         return int(item["puntos_sobre_90"]), float(item["valor"])
@@ -145,7 +174,9 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     ]
     datos.sort(key=lambda grupo: criticidad(grupo["puertos"][0]), reverse=True)
     logger.info("HFC: puertos evaluados=%d", len(acumulados))
-    logger.info("HFC: puertos saturados=%d", sum(len(grupo["puertos"]) for grupo in datos))
+    logger.info(
+        "HFC: puertos saturados=%d", sum(len(grupo["puertos"]) for grupo in datos)
+    )
     return {"datos": datos}
 
 
@@ -154,7 +185,8 @@ def actualizar_saturacion() -> dict[str, Any]:
     resultado = calcular_saturacion_actual()
     cache = {
         "generado_en": datetime.now().astimezone().isoformat(timespec="seconds"),
-        "ventana": "4d", "datos": resultado["datos"],
+        "ventana": "4d",
+        "datos": resultado["datos"],
     }
     guardar_saturacion(cache)
     logger.info("HFC: cache actualizado")
