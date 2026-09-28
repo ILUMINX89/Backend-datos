@@ -13,67 +13,67 @@ from fastapi.testclient import TestClient
 
 from microservicios.app import app
 from microservicios.cmts.saturacion import cache, router, service
-from microservicios.cmts.saturacion.queries import obtener_bw_flux
+from microservicios.cmts.saturacion.queries import obtener_muestras_flux
 
 
 def validar_consultas() -> None:
-    bw = obtener_bw_flux()
-    assert "range(start: -4d)" in bw
-    assert 'keep(columns: ["_time", "_value", "cmts", "descripcion"])' in bw
-    assert all(operacion not in bw for operacion in ("join(", "group(", "max(", "last("))
+    ahora = datetime.now(timezone.utc)
+    flujo = obtener_muestras_flux(ahora - timedelta(hours=4), ahora)
+    assert 'r._field == "portadoras" or r._field == "utilizacion"' in flujo
+    assert 'keep(columns: ["_time", "_field", "_value", "cmts", "descripcion"])' in flujo
+    assert all(operacion not in flujo for operacion in ("join(", "group(", "max(", "last(", '"bw"'))
 
 
 def validar_calculo() -> None:
     bloques: list[tuple[datetime, datetime]] = []
     consultas: list[str] = []
+    antiguo = datetime(2026, 9, 20, tzinfo=timezone.utc)
+    reciente = datetime(2026, 9, 21, tzinfo=timezone.utc)
 
-    def consulta_utilizacion(inicio: datetime, fin: datetime) -> str:
+    def consulta_bloque(inicio: datetime, fin: datetime) -> str:
         bloques.append((inicio, fin))
-        return "utilizacion"
+        return f"bloque-{len(bloques)}"
 
     def consultar(consulta: str, **_kwargs: object) -> list[dict[str, object]]:
         consultas.append(consulta)
-        if consulta == "bw":
-            antiguo = datetime(2026, 9, 20, tzinfo=timezone.utc)
-            reciente = datetime(2026, 9, 21, tzinfo=timezone.utc)
-            return [
-                {"cmts": "CMTS-1", "descripcion": puerto, "_value": valor, "_time": fecha}
-                for puerto in ("A", "B", "C", "D", "E")
-                for valor, fecha in ((80 if puerto == "C" else 79 if puerto in ("D", "E") else 100, reciente),
-                                     (100, antiguo))
-            ]
-        if consulta == "utilizacion" and consultas.count("utilizacion") == 1:
-            return [
-                {"cmts": "CMTS-1", "descripcion": puerto, "_value": valor}
-                for puerto, cantidad, valor in (("A", 99, 95), ("B", 100, 96),
-                                                ("C", 100, 76), ("D", 100, 55.3),
-                                                ("E", 99, 55.3))
-                for _ in range(cantidad)
-            ]
-        return []
+        if consulta != "bloque-1":
+            return []
+        filas: list[dict[str, object]] = []
+        for puerto, actual, normal, cantidad, porcentaje in (
+            ("A", 10, 10, 99, 95),
+            ("B", 10, 10, 100, 90),
+            ("C", 7, 10, 100, 65),
+            ("D", 7, 10, 99, 65),
+            ("E", 8, 10, 100, 89),
+        ):
+            for valor, fecha in ((actual, reciente), (normal, antiguo)):
+                filas.append({"cmts": "CMTS-1", "descripcion": puerto,
+                              "_field": "portadoras", "_value": valor, "_time": fecha})
+            filas.extend({"cmts": "CMTS-1", "descripcion": puerto,
+                         "_field": "utilizacion", "_value": porcentaje / 100 * normal * 30_000_000}
+                        for _ in range(cantidad))
+        return filas
 
     with ExitStack() as parches:
-        parches.enter_context(patch.object(service, "obtener_bw_flux", return_value="bw"))
-        parches.enter_context(patch.object(service, "obtener_utilizacion_flux", side_effect=consulta_utilizacion))
+        parches.enter_context(patch.object(service, "obtener_muestras_flux", side_effect=consulta_bloque))
         parches.enter_context(patch.object(service, "consultar_flux_temp", side_effect=consultar))
         parches.enter_context(patch.object(service.time, "sleep", return_value=None))
         datos = service.calcular_saturacion_actual()["datos"]
 
-    assert len(bloques) == 16
-    assert consultas == ["bw", *("utilizacion" for _ in range(16))]
-    assert all(fin - inicio == timedelta(hours=6) for inicio, fin in bloques)
+    assert len(bloques) == 24
+    assert consultas == [f"bloque-{n}" for n in range(1, 25)]
+    assert all(fin - inicio == timedelta(hours=4) for inicio, fin in bloques)
     assert all(actual[1] == siguiente[0] for actual, siguiente in zip(bloques, bloques[1:]))
     assert bloques[-1][1] - bloques[0][0] == timedelta(days=4)
     assert abs(datetime.now(timezone.utc) - bloques[-1][1]) < timedelta(minutes=1)
 
     puertos = datos[0]["puertos"]
-    assert [puerto["puerto"] for puerto in puertos] == ["B", "C", "D"]
-    assert [puerto["puntos_sobre_90"] for puerto in puertos] == [100, 100, 100]
-    assert [puerto["valor"] for puerto in puertos] == [96.0, 95.0, 70.0]
-    assert [puerto["bw"] for puerto in puertos] == [100, 80, 79]
-    assert [puerto["tipo"] for puerto in puertos] == ["uso", "uso", "degradacion"]
-    assert puertos[2]["estado"] == "Saturación por degradación"
-    assert all(0 <= puerto["valor"] <= 100 for puerto in puertos)
+    assert [puerto["puerto"] for puerto in puertos] == ["B", "C"]
+    assert [puerto["puntos_sobre_90"] for puerto in puertos] == [100, 100]
+    assert [puerto["valor"] for puerto in puertos] == [90.0, 65.0]
+    assert [puerto["tipo"] for puerto in puertos] == ["uso", "degradacion"]
+    assert [puerto["estado"] for puerto in puertos] == ["Saturación", "Saturación por degradación"]
+    assert [puerto["bw"] for puerto in puertos] == [300_000_000, 210_000_000]
 
 
 def validar_cache_y_rutas(directorio: Path) -> None:
