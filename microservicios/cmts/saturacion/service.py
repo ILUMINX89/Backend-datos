@@ -12,7 +12,7 @@ import time
 from typing import Any
 
 from microservicios.cmts.saturacion.cache import guardar_saturacion
-from microservicios.cmts.saturacion.queries import obtener_muestras_flux
+from microservicios.cmts.saturacion.queries import obtener_bw_flux, obtener_muestras_flux
 from microservicios.influx import consultar_flux_temp
 
 MIN_PUNTOS_SATURACION = 100
@@ -20,7 +20,6 @@ UMBRAL_UTILIZACION = 90.0
 UMBRAL_CAPACIDAD_DEGRADADA = 80.0
 VENTANA_DIAS = 4
 CHUNK_HORAS = 4
-CAPACIDAD_PORTADORA = 30_000_000
 logger = logging.getLogger(__name__)
 
 
@@ -37,8 +36,18 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     logger.info("HFC: iniciando actualización")
     fin = datetime.now(timezone.utc)
     inicio = fin - timedelta(days=VENTANA_DIAS)
+    bw_por_puerto: dict[tuple[str, str], float] = {}
+    for fila in consultar_flux_temp(obtener_bw_flux(), fuente="cmts"):
+        valor = _valor_numerico(fila)
+        if fila.get("cmts") and fila.get("descripcion") and valor is not None and valor > 0:
+            bw_por_puerto[(str(fila["cmts"]), str(fila["descripcion"]))] = valor
+    logger.info("HFC: BW puertos=%d", len(bw_por_puerto))
+    if not bw_por_puerto:
+        raise RuntimeError("No se obtuvieron datos BW CMTS")
+
     portadoras_por_puerto: dict[tuple[str, str], tuple[datetime, float, float]] = {}
     acumulados: dict[tuple[str, str], dict[str, float | int]] = {}
+    cantidad_muestras_utilizacion = 0
     total_bloques = VENTANA_DIAS * 24 // CHUNK_HORAS
 
     with TemporaryDirectory(prefix="hfc_saturacion_") as temporal:
@@ -68,25 +77,40 @@ def calcular_saturacion_actual() -> dict[str, Any]:
                             portadoras_por_puerto[clave] = (fecha_actual, actual, max(normal, valor))
                     elif fila.get("_field") == "utilizacion":
                         base.execute("INSERT INTO muestras VALUES (?, ?, ?)", (*clave, valor))
+                        cantidad_muestras_utilizacion += 1
                 del filas
                 base.commit()
                 logger.info("HFC: bloque %d/%d completado", indice + 1, total_bloques)
                 if indice + 1 < total_bloques:
                     time.sleep(0.5)
 
+            logger.info("HFC: portadoras puertos=%d", len(portadoras_por_puerto))
+            logger.info("HFC: muestras utilizacion=%d", cantidad_muestras_utilizacion)
+            if not portadoras_por_puerto:
+                raise RuntimeError("No se obtuvieron datos de portadoras CMTS")
+            if cantidad_muestras_utilizacion == 0:
+                raise RuntimeError("No se obtuvieron muestras de utilización CMTS")
+
+            capacidades: dict[tuple[str, str], tuple[float, float, bool]] = {}
+            for clave, (_, actual, normal) in portadoras_por_puerto.items():
+                bw_actual = bw_por_puerto.get(clave)
+                if bw_actual is None:
+                    continue
+                porcentaje_capacidad = actual / normal * 100.0
+                degradado = porcentaje_capacidad <= UMBRAL_CAPACIDAD_DEGRADADA
+                umbral = UMBRAL_UTILIZACION - (100.0 - porcentaje_capacidad) if degradado else UMBRAL_UTILIZACION
+                bw_normal = bw_actual * normal / actual
+                capacidades[clave] = (bw_normal, umbral, degradado)
+
             for cmts, descripcion, utilizacion in base.execute(
                 "SELECT cmts, descripcion, utilizacion FROM muestras"
             ):
                 clave = (cmts, descripcion)
-                capacidad = portadoras_por_puerto.get(clave)
+                capacidad = capacidades.get(clave)
                 if capacidad is None:
                     continue
-                _, actual, normal = capacidad
-                capacidad_normal = normal * CAPACIDAD_PORTADORA
-                porcentaje_capacidad = actual / normal * 100.0
-                degradado = porcentaje_capacidad < UMBRAL_CAPACIDAD_DEGRADADA
-                umbral = UMBRAL_UTILIZACION - (100.0 - porcentaje_capacidad) if degradado else UMBRAL_UTILIZACION
-                porcentaje = max(0.0, min(100.0, utilizacion / capacidad_normal * 100.0))
+                bw_normal, umbral, _ = capacidad
+                porcentaje = max(0.0, min(100.0, utilizacion / bw_normal * 100.0))
                 acumulado = acumulados.setdefault(clave, {
                     "muestras_analizadas": 0, "puntos_sobre_90": 0, "suma_sobre_90": 0.0,
                 })
@@ -97,15 +121,14 @@ def calcular_saturacion_actual() -> dict[str, Any]:
 
     resultado: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for (cmts, descripcion), acumulado in acumulados.items():
-        _, actual, normal = portadoras_por_puerto[(cmts, descripcion)]
+        _, _, degradado = capacidades[(cmts, descripcion)]
         puntos_sobre_90 = int(acumulado["puntos_sobre_90"])
         if puntos_sobre_90 < MIN_PUNTOS_SATURACION:
             continue
         porcentaje = acumulado["suma_sobre_90"] / puntos_sobre_90
-        degradado = actual / normal * 100.0 < UMBRAL_CAPACIDAD_DEGRADADA
         resultado[cmts].append({
             "puerto": descripcion, "valor": round(porcentaje, 2),
-            "bw": actual * CAPACIDAD_PORTADORA,
+            "bw": bw_por_puerto[(cmts, descripcion)],
             "estado": "Saturación por degradación" if degradado else "Saturación",
             "tipo": "degradacion" if degradado else "uso",
             "puntos_sobre_90": puntos_sobre_90,
@@ -121,6 +144,8 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         for cmts, puertos in resultado.items()
     ]
     datos.sort(key=lambda grupo: criticidad(grupo["puertos"][0]), reverse=True)
+    logger.info("HFC: puertos evaluados=%d", len(acumulados))
+    logger.info("HFC: puertos saturados=%d", sum(len(grupo["puertos"]) for grupo in datos))
     return {"datos": datos}
 
 
