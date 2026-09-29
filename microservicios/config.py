@@ -77,6 +77,8 @@ class Settings(BaseSettings):
     topologias_ssh_timeout_seconds: int = 15
     topologias_base_path: str = "/data/filebrowser/files/TOPOLOGIAS/TOPOLOGIAS OLTS"
     topologias_cache_path: str = "/data/AdminBOA/topologias_api_cache"
+    topologias_local_dir: str = "data/topologias"
+    topologias_public_base: str = "/api/olt/topologias/media"
 
     model_config = SettingsConfigDict(
         env_file=".env",

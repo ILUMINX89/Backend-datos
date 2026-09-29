@@ -1,12 +1,17 @@
 """Acceso bajo demanda a topologias OLT por SSH/SFTP."""
 
 import hashlib
+import json
+import os
 import posixpath
-import shlex
+import re
+import shutil
 import stat
 import unicodedata
+import uuid
 from contextlib import contextmanager
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
+from threading import RLock
 from typing import Iterator
 
 import paramiko
@@ -23,6 +28,9 @@ CATEGORIAS = {
 }
 EXTENSIONES = {".vsd", ".vsdx", ".jpg", ".jpeg", ".png", ".pdf", ".xlsx", ".docx"}
 IMAGENES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
+VISIO = {".vsd", ".vsdx"}
+_INDICE_LOCK = RLock()
+_PROYECTO = Path(__file__).resolve().parents[3]
 
 
 class TopologiasError(Exception):
@@ -122,13 +130,30 @@ def archivo_validado(sftp: paramiko.SFTPClient, categoria: str, ruta: str):
 
 
 def estado() -> dict:
-    with conexion() as (_, sftp):
-        try:
-            base = sftp.normalize(settings.topologias_base_path)
-            disponible = stat.S_ISDIR(sftp.stat(base).st_mode)
-        except OSError:
-            disponible = False
-    return {"ssh": True, "ruta": disponible}
+    data = {"ssh": False, "ruta": False, "data_dir": False,
+            "temporales_dir": False, "imagenes_dir": False, "conversion_local": False}
+    try:
+        raiz, imagenes, temporales, _ = _directorios_locales()
+        data.update(data_dir=raiz.is_dir(), temporales_dir=temporales.is_dir(),
+                    imagenes_dir=imagenes.is_dir())
+    except TopologiasError:
+        pass
+    try:
+        import aspose.diagram  # noqa: F401
+        data["conversion_local"] = True
+    except (ImportError, OSError, RuntimeError):
+        pass
+    try:
+        with conexion() as (_, sftp):
+            data["ssh"] = True
+            try:
+                base = sftp.normalize(settings.topologias_base_path)
+                data["ruta"] = stat.S_ISDIR(sftp.stat(base).st_mode)
+            except OSError:
+                pass
+    except TopologiasError:
+        pass
+    return data
 
 
 def buscar(categoria: str, texto: str, limite: int) -> dict:
@@ -164,64 +189,169 @@ def buscar(categoria: str, texto: str, limite: int) -> dict:
     return {"categoria": categoria, "buscar": texto, "cantidad": len(resultados), "datos": resultados}
 
 
-def _comando(ssh: paramiko.SSHClient, comando: str) -> bool:
-    _, stdout, stderr = ssh.exec_command(comando, timeout=120)
+def _rutas_locales() -> tuple[Path, Path, Path, Path]:
+    raiz = Path(settings.topologias_local_dir).expanduser()
+    if not raiz.is_absolute():
+        raiz = _PROYECTO / raiz
+    raiz = raiz.resolve()
+    return raiz, raiz / "imagenes", raiz / "temporales", raiz / "topologias.json"
+
+
+def _directorios_locales() -> tuple[Path, Path, Path, Path]:
+    rutas = _rutas_locales()
     try:
-        return stdout.channel.recv_exit_status() == 0
-    finally:
-        stdout.close()
-        stderr.close()
+        for carpeta in rutas[:3]:
+            if carpeta.is_symlink():
+                raise TopologiasError("Almacenamiento local de topologias no disponible", 503)
+            carpeta.mkdir(parents=True, exist_ok=True)
+        with _INDICE_LOCK:
+            if not rutas[3].exists():
+                guardar_indice({"topologias": []})
+    except OSError as exc:
+        raise TopologiasError("Almacenamiento local de topologias no disponible", 503) from exc
+    return rutas
 
 
-def herramientas_conversion() -> dict[str, bool]:
-    with conexion() as (ssh, _):
-        return {
-            "libreoffice": _comando(ssh, "command -v libreoffice >/dev/null 2>&1 || command -v soffice >/dev/null 2>&1"),
-            "pdftoppm": _comando(ssh, "command -v pdftoppm >/dev/null 2>&1"),
-        }
+def cargar_indice() -> dict:
+    with _INDICE_LOCK:
+        indice = _directorios_locales()[3]
+        try:
+            with indice.open("r", encoding="utf-8") as archivo:
+                contenido = json.load(archivo)
+            if not isinstance(contenido, dict) or not isinstance(contenido.get("topologias"), list):
+                raise ValueError("Indice invalido")
+            return contenido
+        except (OSError, ValueError) as exc:
+            raise TopologiasError("Indice local de topologias no disponible", 503) from exc
 
 
-def jpg_cacheado(ssh: paramiko.SSHClient, sftp: paramiko.SFTPClient, categoria: str, ruta: str) -> str:
-    origen, datos, extension = archivo_validado(sftp, categoria, ruta)
-    if extension not in {".vsd", ".vsdx"}:
-        raise TopologiasError("Se requiere un archivo VSD o VSDX", 400)
-    cache = settings.topologias_cache_path.rstrip("/")
-    if not cache.startswith("/") or ".." in PurePosixPath(cache).parts:
-        raise TopologiasError("Cache de topologias no disponible", 503)
-    clave = hashlib.sha256(f"{categoria}/{ruta}".encode("utf-8")).hexdigest()
-    destino = posixpath.join(cache, clave + ".jpg")
+def guardar_indice(data: dict) -> None:
+    with _INDICE_LOCK:
+        indice = _rutas_locales()[3]
+        temporal = indice.with_suffix(".tmp")
+        try:
+            indice.parent.mkdir(parents=True, exist_ok=True)
+            with temporal.open("w", encoding="utf-8") as archivo:
+                json.dump(data, archivo, ensure_ascii=False, indent=2)
+                archivo.flush()
+                os.fsync(archivo.fileno())
+            os.replace(temporal, indice)
+        except OSError as exc:
+            raise TopologiasError("No se pudo guardar el indice de topologias", 503) from exc
+        finally:
+            temporal.unlink(missing_ok=True)
+
+
+def extraer_nombre_olt(nombre_archivo: str) -> str:
+    nombre = Path(nombre_archivo).stem
+    coincidencia = re.search(r"(?<![A-Z0-9])(?:HAC|ZAC)-[A-Z0-9._-]+", nombre, re.IGNORECASE)
+    return coincidencia.group(0).rstrip("._-") if coincidencia else nombre
+
+
+def convertir_vsd_local(origen: Path, destino: Path) -> None:
     try:
-        if sftp.stat(destino).st_mtime >= datos.st_mtime:
-            return destino
-    except OSError:
-        pass
-    disponible = herramientas_conversion_en_sesion(ssh)
-    if not all(disponible.values()):
-        raise TopologiasError("Conversion JPG no disponible en el servidor", 503)
-    q = shlex.quote
-    pdf_nombre = posixpath.splitext(posixpath.basename(origen))[0] + ".pdf"
-    # Cada conversion usa un directorio temporal propio; el original nunca se modifica.
-    comando = (
-        "set -e; "
-        f"mkdir -p -- {q(cache)}; "
-        f"tmp=$(mktemp -d {q(posixpath.join(cache, '.conversion-XXXXXXXX'))}); "
-        "trap 'rm -rf -- \"$tmp\"' EXIT; "
-        f"pdf_nombre={q(pdf_nombre)}; "
-        f"(command -v libreoffice >/dev/null 2>&1 && libreoffice || soffice) "
-        f"-env:UserInstallation=file://\"$tmp\"/lo-profile --headless --convert-to pdf "
-        f"--outdir \"$tmp\" {q(origen)} >/dev/null 2>&1; "
-        f"pdftoppm -f 1 -l 1 -singlefile -jpeg -r 150 "
-        f"\"$tmp/$pdf_nombre\" "
-        f"\"$tmp/page\" >/dev/null 2>&1; "
-        f"mv -f -- \"$tmp/page.jpg\" {q(destino)}"
-    )
-    if not _comando(ssh, comando):
-        raise TopologiasError("No se pudo convertir la topologia a JPG", 502)
-    return destino
+        from aspose.diagram import Diagram, SaveFileFormat
+    except (ImportError, OSError, RuntimeError) as exc:
+        raise TopologiasError("Conversion local no disponible", 503) from exc
+    try:
+        Diagram(str(origen)).save(str(destino), SaveFileFormat.JPEG)
+        if not destino.is_file() or destino.stat().st_size == 0:
+            raise ValueError("Aspose no genero una imagen")
+    except Exception as exc:
+        raise TopologiasError("No se pudo convertir la topologia a JPG", 502) from exc
 
 
-def herramientas_conversion_en_sesion(ssh: paramiko.SSHClient) -> dict[str, bool]:
+def _descargar(sftp: paramiko.SFTPClient, remoto: str, local: Path) -> None:
+    try:
+        with sftp.open(remoto, "rb") as origen, local.open("wb") as destino:
+            shutil.copyfileobj(origen, destino, length=1024 * 1024)
+    except OSError as exc:
+        raise TopologiasError("No se pudo descargar la topologia", 502) from exc
+
+
+def _respuesta_materializada(registro: dict, desde_cache: bool) -> dict:
     return {
-        "libreoffice": _comando(ssh, "command -v libreoffice >/dev/null 2>&1 || command -v soffice >/dev/null 2>&1"),
-        "pdftoppm": _comando(ssh, "command -v pdftoppm >/dev/null 2>&1"),
+        "olt": registro["olt"],
+        "categoria": registro["categoria"],
+        "ruta_remota": registro["ruta_remota"],
+        "archivo_origen": registro["archivo_origen"],
+        "enlace": registro["enlace"],
+        "desde_cache": desde_cache,
     }
+
+
+def materializar_topologia(categoria: str, ruta: str) -> dict:
+    _categoria(categoria)
+    relativa = _ruta_relativa(ruta)
+    _, imagenes, temporales, _ = _directorios_locales()
+    with _INDICE_LOCK:
+        with conexion() as (_, sftp):
+            remoto, datos, extension = archivo_validado(sftp, categoria, relativa)
+            if extension not in IMAGENES and extension not in VISIO:
+                raise TopologiasError("Este tipo de archivo no tiene imagen", 400)
+            clave = hashlib.sha256(f"{categoria}/{relativa}".encode("utf-8")).hexdigest()
+            imagen_nombre = clave + (extension if extension in IMAGENES else ".jpg")
+            imagen = imagenes / imagen_nombre
+            tamano = int(datos.st_size)
+            mtime = int(datos.st_mtime)
+            indice = cargar_indice()
+            registros = indice["topologias"]
+            anterior = next((r for r in registros if r.get("categoria") == categoria
+                             and r.get("ruta_remota") == relativa), None)
+            if (anterior and anterior.get("mtime_remoto") == mtime
+                    and anterior.get("tamano_remoto") == tamano
+                    and anterior.get("imagen") == f"imagenes/{imagen_nombre}"
+                    and imagen.is_file() and not imagen.is_symlink()):
+                return _respuesta_materializada(anterior, True)
+
+            temporal = temporales / f"{clave}-{uuid.uuid4().hex}{extension}"
+            salida = temporales / f"{clave}-{uuid.uuid4().hex}.jpg"
+            try:
+                _descargar(sftp, remoto, temporal)
+                if extension in VISIO:
+                    convertir_vsd_local(temporal, salida)
+                    os.replace(salida, imagen)
+                else:
+                    os.replace(temporal, imagen)
+            except OSError as exc:
+                raise TopologiasError("No se pudo guardar la imagen local", 503) from exc
+            finally:
+                temporal.unlink(missing_ok=True)
+                salida.unlink(missing_ok=True)
+
+            registro = {
+                "olt": extraer_nombre_olt(posixpath.basename(relativa)),
+                "categoria": categoria,
+                "archivo_origen": posixpath.basename(relativa),
+                "ruta_remota": relativa,
+                "imagen": f"imagenes/{imagen_nombre}",
+                "enlace": f"{settings.topologias_public_base.rstrip('/')}/{imagen_nombre}",
+                "extension_origen": extension,
+                "tamano_remoto": tamano,
+                "mtime_remoto": mtime,
+            }
+            indice["topologias"] = [r for r in registros if not (
+                r.get("categoria") == categoria and r.get("ruta_remota") == relativa)] + [registro]
+            guardar_indice(indice)
+            return _respuesta_materializada(registro, False)
+
+
+def topologias_guardadas() -> dict:
+    registros = cargar_indice()["topologias"]
+    datos = [{"olt": r["olt"], "categoria": r["categoria"],
+              "ruta_remota": r["ruta_remota"], "enlace": r["enlace"]} for r in registros]
+    return {"cantidad": len(datos), "datos": datos}
+
+
+def imagen_local(nombre: str) -> Path:
+    if not re.fullmatch(r"[0-9a-f]{64}\.(?:jpg|jpeg|png)", nombre):
+        raise TopologiasError("Archivo no encontrado", 404)
+    raiz, imagenes, _, _ = _rutas_locales()
+    destino = imagenes / nombre
+    if (imagenes.is_symlink() or imagenes.resolve().parent != raiz
+            or destino.is_symlink() or not destino.is_file()
+            or destino.resolve().parent != imagenes.resolve()):
+        raise TopologiasError("Archivo no encontrado", 404)
+    if not any(r.get("imagen") == f"imagenes/{nombre}" for r in cargar_indice()["topologias"]):
+        raise TopologiasError("Archivo no encontrado", 404)
+    return destino
