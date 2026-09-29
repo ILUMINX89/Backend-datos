@@ -69,6 +69,15 @@ class Settings(BaseSettings):
     grafana_verify_ssl: bool = False
     grafana_timeout_seconds: int = 30
 
+    # Topologias OLT (servidor de archivos remoto)
+    topologias_ssh_host: str = "100.66.80.175"
+    topologias_ssh_port: int = 22
+    topologias_ssh_user: str = ""
+    topologias_ssh_password: str = ""
+    topologias_ssh_timeout_seconds: int = 15
+    topologias_base_path: str = "/data/filebrowser/files/TOPOLOGIAS/TOPOLOGIAS OLTS"
+    topologias_cache_path: str = "/data/AdminBOA/topologias_api_cache"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

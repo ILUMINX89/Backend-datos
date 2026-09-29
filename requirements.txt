@@ -4,3 +4,4 @@ influxdb-client==1.49.0
 pydantic-settings==2.10.1
 requests==2.32.3
 mysql-connector-python
+paramiko>=3.0,<5

@@ -23,6 +23,7 @@ from microservicios.olt.perdida_latencia.router import (
 )
 from microservicios.olt.saturacion.router import router as saturacion_router
 from microservicios.olt.temperatura.router import router as temperatura_router
+from microservicios.olt.topologias.router import router as topologias_router
 
 app = FastAPI(title="Backend Datos API", version="1.0.0")
 
@@ -63,6 +64,7 @@ app.include_router(caidas_router, prefix="/api/olt")
 app.include_router(crc_router, prefix="/api/olt")
 app.include_router(correlacion_router, prefix="/api/olt")
 app.include_router(temperatura_router, prefix="/api/olt")
+app.include_router(topologias_router, prefix="/api/olt")
 app.include_router(perdida_latencia_router, prefix="/api/olt")
 app.include_router(cmts_saturacion_router, prefix="/api/cmts")
 app.include_router(cmts_puertos_docsis_router, prefix="/api/cmts")
