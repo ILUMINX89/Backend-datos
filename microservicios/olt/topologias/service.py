@@ -37,6 +37,9 @@ PREFIJOS_CATEGORIA = {
 EXTENSIONES = {".vsd", ".vsdx", ".jpg", ".jpeg", ".png", ".pdf", ".xlsx", ".docx"}
 IMAGENES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
 VISIO = {".vsd", ".vsdx"}
+CACHEABLES = VISIO | set(IMAGENES)
+TIPOS_ARCHIVO = {**IMAGENES, ".vsd": "application/vnd.visio", ".vsdx": "application/vnd.ms-visio.drawing"}
+PATRON_CACHE = re.compile(r"[0-9a-f]{64}\.(?:vsd|vsdx|jpg|jpeg|png)")
 _INDICE_LOCK = RLock()
 _PROYECTO = Path(__file__).resolve().parents[3]
 
@@ -152,17 +155,12 @@ def archivo_validado(sftp: paramiko.SFTPClient, categoria: str, ruta: str):
 def estado() -> dict:
     limpiar_cache_expirada()
     data = {"ssh": False, "ruta": False, "data_dir": False,
-            "temporales_dir": False, "imagenes_dir": False, "conversion_local": False}
+            "temporales_dir": False, "imagenes_dir": False}
     try:
         raiz, imagenes, temporales, _ = _directorios_locales()
         data.update(data_dir=raiz.is_dir(), temporales_dir=temporales.is_dir(),
                     imagenes_dir=imagenes.is_dir())
     except TopologiasError:
-        pass
-    try:
-        import aspose.diagram  # noqa: F401
-        data["conversion_local"] = True
-    except (ImportError, OSError, RuntimeError):
         pass
     try:
         with conexion() as (_, sftp):
@@ -311,16 +309,24 @@ def limpiar_cache_expirada() -> None:
             if not isinstance(registro, dict):
                 cambio = True
                 continue
-            imagen_relativa = registro.get("imagen", "")
-            nombre = (imagen_relativa.removeprefix("imagenes/")
-                      if isinstance(imagen_relativa, str) and imagen_relativa.startswith("imagenes/") else "")
-            if not re.fullmatch(r"[0-9a-f]{64}\.(?:jpg|jpeg|png)", nombre):
+            archivo_relativo = registro.get("archivo") or registro.get("imagen", "")
+            nombre = (archivo_relativo.removeprefix("imagenes/")
+                      if isinstance(archivo_relativo, str) and archivo_relativo.startswith("imagenes/") else "")
+            extension_origen = str(registro.get("extension_origen") or
+                                   posixpath.splitext(registro.get("ruta_remota", ""))[1]).lower()
+            if (not PATRON_CACHE.fullmatch(nombre) or extension_origen not in CACHEABLES
+                    or posixpath.splitext(nombre)[1] != extension_origen
+                    or not str(registro.get("enlace", "")).endswith("/" + nombre)):
                 cambio = True
                 continue
-            imagen = imagenes / nombre
-            if imagen.is_symlink() or not imagen.is_file():
+            archivo = imagenes / nombre
+            if archivo.is_symlink() or not archivo.is_file():
                 cambio = True
                 continue
+            if registro.get("archivo") != f"imagenes/{nombre}" or "imagen" in registro:
+                registro["archivo"] = f"imagenes/{nombre}"
+                registro.pop("imagen", None)
+                cambio = True
             fecha = None
             valor = registro.get("creado_en")
             if isinstance(valor, str):
@@ -331,8 +337,8 @@ def limpiar_cache_expirada() -> None:
                 except ValueError:
                     pass
             if fecha is None:
-                # Índices anteriores a este cambio usan la fecha del JPG local.
-                fecha = datetime.fromtimestamp(imagen.stat().st_mtime, timezone.utc)
+                # Índices anteriores a este cambio usan la fecha del archivo local.
+                fecha = datetime.fromtimestamp(archivo.stat().st_mtime, timezone.utc)
                 registro["creado_en"] = fecha.isoformat().replace("+00:00", "Z")
                 cambio = True
             if fecha > ahora:
@@ -348,10 +354,10 @@ def limpiar_cache_expirada() -> None:
             indice["topologias"] = vigentes
             guardar_indice(indice)
         try:
-            for imagen in imagenes.iterdir():
-                if (imagen.is_file() or imagen.is_symlink()) and imagen.name not in referenciadas:
-                    if re.fullmatch(r"[0-9a-f]{64}\.(?:jpg|jpeg|png)", imagen.name):
-                        imagen.unlink()
+            for archivo in imagenes.iterdir():
+                if (archivo.is_file() or archivo.is_symlink()) and archivo.name not in referenciadas:
+                    if PATRON_CACHE.fullmatch(archivo.name):
+                        archivo.unlink()
         except OSError as exc:
             raise TopologiasError("No se pudo limpiar el cache de topologias", 503) from exc
 
@@ -361,19 +367,6 @@ def extraer_nombre_olt(nombre_archivo: str) -> str:
     prefijos = "|".join(re.escape(prefijo) for prefijo in PREFIJOS_CATEGORIA)
     coincidencia = re.search(rf"(?<![A-Z0-9])(?:{prefijos})-[A-Z0-9._-]+", nombre, re.IGNORECASE)
     return coincidencia.group(0).rstrip("._-") if coincidencia else nombre
-
-
-def convertir_vsd_local(origen: Path, destino: Path) -> None:
-    try:
-        from aspose.diagram import Diagram, SaveFileFormat
-    except (ImportError, OSError, RuntimeError) as exc:
-        raise TopologiasError("Conversion local no disponible", 503) from exc
-    try:
-        Diagram(str(origen)).save(str(destino), SaveFileFormat.JPEG)
-        if not destino.is_file() or destino.stat().st_size == 0:
-            raise ValueError("Aspose no genero una imagen")
-    except Exception as exc:
-        raise TopologiasError("No se pudo convertir la topologia a JPG", 502) from exc
 
 
 def _descargar(sftp: paramiko.SFTPClient, remoto: str, local: Path) -> None:
@@ -399,20 +392,20 @@ def materializar_topologia(categoria: str, ruta: str) -> dict:
     _categoria(categoria)
     relativa = _ruta_relativa(ruta)
     extension = posixpath.splitext(relativa)[1].lower()
-    if extension not in IMAGENES and extension not in VISIO:
-        raise TopologiasError("Este tipo de archivo no tiene imagen", 400)
+    if extension not in CACHEABLES:
+        raise TopologiasError("Este tipo de archivo no se almacena en cache", 400)
     _, imagenes, temporales, _ = _directorios_locales()
     with _INDICE_LOCK:
         limpiar_cache_expirada()
         clave = hashlib.sha256(f"{categoria}/{relativa}".encode("utf-8")).hexdigest()
-        imagen_nombre = clave + (extension if extension in IMAGENES else ".jpg")
-        imagen = imagenes / imagen_nombre
+        archivo_nombre = clave + extension
+        archivo = imagenes / archivo_nombre
         indice = cargar_indice()
         registros = indice["topologias"]
         anterior = next((r for r in registros if r.get("categoria") == categoria
                          and r.get("ruta_remota") == relativa), None)
-        if (anterior and anterior.get("imagen") == f"imagenes/{imagen_nombre}"
-                and imagen.is_file() and not imagen.is_symlink()):
+        if (anterior and anterior.get("archivo") == f"imagenes/{archivo_nombre}"
+                and archivo.is_file() and not archivo.is_symlink()):
             return _respuesta_materializada(anterior, True)
         with conexion() as (_, sftp):
             remoto, datos, _ = archivo_validado(sftp, categoria, relativa)
@@ -420,27 +413,21 @@ def materializar_topologia(categoria: str, ruta: str) -> dict:
             mtime = int(datos.st_mtime)
 
             temporal = temporales / f"{clave}-{uuid.uuid4().hex}{extension}"
-            salida = temporales / f"{clave}-{uuid.uuid4().hex}.jpg"
             try:
                 _descargar(sftp, remoto, temporal)
-                if extension in VISIO:
-                    convertir_vsd_local(temporal, salida)
-                    os.replace(salida, imagen)
-                else:
-                    os.replace(temporal, imagen)
+                os.replace(temporal, archivo)
             except OSError as exc:
-                raise TopologiasError("No se pudo guardar la imagen local", 503) from exc
+                raise TopologiasError("No se pudo guardar el archivo local", 503) from exc
             finally:
                 temporal.unlink(missing_ok=True)
-                salida.unlink(missing_ok=True)
 
             registro = {
                 "olt": extraer_nombre_olt(posixpath.basename(relativa)),
                 "categoria": categoria,
                 "archivo_origen": posixpath.basename(relativa),
                 "ruta_remota": relativa,
-                "imagen": f"imagenes/{imagen_nombre}",
-                "enlace": f"{settings.topologias_public_base.rstrip('/')}/{imagen_nombre}",
+                "archivo": f"imagenes/{archivo_nombre}",
+                "enlace": f"{settings.topologias_public_base.rstrip('/')}/{archivo_nombre}",
                 "extension_origen": extension,
                 "tamano_remoto": tamano,
                 "mtime_remoto": mtime,
@@ -452,9 +439,9 @@ def materializar_topologia(categoria: str, ruta: str) -> dict:
             return _respuesta_materializada(registro, False)
 
 
-def imagen_local(nombre: str) -> Path:
+def archivo_local(nombre: str) -> Path:
     limpiar_cache_expirada()
-    if not re.fullmatch(r"[0-9a-f]{64}\.(?:jpg|jpeg|png)", nombre):
+    if not PATRON_CACHE.fullmatch(nombre):
         raise TopologiasError("Archivo no encontrado", 404)
     raiz, imagenes, _, _ = _rutas_locales()
     destino = imagenes / nombre
@@ -462,6 +449,6 @@ def imagen_local(nombre: str) -> Path:
             or destino.is_symlink() or not destino.is_file()
             or destino.resolve().parent != imagenes.resolve()):
         raise TopologiasError("Archivo no encontrado", 404)
-    if not any(r.get("imagen") == f"imagenes/{nombre}" for r in cargar_indice()["topologias"]):
+    if not any(r.get("archivo") == f"imagenes/{nombre}" for r in cargar_indice()["topologias"]):
         raise TopologiasError("Archivo no encontrado", 404)
     return destino

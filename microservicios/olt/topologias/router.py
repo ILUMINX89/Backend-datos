@@ -52,9 +52,11 @@ def link_global(categoria: str = Query(...), ruta: str = Query(...)) -> dict:
 @router.get("/media/{archivo}")
 def media(archivo: str) -> FileResponse:
     try:
-        local = service.imagen_local(archivo)
-        tipo = service.IMAGENES[local.suffix.lower()]
-        return FileResponse(local, media_type=tipo, content_disposition_type="inline")
+        local = service.archivo_local(archivo)
+        extension = local.suffix.lower()
+        disposicion = "inline" if extension in service.IMAGENES else "attachment"
+        return FileResponse(local, media_type=service.TIPOS_ARCHIVO[extension],
+                            filename=local.name, content_disposition_type=disposicion)
     except service.TopologiasError as exc:
         raise _respuesta_error(exc) from exc
 
@@ -119,7 +121,7 @@ def _transmitir(categoria: str, ruta: str) -> StreamingResponse:
             contexto.__exit__(None, None, None)
 
     nombre = posixpath.basename(ruta)
-    tipo = service.IMAGENES.get(extension) or mimetypes.guess_type(nombre)[0] or "application/octet-stream"
+    tipo = service.TIPOS_ARCHIVO.get(extension) or mimetypes.guess_type(nombre)[0] or "application/octet-stream"
     headers = {
         "Content-Disposition": f"attachment; filename*=UTF-8''{quote(nombre)}",
         "Content-Length": str(datos.st_size),
@@ -139,13 +141,6 @@ def archivo(categoria: str, ruta: str = Query(...)) -> StreamingResponse:
     return _transmitir(categoria, ruta)
 
 
-@router.get("/{categoria}/jpg")
-def jpg(categoria: str, ruta: str = Query(...)) -> FileResponse:
-    if posixpath.splitext(ruta)[1].lower() not in service.VISIO:
-        raise HTTPException(status_code=400, detail="Se requiere un archivo VSD o VSDX")
-    return _imagen_materializada(categoria, ruta)
-
-
 @router.get("/{categoria}/link")
 def link(categoria: str, ruta: str = Query(...)) -> dict:
     try:
@@ -157,7 +152,7 @@ def link(categoria: str, ruta: str = Query(...)) -> dict:
 def _imagen_materializada(categoria: str, ruta: str) -> FileResponse:
     try:
         data = service.materializar_topologia(categoria, ruta)
-        local = service.imagen_local(posixpath.basename(data["enlace"]))
+        local = service.archivo_local(posixpath.basename(data["enlace"]))
         return FileResponse(local, media_type=service.IMAGENES[local.suffix.lower()],
                             content_disposition_type="inline")
     except service.TopologiasError as exc:

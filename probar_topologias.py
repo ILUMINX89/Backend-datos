@@ -60,7 +60,7 @@ def main():
         if topologia:
             url = urljoin(BASE_HOST + "/", topologia["enlace"].lstrip("/"))
             print("OLT:", topologia["olt"])
-            print("Imagen:", url)
+            print("Archivo:", url)
             webbrowser.open(url)
 
 
