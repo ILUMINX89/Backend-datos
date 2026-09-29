@@ -19,7 +19,7 @@
                 <div class="gkp-toolbar__summary">
                     <strong id="gkp-summary">Consultando excepciones operacionales…</strong>
                     <span class="gkp-toolbar__separator" aria-hidden="true">·</span>
-                    <span>Ordenadas para revisión por prioridad operacional</span>
+                    <span>Ordenadas de la alerta más reciente a la más antigua</span>
                 </div>
                 <span id="gkp-updated" class="sr-only">Última actualización: pendiente</span>
                 <button id="gkp-refresh" type="button">
@@ -34,7 +34,7 @@
                     <span class="gkp-panel-total"><strong id="gkp-count">0</strong><span>eventos</span></span>
                 </div>
                 <p id="gkp-status" role="status" aria-live="polite">Cargando estado de la red…</p>
-                <div class="gkp-table-scroll" tabindex="0" role="region" aria-label="Estado actual de red; tabla desplazable en pantallas pequeñas">
+                <div id="gkp-table-region" class="gkp-table-scroll" data-auto-scroll tabindex="0" role="region" aria-label="Estado actual de red; tabla desplazable">
                     <table class="gkp-table">
                         <thead><tr><th scope="col">Equipo</th><th scope="col">Puerto o interfaz</th><th scope="col">Valor</th><th scope="col">Estado</th></tr></thead>
                         <tbody id="gkp-rows"></tbody>
@@ -55,7 +55,7 @@
                     <span><i class="temperature-legend__red"></i>≥90 °C · crítica</span>
                 </div>
                 <p id="temperatura-status" role="status" aria-live="polite">Cargando temperatura OLT…</p>
-                <div id="temperatura-table-region" class="gkp-table-scroll" tabindex="0" role="region" aria-label="Temperatura OLT; tabla desplazable en pantallas pequeñas">
+                <div id="temperatura-table-region" class="gkp-table-scroll" data-auto-scroll tabindex="0" role="region" aria-label="Temperatura OLT; tabla desplazable">
                     <table class="gkp-table">
                         <thead><tr><th scope="col">Equipo</th><th scope="col">Temperatura</th></tr></thead>
                         <tbody id="temperatura-rows"></tbody>
@@ -75,7 +75,7 @@
                     <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>eventos</span></span>
                 </div>
                 <p id="perdida-latencia-status" role="status" aria-live="polite">Cargando pérdida y latencia…</p>
-                <div id="perdida-latencia-table-region" class="gkp-table-scroll" tabindex="0" role="region" aria-label="Pérdida y latencia OLT; tabla desplazable en pantallas pequeñas">
+                <div id="perdida-latencia-table-region" class="gkp-table-scroll" data-auto-scroll tabindex="0" role="region" aria-label="Pérdida y latencia OLT; tabla desplazable">
                     <table class="gkp-table">
                         <thead><tr><th scope="col">Equipo</th><th scope="col">Valor</th><th scope="col">Estado</th></tr></thead>
                         <tbody id="perdida-latencia-rows"></tbody>
@@ -188,6 +188,7 @@
     </section>
 </div>
 <script src="assets/js/sidebar.js" defer></script>
+<script src="assets/js/table-autoscroll.js" defer></script>
 <script src="assets/js/gkp.js" defer></script>
 <script src="assets/js/temperatura.js" defer></script>
 <script src="assets/js/perdida_latencia.js" defer></script>
