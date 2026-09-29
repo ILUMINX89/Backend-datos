@@ -134,6 +134,10 @@
         return url.toString();
     }
 
+    function portLabel(row) {
+        return row.puerto_fisico ? `${row.puerto} (${row.puerto_fisico})` : row.puerto;
+    }
+
     function portButton(row) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -141,14 +145,14 @@
         button.classList.toggle('is-selected', row === selectedRow);
         button.setAttribute('aria-pressed', String(row === selectedRow));
         button.innerHTML = '<span></span><strong></strong>';
-        button.querySelector('span').textContent = row.puerto;
+        button.querySelector('span').textContent = portLabel(row);
         button.querySelector('strong').textContent = `${number.format(Number(row.valor))} %`;
         button.addEventListener('click', () => selectRow(row));
         return button;
     }
 
     function compareCriticality(a, b) {
-        const byPoints = Number(b.puntos_sobre_90 ?? 0) - Number(a.puntos_sobre_90 ?? 0);
+        const byPoints = Number(b.puntos_sobre_80 ?? 0) - Number(a.puntos_sobre_80 ?? 0);
         return byPoints || (Number(b.valor) - Number(a.valor));
     }
 
@@ -169,7 +173,7 @@
     function selectRow(row) {
         selectedRow = row;
         document.getElementById('hfc-modal-cmts').textContent = row.equipo;
-        document.getElementById('hfc-modal-node').textContent = row.puerto;
+        document.getElementById('hfc-modal-node').textContent = portLabel(row);
         document.getElementById('hfc-modal-state').textContent = row.estado;
         document.getElementById('hfc-modal-value').textContent = `${number.format(Number(row.valor))} %`;
         grafana.src = grafanaUrl(row);
@@ -200,7 +204,7 @@
         button.type = 'button';
         button.className = 'hfc-eye-button';
         button.title = 'Ver detalle';
-        button.setAttribute('aria-label', `Ver detalle de ${row.puerto} en ${row.equipo}`);
+        button.setAttribute('aria-label', `Ver detalle de ${portLabel(row)} en ${row.equipo}`);
         button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>';
         button.addEventListener('click', () => openModal(row, button));
         return button;
@@ -210,7 +214,7 @@
         const fragment = document.createDocumentFragment();
         rows.forEach((row) => {
             const tr = document.createElement('tr');
-            [row.equipo, row.puerto, `${number.format(Number(row.valor))} %`]
+            [row.equipo, portLabel(row), `${number.format(Number(row.valor))} %`]
                 .forEach((text) => {
                     const td = document.createElement('td');
                     td.textContent = text;

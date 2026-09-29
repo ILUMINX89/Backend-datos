@@ -14,6 +14,6 @@ from(bucket: "{settings.influx_cmts_bucket}")
   )
   |> filter(fn: (r) => r._measurement == "estado_puertos")
   |> filter(fn: (r) => r._field == "bw" or r._field == "utilizacion")
-  |> filter(fn: (r) => exists r.cmts and exists r.descripcion)
-  |> keep(columns: ["_time", "_field", "_value", "cmts", "descripcion"])
+  |> filter(fn: (r) => exists r.cmts and exists r.puerto and exists r.descripcion)
+  |> keep(columns: ["_time", "_field", "_value", "cmts", "puerto", "descripcion"])
 """

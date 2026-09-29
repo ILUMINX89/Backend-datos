@@ -23,23 +23,24 @@ try {
             if (!is_string($port['puerto'] ?? null) || !is_numeric($port['valor'] ?? null)) {
                 throw new RuntimeException('Puerto CMTS inválido');
             }
-            $points = is_numeric($port['puntos_sobre_90'] ?? null) ? (int) $port['puntos_sobre_90'] : 0;
+            $points = is_numeric($port['puntos_sobre_80'] ?? null) ? (int) $port['puntos_sobre_80'] : 0;
             $rows[] = [
                 'equipo' => $group['cmts'], 'puerto' => $port['puerto'],
                 'valor' => (float) $port['valor'], 'unidad' => '%',
                 'estado' => (string) ($port['estado'] ?? ''), 'tipo' => (string) ($port['tipo'] ?? ''),
                 'detalle' => $points > 0
-                    ? sprintf('%d puntos por encima del 90%%; porcentaje mostrado = promedio de esos puntos', $points)
-                    : 'Degradación de señal confirmada por SNR',
+                    ? sprintf('%d puntos iguales o superiores al 80%%; porcentaje mostrado = promedio de esos puntos', $points)
+                    : '',
                 'bw' => $port['bw'] ?? null, 'ruido' => $port['ruido'] ?? null,
-                'puntos_sobre_90' => $points,
+                'puerto_fisico' => $port['puerto_fisico'] ?? null,
+                'puntos_sobre_80' => $points,
                 'muestras_analizadas' => is_numeric($port['muestras_analizadas'] ?? null)
                     ? (int) $port['muestras_analizadas'] : 0,
             ];
         }
     }
     usort($rows, static function (array $a, array $b): int {
-        return ($b['puntos_sobre_90'] <=> $a['puntos_sobre_90']) ?: ($b['valor'] <=> $a['valor']);
+        return ($b['puntos_sobre_80'] <=> $a['puntos_sobre_80']) ?: ($b['valor'] <=> $a['valor']);
     });
     jsonResponse([
         'ok' => true,
