@@ -9,6 +9,13 @@ import requests
 
 BASE_HOST = os.environ.get("TOPOLOGIAS_API_HOST", "http://127.0.0.1:8000").rstrip("/")
 BASE = BASE_HOST + "/api/olt/topologias"
+NOMBRES_CATEGORIA = {
+    "huawei": "Huawei",
+    "zte": "ZTE",
+    "nokia": "Nokia",
+    "onnet": "ONNET",
+    "ftto": "FTTO",
+}
 
 
 def consultar(url: str, **params):
@@ -59,7 +66,11 @@ def main():
         topologia = consultar(BASE + "/link", categoria=item["categoria"], ruta=item["ruta"])
         if topologia:
             url = urljoin(BASE_HOST + "/", topologia["enlace"].lstrip("/"))
-            print("OLT:", topologia["olt"])
+            fabricante = NOMBRES_CATEGORIA.get(
+                topologia["categoria"],
+                topologia["categoria"].upper(),
+            )
+            print(f"OLT {fabricante}:", topologia["olt"])
             print("Archivo:", url)
             webbrowser.open(url)
 

@@ -30,9 +30,8 @@ CATEGORIAS = {
 PREFIJOS_CATEGORIA = {
     "HAC": "huawei",
     "ZAC": "zte",
-    "NOK": "nokia",
-    "ONN": "onnet",
-    "FTTO": "ftto",
+    "NAC": "nokia",
+    "OH": "onnet",
 }
 EXTENSIONES = {".vsd", ".vsdx", ".jpg", ".jpeg", ".png", ".pdf", ".xlsx", ".docx"}
 IMAGENES = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png"}
