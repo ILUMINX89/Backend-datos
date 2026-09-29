@@ -49,14 +49,6 @@ def link_global(categoria: str = Query(...), ruta: str = Query(...)) -> dict:
         raise _respuesta_error(exc) from exc
 
 
-@router.get("/guardadas")
-def guardadas() -> dict:
-    try:
-        return {"ok": True, "data": service.topologias_guardadas()}
-    except service.TopologiasError as exc:
-        raise _respuesta_error(exc) from exc
-
-
 @router.get("/media/{archivo}")
 def media(archivo: str) -> FileResponse:
     try:

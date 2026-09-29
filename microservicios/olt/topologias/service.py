@@ -452,14 +452,6 @@ def materializar_topologia(categoria: str, ruta: str) -> dict:
             return _respuesta_materializada(registro, False)
 
 
-def topologias_guardadas() -> dict:
-    limpiar_cache_expirada()
-    registros = cargar_indice()["topologias"]
-    datos = [{"olt": r["olt"], "categoria": r["categoria"],
-              "ruta_remota": r["ruta_remota"], "enlace": r["enlace"]} for r in registros]
-    return {"cantidad": len(datos), "datos": datos}
-
-
 def imagen_local(nombre: str) -> Path:
     limpiar_cache_expirada()
     if not re.fullmatch(r"[0-9a-f]{64}\.(?:jpg|jpeg|png)", nombre):

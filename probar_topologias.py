@@ -27,19 +27,12 @@ def consultar(url: str, **params):
 def main():
     while True:
         print("\n========================================\nTOPOLOGIAS OLT\n========================================")
-        print("1. Buscar topología\n2. Ver guardadas\n3. Probar conexión\n0. Salir")
+        print("1. Buscar topología\n2. Probar conexión\n0. Salir")
         opcion = input("Opción: ").strip()
         if opcion == "0":
             return
-        if opcion == "3":
-            print(consultar(BASE + "/health"))
-            continue
         if opcion == "2":
-            datos = consultar(BASE + "/guardadas")
-            if datos:
-                for item in datos["datos"]:
-                    print(f"[{item['categoria']}] {item['olt']}: {urljoin(BASE_HOST + '/', item['enlace'].lstrip('/'))}")
-                print("Guardadas vigentes:", datos["cantidad"])
+            print(consultar(BASE + "/health"))
             continue
         if opcion != "1":
             print("Opción inválida")
@@ -55,7 +48,7 @@ def main():
             print("Sin resultados")
             continue
         for indice, item in enumerate(encontrados, 1):
-            print(f"{indice}. [{item['categoria']}] {item['ruta']}")
+            print(f"{indice}. {item['nombre']}")
         elegido = input("Número para visualizar (Enter para volver): ").strip()
         if not elegido.isdigit() or not 1 <= int(elegido) <= len(encontrados):
             continue
