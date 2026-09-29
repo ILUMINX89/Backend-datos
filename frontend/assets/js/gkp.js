@@ -5,6 +5,7 @@
     const status = document.getElementById('gkp-status');
     const panel = document.getElementById('alarmas');
     const refresh = document.getElementById('gkp-refresh');
+    const tableRegion = document.getElementById('gkp-table-region');
 
     const number = new Intl.NumberFormat('es-CO', {
         maximumFractionDigits: 2
@@ -17,6 +18,9 @@
     let ftthPowerVisible = false;
     let ftthCrcVisible = false;
     let ftthReturnFocus = null;
+    let latestAlertKey = null;
+
+    const ALERT_STORAGE_KEY = 'gkp-alert-first-seen-v1';
 
     const app = document.querySelector('.app');
     const ftthModal = document.getElementById('ftth-modal');
@@ -204,48 +208,131 @@
         ftthReturnFocus = null;
     }
 
-    function render(rows) {
-        const fragment = document.createDocumentFragment();
-        const seen = new Set();
+    function alertKey(row) {
+        return [
+            row.equipo || '',
+            row.puerto || '',
+            row.estado || '',
+        ].join('\u001f');
+    }
 
-        rows.forEach((row, index) => {
+    function loadAlertHistory() {
+        try {
+            const raw = localStorage.getItem(ALERT_STORAGE_KEY);
+
+            if (!raw) {
+                return {};
+            }
+
+            const parsed = JSON.parse(raw);
+
+            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                return {};
+            }
+
+            return Object.fromEntries(
+                Object.entries(parsed).filter(([, value]) => Number.isFinite(Number(value)))
+            );
+        } catch {
+            return {};
+        }
+    }
+
+    const alertHistory = loadAlertHistory();
+
+    function saveAlertHistory() {
+        try {
+            localStorage.setItem(
+                ALERT_STORAGE_KEY,
+                JSON.stringify(alertHistory)
+            );
+        } catch {
+            /*
+             * El orden sigue funcionando en memoria aunque
+             * el navegador no permita localStorage.
+             */
+        }
+    }
+
+    function orderByAlertArrival(rows) {
+        const now = Date.now();
+        const activeKeys = new Set();
+        let newOffset = 0;
+        let discoveredNewAlert = false;
+
+        for (const row of rows) {
+            const key = alertKey(row);
+
+            activeKeys.add(key);
+
+            if (!Number.isFinite(Number(alertHistory[key]))) {
+                /*
+                 * Guardar cuándo apareció por primera vez en el tablero.
+                 * Si llegan varias en el mismo ciclo, conservamos el orden
+                 * original como desempate con diferencias de 1 ms.
+                 */
+                alertHistory[key] = now - newOffset;
+                newOffset += 1;
+                discoveredNewAlert = latestAlertKey !== null || discoveredNewAlert;
+            }
+        }
+
+        for (const key of Object.keys(alertHistory)) {
+            if (!activeKeys.has(key)) {
+                delete alertHistory[key];
+            }
+        }
+
+        const ordered = rows
+            .map((row, index) => ({
+                row,
+                index,
+                key: alertKey(row),
+                firstSeen: Number(alertHistory[alertKey(row)]) || 0,
+            }))
+            .sort((a, b) => (
+                b.firstSeen - a.firstSeen
+                || a.index - b.index
+            ));
+
+        const newestKey = ordered[0]?.key || null;
+        const latestChanged = (
+            latestAlertKey !== null
+            && newestKey !== latestAlertKey
+        );
+
+        latestAlertKey = newestKey;
+        saveAlertHistory();
+
+        return {
+            rows: ordered.map((item) => item.row),
+            newestKey,
+            shouldJumpToTop: discoveredNewAlert || latestChanged,
+        };
+    }
+
+    function render(rows, newestKey) {
+        const fragment = document.createDocumentFragment();
+
+        rows.forEach((row) => {
             const tr = document.createElement('tr');
 
-            /*
-             * Agrupar equipos consecutivos.
-             */
-            if (
-                index === 0 ||
-                rows[index - 1].equipo !== row.equipo
-            ) {
-                const td = document.createElement('td');
-
-                td.className = 'gkp-equipment';
-
-                let end = index + 1;
-
-                while (
-                    end < rows.length &&
-                    rows[end].equipo === row.equipo
-                ) {
-                    end++;
-                }
-
-                td.rowSpan = end - index;
-
-                td.textContent = seen.has(row.equipo)
-                    ? ''
-                    : row.equipo;
-
-                td.setAttribute(
-                    'aria-label',
-                    row.equipo
-                );
-
-                seen.add(row.equipo);
-
-                tr.append(td);
+            if (alertKey(row) === newestKey) {
+                tr.classList.add('gkp-row--latest-alert');
+                tr.title = 'Alerta activa más reciente';
             }
+
+            /*
+             * Equipo.
+             *
+             * Se repite en cada fila porque el orden ahora es cronológico
+             * por llegada de alerta, no agrupado por equipo.
+             */
+            const equipment = document.createElement('td');
+
+            equipment.className = 'gkp-equipment';
+            equipment.textContent = row.equipo;
+            equipment.setAttribute('aria-label', row.equipo);
 
             /*
              * Puerto.
@@ -303,6 +390,7 @@
             state.append(stateActions);
 
             tr.append(
+                equipment,
                 port,
                 value,
                 state
@@ -426,7 +514,20 @@
             const rows =
                 payload.data.estado_actual_red;
 
-            render(rows);
+            const orderedAlerts = orderByAlertArrival(rows);
+
+            render(
+                orderedAlerts.rows,
+                orderedAlerts.newestKey
+            );
+
+            if (orderedAlerts.shouldJumpToTop) {
+                window.GKPTableAutoScroll?.toTop(
+                    tableRegion,
+                    3200
+                );
+            }
+
             hasValidData = true;
 
             const sourceEntries = Object.entries(
