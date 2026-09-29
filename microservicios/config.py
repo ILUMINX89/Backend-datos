@@ -46,17 +46,11 @@ class Settings(BaseSettings):
 
     mysql_host: str = "127.0.0.1"
     mysql_port: int = 3306
+    mysql_unix_socket: str = ""
     mysql_user: str = ""
     mysql_password: str = ""
     mysql_database: str = ""
     mysql_connect_timeout: int = 10
-
-    # ==========================================
-    # Microservicio alarmas
-    # ==========================================
-
-    alarmas_service_host: str = "127.0.0.1"
-    alarmas_service_port: int = 8001
 
     # ==========================================
     # Grafana proxy local

@@ -9,14 +9,18 @@ from .config import settings
 
 
 def crear_conexion():
-    return mysql.connector.connect(
-        host=settings.mysql_host,
-        port=settings.mysql_port,
-        user=settings.mysql_user,
-        password=settings.mysql_password,
-        database=settings.mysql_database,
-        connection_timeout=settings.mysql_connect_timeout,
-    )
+    kwargs = {
+        "user": settings.mysql_user,
+        "password": settings.mysql_password,
+        "database": settings.mysql_database,
+        "connection_timeout": settings.mysql_connect_timeout,
+    }
+    if settings.mysql_unix_socket:
+        kwargs["unix_socket"] = settings.mysql_unix_socket
+    else:
+        kwargs["host"] = settings.mysql_host
+        kwargs["port"] = settings.mysql_port
+    return mysql.connector.connect(**kwargs)
 
 
 def consultar_mysql(

@@ -224,25 +224,6 @@ $hfcRoutinesActive = array_key_exists(
         </span>
 
 
-        <a class="nav__item<?= $sidebarPage === 'reportes.php' ? ' active' : '' ?>" href="reportes.php"
-            <?= $sidebarPage === 'reportes.php'
-                ? ' aria-current="page"'
-                : ''
-                ?>>
-
-            <span class="nav__icon">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 19V9m6 10V5m6 14v-7m4 7H2" />
-                </svg>
-            </span>
-
-            <span class="nav__text">
-                Reportes
-            </span>
-
-        </a>
-
-
         <a class="nav__item<?= $sidebarPage === 'configuracion.php' ? ' active' : '' ?>" href="configuracion.php"
             <?= $sidebarPage === 'configuracion.php'
                 ? ' aria-current="page"'

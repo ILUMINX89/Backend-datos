@@ -71,7 +71,7 @@
             </section>
             <section id="perdida-latencia-panel" class="gkp-panel" aria-labelledby="perdida-latencia-title" aria-busy="true">
                 <div class="gkp-panel-heading">
-                    <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Última lectura disponible por equipo en los últimos 10 minutos</p></div>
+                    <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Lectura actual de gestión por equipo</p></div>
                     <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>eventos</span></span>
                 </div>
                 <p id="perdida-latencia-status" role="status" aria-live="polite">Cargando pérdida y latencia…</p>

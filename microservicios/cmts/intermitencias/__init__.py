@@ -1,1 +1,0 @@
-"""Deteccion de intermitencias HFC."""
