@@ -18,15 +18,35 @@ def _respuesta_error(exc: service.TopologiasError) -> HTTPException:
 
 @router.get("/health")
 def health() -> dict:
-    data = service.estado()
-    listo = all(data[clave] for clave in ("ssh", "ruta", "data_dir", "temporales_dir", "imagenes_dir"))
-    return {"ok": listo, "data": data}
+    try:
+        data = service.estado()
+        listo = all(data[clave] for clave in ("ssh", "ruta", "data_dir", "temporales_dir", "imagenes_dir"))
+        return {"ok": listo, "data": data}
+    except service.TopologiasError as exc:
+        raise _respuesta_error(exc) from exc
 
 
 @router.get("")
 def menu() -> dict:
     nombres = {"huawei": "Huawei", "zte": "ZTE", "nokia": "Nokia", "onnet": "ONNET", "ftto": "FTTO"}
     return {"ok": True, "data": [{"id": clave, "nombre": nombres[clave]} for clave in service.CATEGORIAS]}
+
+
+@router.get("/buscar")
+def buscar_global(texto: str = Query(..., min_length=1),
+                  limite: int = Query(200, ge=1, le=1000)) -> dict:
+    try:
+        return {"ok": True, "data": service.buscar_global(texto, limite)}
+    except service.TopologiasError as exc:
+        raise _respuesta_error(exc) from exc
+
+
+@router.get("/link")
+def link_global(categoria: str = Query(...), ruta: str = Query(...)) -> dict:
+    try:
+        return {"ok": True, "data": service.materializar_topologia(categoria, ruta)}
+    except service.TopologiasError as exc:
+        raise _respuesta_error(exc) from exc
 
 
 @router.get("/guardadas")

@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     topologias_cache_path: str = "/data/AdminBOA/topologias_api_cache"
     topologias_local_dir: str = "data/topologias"
     topologias_public_base: str = "/api/olt/topologias/media"
+    topologias_cache_ttl_horas: int = 24
 
     model_config = SettingsConfigDict(
         env_file=".env",
