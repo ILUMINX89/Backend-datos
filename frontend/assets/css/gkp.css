@@ -289,11 +289,18 @@
 #alarmas .gkp-table { min-width: 670px; }
 #temperatura-panel .gkp-table,
 #perdida-latencia-panel .gkp-table { min-width: 0; }
+#gkp-table-region,
 #temperatura-table-region,
 #perdida-latencia-table-region {
-    max-height: 380px;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+#temperatura-table-region,
+#perdida-latencia-table-region {
+    /* Encabezado + máximo 3 filas visibles. */
+    max-height: 175px;
 }
 .gkp-table { width: 100%; border-collapse: collapse; text-align: left; }
 .gkp-table th {
@@ -323,6 +330,30 @@
 
 .gkp-table tbody tr:last-child td { border-bottom: 0; }
 .gkp-table tbody tr:hover { background: #edf6fb; }
+
+.gkp-table tbody tr.gkp-row--latest-alert td {
+    background: #ffe7eb;
+    animation: gkp-latest-alert-pulse 1.25s ease-in-out infinite;
+}
+
+.gkp-table tbody tr.gkp-row--latest-alert:hover td {
+    background: #ffdbe2;
+}
+
+@keyframes gkp-latest-alert-pulse {
+    0%,
+    100% {
+        background: #ffe9ed;
+        box-shadow: inset 3px 0 0 #d9364d;
+    }
+
+    50% {
+        background: #ffd7de;
+        box-shadow:
+            inset 3px 0 0 #ef334e,
+            inset 0 0 18px rgba(239, 51, 78, .16);
+    }
+}
 .gkp-table td.gkp-equipment { color: var(--gkp-ink); font-weight: 700; vertical-align: top; padding-top: 15px; }
 .gkp-badge,
 .temperature-badge {
@@ -643,6 +674,27 @@
 .gkp-page .footer { padding: 14px 18px; color: #64728a; font-size: 11px; }
 .gkp-page ::selection { color: #fff; background: #0d5e98; }
 .gkp-page :focus-visible { outline: 3px solid #52a7e3; outline-offset: 3px; }
+@media (min-width: 1181px) {
+    #alarmas {
+        height: calc(100dvh - 148px);
+        min-height: 420px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #alarmas .gkp-panel-heading,
+    #alarmas #gkp-status,
+    #alarmas .gkp-panel-foot {
+        flex: 0 0 auto;
+    }
+
+    #alarmas #gkp-table-region {
+        min-height: 0;
+        flex: 1 1 auto;
+        max-height: none;
+    }
+}
+
 @media (max-width: 1180px) {
     .gkp-page .topbar__main { align-items: flex-start; flex-direction: column; gap: 12px; }
     .gkp-page .topbar__status { width: 100%; margin-left: 0; justify-content: flex-end; }
