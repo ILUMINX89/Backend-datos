@@ -6,16 +6,13 @@
         'perdida-latencia-table-region',
         'temperatura-table-region',
     ];
-    const SPEED_PX_SECOND = 22;
+    const SPEED_PX_SECOND = 28;
     const START_DELAY = 1500;
     const BOTTOM_DELAY = 1500;
     const TOP_DELAY = 1000;
     const USER_PAUSE = 4000;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const states = REGIONS.map((id) => ({
         region: document.getElementById(id),
-        hovered: false,
-        focused: false,
         resumeAt: performance.now() + START_DELAY,
         bottomSince: null,
     })).filter((state) => state.region);
@@ -27,39 +24,28 @@
         state.bottomSince = null;
     }
 
-    function scrollToTop(state) {
+    function scrollToTop(state, delay = TOP_DELAY) {
         state.region.scrollTop = 0;
-        hold(state, TOP_DELAY);
+        hold(state, delay);
     }
 
     states.forEach((state) => {
         const region = state.region;
-        region.addEventListener('mouseenter', () => { state.hovered = true; });
-        region.addEventListener('mouseleave', () => {
-            state.hovered = false;
-            hold(state, TOP_DELAY);
-        });
-        region.addEventListener('focusin', () => { state.focused = true; });
-        region.addEventListener('focusout', (event) => {
-            if (!region.contains(event.relatedTarget)) {
-                state.focused = false;
-                hold(state, TOP_DELAY);
-            }
-        });
         ['wheel', 'touchstart', 'pointerdown'].forEach((name) => {
             region.addEventListener(name, () => hold(state, USER_PAUSE), { passive: true });
         });
     });
 
     function frame(now) {
+        document.body.dataset.gkpAutoTick = `${Math.round(now)}:${enabled}`;
         const elapsed = Math.min(Math.max(now - lastFrame, 0), 100);
         lastFrame = now;
 
-        if (enabled && !document.hidden && !reducedMotion.matches) {
+        if (enabled && !document.hidden) {
             states.forEach((state) => {
                 const region = state.region;
                 const maxScroll = region.scrollHeight - region.clientHeight;
-                if (state.hovered || state.focused || now < state.resumeAt || maxScroll <= 2) {
+                if (now < state.resumeAt || maxScroll <= 2) {
                     return;
                 }
                 if (region.scrollTop >= maxScroll - 1) {
@@ -85,7 +71,7 @@
             lastFrame = performance.now();
         },
         resetAll() {
-            states.forEach((state) => scrollToTop(state));
+            states.forEach((state) => scrollToTop(state, START_DELAY));
         },
         scrollToTop(id) {
             const state = states.find((item) => item.region.id === id);
