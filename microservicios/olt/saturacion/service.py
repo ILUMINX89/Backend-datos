@@ -123,7 +123,7 @@ def obtener_saturacion_actual() -> dict[str, Any]:
         if not olt or not puerto:
             continue
         resultado_olts[olt].append(
-            {"puerto": puerto, "valor": round(float(fila["SATURACION"]), 2)}
+            {"puerto": puerto, "valor": round(float(fila["SATURACION"]), 2), "fecha": fila.get("_time")}
         )
     return {
         "datos": [

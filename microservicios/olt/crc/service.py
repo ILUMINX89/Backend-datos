@@ -106,7 +106,7 @@ def obtener_crc_actual() -> dict[str, Any]:
         if not olt or not puerto:
             continue
         resultado_olts[olt].append(
-            {"puerto": puerto, "valor": round(float(fila["CRC_POR_SEGUNDO"]), 2)}
+            {"puerto": puerto, "valor": round(float(fila["CRC_POR_SEGUNDO"]), 2), "fecha": fila.get("_time")}
         )
     return {
         "datos": [

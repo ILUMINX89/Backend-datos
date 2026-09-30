@@ -98,10 +98,6 @@
         }
     }
 
-    document.getElementById('gkp-refresh')?.addEventListener(
-        'click',
-        () => load({ silent: false })
-    );
     load();
     setInterval(() => load({ silent: true }), 30000);
 })();

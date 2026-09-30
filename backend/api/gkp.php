@@ -109,6 +109,7 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
                     }
 
                     $detail = 'Estado de origen: CAIDO_ACTUAL';
+                    $fechaEvento = $port['ultima_muestra'] ?? null;
                 } else {
                     /*
                      * SATURACIÓN / CRC
@@ -134,7 +135,12 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
                     $detail = (
                         'Última muestra en ventana de 15 minutos'
                     );
+                    $fechaEvento = $port['fecha'] ?? null;
                 }
+
+                $timestamp = is_string($fechaEvento)
+                    ? strtotime($fechaEvento)
+                    : false;
 
                 $sourceRows[] = [
                     'equipo' => $group['olt'],
@@ -143,6 +149,8 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
                     'unidad' => $unit,
                     'estado' => $state,
                     'detalle' => $detail,
+                    'fecha_evento' => $fechaEvento,
+                    'fecha_evento_ts' => $timestamp !== false ? $timestamp : 0,
                 ];
             }
         }
@@ -180,24 +188,11 @@ foreach ($definitions as $source => [$path, $state, $unit]) {
     );
 }
 
-/*
- * Orden del tablero:
- *
- * 1. Caídas
- * 2. Saturación
- * 3. CRC
- */
-$priority = [
-    'Caída actual' => 0,
-    'Saturación uplink' => 1,
-    'Error CRC' => 2,
-];
-
 usort(
     $rows,
     static fn ($a, $b) =>
-        ($priority[$a['estado']]
-            <=> $priority[$b['estado']])
+        ($b['fecha_evento_ts']
+            <=> $a['fecha_evento_ts'])
         ?: strnatcasecmp(
             $a['equipo'],
             $b['equipo']
@@ -207,6 +202,11 @@ usort(
             $b['puerto']
         )
 );
+
+foreach ($rows as &$row) {
+    unset($row['fecha_evento_ts']);
+}
+unset($row);
 
 $ok = in_array(
     true,

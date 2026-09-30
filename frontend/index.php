@@ -22,9 +22,9 @@
                     <span>Ordenadas de la alerta más reciente a la más antigua</span>
                 </div>
                 <span id="gkp-updated" class="sr-only">Última actualización: pendiente</span>
-                <button id="gkp-refresh" type="button">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
-                    <span>Actualizar</span>
+                <button id="gkp-monitor-toggle" type="button" aria-pressed="false">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M2 12a10 10 0 0 1 20 0M5 17a8 8 0 0 0 14 0"/></svg>
+                    <span>Monitoreo general</span>
                 </button>
             </div>
             <div class="gkp-panels">
@@ -44,6 +44,26 @@
                 <noscript>Activa JavaScript para consultar el estado de la red.</noscript>
             </section>
             <div class="gkp-secondary-panels">
+            <section id="perdida-latencia-panel" class="gkp-panel" aria-labelledby="perdida-latencia-title" aria-busy="true">
+                <div class="gkp-panel-heading">
+                    <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Lectura actual de gestión por equipo</p></div>
+                    <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>eventos</span></span>
+                </div>
+                <p id="perdida-latencia-status" role="status" aria-live="polite">Cargando pérdida y latencia…</p>
+                <div id="perdida-latencia-table-region" class="gkp-table-scroll" data-auto-scroll tabindex="0" role="region" aria-label="Pérdida y latencia OLT; tabla desplazable">
+                    <table class="gkp-table">
+                        <thead><tr><th scope="col">Equipo</th><th scope="col">Valor</th><th scope="col">Estado</th></tr></thead>
+                        <tbody id="perdida-latencia-rows"></tbody>
+                    </table>
+                </div>
+                <div id="perdida-latencia-empty" class="panel-ok-state" hidden>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                    <span class="sr-only">Sin excepciones de pérdida o latencia</span>
+                </div>
+                <p class="gkp-panel-foot"><span>Solo pérdida &gt; 10% y latencia &gt; 50 ms</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
+                <p id="perdida-latencia-updated" class="sr-only">Última actualización: pendiente</p>
+                <noscript>Activa JavaScript para consultar pérdida y latencia OLT.</noscript>
+            </section>
             <section id="temperatura-panel" class="gkp-panel" aria-labelledby="temperatura-title" aria-busy="true">
                 <div class="gkp-panel-heading">
                     <div><h2 id="temperatura-title">Temperatura OLT</h2><p>Solo equipos por encima de 70 °C</p></div>
@@ -68,26 +88,6 @@
                 <p class="gkp-panel-foot"><span>Escala contextual de temperatura OLT</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
                 <p id="temperatura-updated" class="sr-only">Última actualización: pendiente</p>
                 <noscript>Activa JavaScript para consultar la temperatura OLT.</noscript>
-            </section>
-            <section id="perdida-latencia-panel" class="gkp-panel" aria-labelledby="perdida-latencia-title" aria-busy="true">
-                <div class="gkp-panel-heading">
-                    <div><h2 id="perdida-latencia-title">Pérdida de gestión y latencia</h2><p>Lectura actual de gestión por equipo</p></div>
-                    <span class="gkp-panel-total"><strong id="perdida-latencia-count">0</strong><span>eventos</span></span>
-                </div>
-                <p id="perdida-latencia-status" role="status" aria-live="polite">Cargando pérdida y latencia…</p>
-                <div id="perdida-latencia-table-region" class="gkp-table-scroll" data-auto-scroll tabindex="0" role="region" aria-label="Pérdida y latencia OLT; tabla desplazable">
-                    <table class="gkp-table">
-                        <thead><tr><th scope="col">Equipo</th><th scope="col">Valor</th><th scope="col">Estado</th></tr></thead>
-                        <tbody id="perdida-latencia-rows"></tbody>
-                    </table>
-                </div>
-                <div id="perdida-latencia-empty" class="panel-ok-state" hidden>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
-                    <span class="sr-only">Sin excepciones de pérdida o latencia</span>
-                </div>
-                <p class="gkp-panel-foot"><span>Solo pérdida &gt; 10% y latencia &gt; 50 ms</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
-                <p id="perdida-latencia-updated" class="sr-only">Última actualización: pendiente</p>
-                <noscript>Activa JavaScript para consultar pérdida y latencia OLT.</noscript>
             </section>
             </div>
             </div>

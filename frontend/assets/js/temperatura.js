@@ -344,18 +344,6 @@
         }
     }
 
-    const refresh =
-        document.getElementById(
-            'gkp-refresh'
-        );
-
-    if (refresh) {
-        refresh.addEventListener(
-            'click',
-            () => loadTemperature({ silent: false })
-        );
-    }
-
     temperatureClose?.addEventListener('click', closeTemperatureModal);
     temperatureModal?.querySelector('[data-temperature-modal-close]')
         ?.addEventListener('click', closeTemperatureModal);

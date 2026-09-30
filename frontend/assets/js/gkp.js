@@ -4,8 +4,7 @@
     const body = document.getElementById('gkp-rows');
     const status = document.getElementById('gkp-status');
     const panel = document.getElementById('alarmas');
-    const refresh = document.getElementById('gkp-refresh');
-    const tableRegion = document.getElementById('gkp-table-region');
+    const monitorButton = document.getElementById('gkp-monitor-toggle');
 
     const number = new Intl.NumberFormat('es-CO', {
         maximumFractionDigits: 2
@@ -18,9 +17,8 @@
     let ftthPowerVisible = false;
     let ftthCrcVisible = false;
     let ftthReturnFocus = null;
-    let latestAlertKey = null;
-
-    const ALERT_STORAGE_KEY = 'gkp-alert-first-seen-v1';
+    let currentNewestAlert = null;
+    let monitorMode = false;
 
     const app = document.querySelector('.app');
     const ftthModal = document.getElementById('ftth-modal');
@@ -208,116 +206,17 @@
         ftthReturnFocus = null;
     }
 
-    function alertKey(row) {
-        return [
-            row.equipo || '',
-            row.puerto || '',
-            row.estado || '',
-        ].join('\u001f');
+    function alertIdentity(row) {
+        return [row.equipo, row.puerto, row.estado, row.fecha_evento].join('|');
     }
 
-    function loadAlertHistory() {
-        try {
-            const raw = localStorage.getItem(ALERT_STORAGE_KEY);
-
-            if (!raw) {
-                return {};
-            }
-
-            const parsed = JSON.parse(raw);
-
-            if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-                return {};
-            }
-
-            return Object.fromEntries(
-                Object.entries(parsed).filter(([, value]) => Number.isFinite(Number(value)))
-            );
-        } catch {
-            return {};
-        }
-    }
-
-    const alertHistory = loadAlertHistory();
-
-    function saveAlertHistory() {
-        try {
-            localStorage.setItem(
-                ALERT_STORAGE_KEY,
-                JSON.stringify(alertHistory)
-            );
-        } catch {
-            /*
-             * El orden sigue funcionando en memoria aunque
-             * el navegador no permita localStorage.
-             */
-        }
-    }
-
-    function orderByAlertArrival(rows) {
-        const now = Date.now();
-        const activeKeys = new Set();
-        let newOffset = 0;
-        let discoveredNewAlert = false;
-
-        for (const row of rows) {
-            const key = alertKey(row);
-
-            activeKeys.add(key);
-
-            if (!Number.isFinite(Number(alertHistory[key]))) {
-                /*
-                 * Guardar cuándo apareció por primera vez en el tablero.
-                 * Si llegan varias en el mismo ciclo, conservamos el orden
-                 * original como desempate con diferencias de 1 ms.
-                 */
-                alertHistory[key] = now - newOffset;
-                newOffset += 1;
-                discoveredNewAlert = latestAlertKey !== null || discoveredNewAlert;
-            }
-        }
-
-        for (const key of Object.keys(alertHistory)) {
-            if (!activeKeys.has(key)) {
-                delete alertHistory[key];
-            }
-        }
-
-        const ordered = rows
-            .map((row, index) => ({
-                row,
-                index,
-                key: alertKey(row),
-                firstSeen: Number(alertHistory[alertKey(row)]) || 0,
-            }))
-            .sort((a, b) => (
-                b.firstSeen - a.firstSeen
-                || a.index - b.index
-            ));
-
-        const newestKey = ordered[0]?.key || null;
-        const latestChanged = (
-            latestAlertKey !== null
-            && newestKey !== latestAlertKey
-        );
-
-        latestAlertKey = newestKey;
-        saveAlertHistory();
-
-        return {
-            rows: ordered.map((item) => item.row),
-            newestKey,
-            shouldJumpToTop: discoveredNewAlert || latestChanged,
-        };
-    }
-
-    function render(rows, newestKey) {
+    function render(rows) {
         const fragment = document.createDocumentFragment();
 
         rows.forEach((row) => {
             const tr = document.createElement('tr');
 
-            if (alertKey(row) === newestKey) {
+            if (row === rows[0]) {
                 tr.classList.add('gkp-row--latest-alert');
                 tr.title = 'Alerta activa más reciente';
             }
@@ -326,7 +225,7 @@
              * Equipo.
              *
              * Se repite en cada fila porque el orden ahora es cronológico
-             * por llegada de alerta, no agrupado por equipo.
+             * sin agrupar por equipo.
              */
             const equipment = document.createElement('td');
 
@@ -465,8 +364,6 @@
 
         busy = true;
 
-        refresh.disabled = true;
-
         if (!silent) {
             status.textContent = 'Consultando el estado de la red…';
         }
@@ -514,18 +411,15 @@
             const rows =
                 payload.data.estado_actual_red;
 
-            const orderedAlerts = orderByAlertArrival(rows);
+            const newest = rows[0] ? alertIdentity(rows[0]) : null;
+            const changed = currentNewestAlert !== null
+                && newest !== currentNewestAlert;
+            currentNewestAlert = newest;
 
-            render(
-                orderedAlerts.rows,
-                orderedAlerts.newestKey
-            );
+            render(rows);
 
-            if (orderedAlerts.shouldJumpToTop) {
-                window.GKPTableAutoScroll?.toTop(
-                    tableRegion,
-                    3200
-                );
+            if (changed && monitorMode) {
+                window.GKPTableAutoScroll?.scrollToTop('gkp-table-region');
             }
 
             hasValidData = true;
@@ -602,8 +496,8 @@
             }
 
             status.textContent = error?.name === 'AbortError'
-                ? 'La consulta excedió el tiempo disponible. Se reintentará automáticamente; también puedes pulsar Actualizar.'
-                : 'No se pudo consultar el estado de la red. Se reintentará automáticamente; también puedes pulsar Actualizar.';
+                ? 'La consulta excedió el tiempo disponible. Se reintentará automáticamente.'
+                : 'No se pudo consultar el estado de la red. Se reintentará automáticamente.';
 
             connection(
                 'Sin conexión',
@@ -628,8 +522,6 @@
 
             busy = false;
 
-            refresh.disabled = false;
-
             panel.setAttribute(
                 'aria-busy',
                 'false'
@@ -637,7 +529,7 @@
         }
     }
 
-    if (!body || !status || !panel || !refresh) {
+    if (!body || !status || !panel || !monitorButton) {
         return;
     }
 
@@ -711,10 +603,16 @@
 
     setText('header-datetime', 'Pendiente');
 
-    refresh.addEventListener(
-        'click',
-        () => load({ silent: false })
-    );
+    monitorButton.addEventListener('click', () => {
+        monitorMode = !monitorMode;
+        monitorButton.classList.toggle('is-active', monitorMode);
+        monitorButton.setAttribute('aria-pressed', String(monitorMode));
+        document.body.classList.toggle('monitor-mode', monitorMode);
+        window.GKPTableAutoScroll?.setEnabled(monitorMode);
+        if (monitorMode) {
+            window.GKPTableAutoScroll?.resetAll();
+        }
+    });
 
     load();
 

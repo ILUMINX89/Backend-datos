@@ -1,150 +1,97 @@
 (() => {
     'use strict';
 
-    const instances = new WeakMap();
+    const REGIONS = [
+        'gkp-table-region',
+        'perdida-latencia-table-region',
+        'temperatura-table-region',
+    ];
+    const SPEED_PX_SECOND = 22;
+    const START_DELAY = 1500;
+    const BOTTOM_DELAY = 1500;
+    const TOP_DELAY = 1000;
+    const USER_PAUSE = 4000;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const states = REGIONS.map((id) => ({
+        region: document.getElementById(id),
+        hovered: false,
+        focused: false,
+        resumeAt: performance.now() + START_DELAY,
+        bottomSince: null,
+    })).filter((state) => state.region);
+    let enabled = false;
+    let lastFrame = performance.now();
 
-    class TableAutoScroll {
-        constructor(region) {
-            this.region = region;
-            this.speed = 24;
-            this.bottomPauseMs = 1600;
-            this.topPauseMs = 1200;
-            this.resumeAt = performance.now() + 1200;
-            this.lastFrame = performance.now();
-            this.bottomSince = null;
-            this.hovered = false;
-            this.focused = false;
-            this.raf = null;
-
-            this.bind();
-            this.start();
-        }
-
-        bind() {
-            this.region.addEventListener('mouseenter', () => {
-                this.hovered = true;
-            });
-
-            this.region.addEventListener('mouseleave', () => {
-                this.hovered = false;
-                this.hold(1200);
-            });
-
-            this.region.addEventListener('focusin', () => {
-                this.focused = true;
-            });
-
-            this.region.addEventListener('focusout', (event) => {
-                if (!this.region.contains(event.relatedTarget)) {
-                    this.focused = false;
-                    this.hold(1200);
-                }
-            });
-
-            ['wheel', 'touchstart', 'pointerdown'].forEach((eventName) => {
-                this.region.addEventListener(eventName, () => this.hold(4500), {
-                    passive: true,
-                });
-            });
-        }
-
-        hold(ms = 2500) {
-            this.resumeAt = performance.now() + ms;
-            this.lastFrame = performance.now();
-        }
-
-        toTop(ms = 2500) {
-            this.region.scrollTop = 0;
-            this.bottomSince = null;
-            this.hold(ms);
-        }
-
-        canScroll() {
-            return (
-                !this.region.hidden
-                && this.region.scrollHeight > this.region.clientHeight + 2
-            );
-        }
-
-        start() {
-            if (this.raf !== null) {
-                return;
-            }
-
-            const step = (now) => {
-                const elapsed = Math.max(0, now - this.lastFrame);
-                this.lastFrame = now;
-
-                if (
-                    !document.hidden
-                    && !reducedMotion.matches
-                    && !this.hovered
-                    && !this.focused
-                    && now >= this.resumeAt
-                    && this.canScroll()
-                ) {
-                    const maxScroll = Math.max(
-                        0,
-                        this.region.scrollHeight - this.region.clientHeight
-                    );
-
-                    if (this.region.scrollTop >= maxScroll - 1) {
-                        if (this.bottomSince === null) {
-                            this.bottomSince = now;
-                        }
-
-                        if (now - this.bottomSince >= this.bottomPauseMs) {
-                            this.region.scrollTo({
-                                top: 0,
-                                behavior: 'smooth',
-                            });
-                            this.bottomSince = null;
-                            this.hold(this.topPauseMs);
-                        }
-                    } else {
-                        this.bottomSince = null;
-                        this.region.scrollTop = Math.min(
-                            maxScroll,
-                            this.region.scrollTop + (elapsed / 1000) * this.speed
-                        );
-                    }
-                } else {
-                    this.bottomSince = null;
-                }
-
-                this.raf = requestAnimationFrame(step);
-            };
-
-            this.raf = requestAnimationFrame(step);
-        }
+    function hold(state, duration) {
+        state.resumeAt = performance.now() + duration;
+        state.bottomSince = null;
     }
 
-    function initialize() {
-        document.querySelectorAll('[data-auto-scroll]').forEach((region) => {
-            if (instances.has(region)) {
-                return;
-            }
+    function scrollToTop(state) {
+        state.region.scrollTop = 0;
+        hold(state, TOP_DELAY);
+    }
 
-            instances.set(region, new TableAutoScroll(region));
+    states.forEach((state) => {
+        const region = state.region;
+        region.addEventListener('mouseenter', () => { state.hovered = true; });
+        region.addEventListener('mouseleave', () => {
+            state.hovered = false;
+            hold(state, TOP_DELAY);
         });
+        region.addEventListener('focusin', () => { state.focused = true; });
+        region.addEventListener('focusout', (event) => {
+            if (!region.contains(event.relatedTarget)) {
+                state.focused = false;
+                hold(state, TOP_DELAY);
+            }
+        });
+        ['wheel', 'touchstart', 'pointerdown'].forEach((name) => {
+            region.addEventListener(name, () => hold(state, USER_PAUSE), { passive: true });
+        });
+    });
+
+    function frame(now) {
+        const elapsed = Math.min(Math.max(now - lastFrame, 0), 100);
+        lastFrame = now;
+
+        if (enabled && !document.hidden && !reducedMotion.matches) {
+            states.forEach((state) => {
+                const region = state.region;
+                const maxScroll = region.scrollHeight - region.clientHeight;
+                if (state.hovered || state.focused || now < state.resumeAt || maxScroll <= 2) {
+                    return;
+                }
+                if (region.scrollTop >= maxScroll - 1) {
+                    state.bottomSince ??= now;
+                    if (now - state.bottomSince >= BOTTOM_DELAY) {
+                        scrollToTop(state);
+                    }
+                } else {
+                    state.bottomSince = null;
+                    region.scrollTop = Math.min(
+                        maxScroll,
+                        region.scrollTop + elapsed * SPEED_PX_SECOND / 1000
+                    );
+                }
+            });
+        }
+        requestAnimationFrame(frame);
     }
 
     window.GKPTableAutoScroll = {
-        get(region) {
-            return region ? instances.get(region) || null : null;
+        setEnabled(value) {
+            enabled = Boolean(value);
+            lastFrame = performance.now();
         },
-
-        toTop(region, holdMs = 2500) {
-            instances.get(region)?.toTop(holdMs);
+        resetAll() {
+            states.forEach((state) => scrollToTop(state));
         },
-
-        initialize,
+        scrollToTop(id) {
+            const state = states.find((item) => item.region.id === id);
+            if (state) scrollToTop(state);
+        },
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initialize, { once: true });
-    } else {
-        initialize();
-    }
+    requestAnimationFrame(frame);
 })();
