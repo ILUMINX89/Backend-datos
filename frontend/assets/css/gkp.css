@@ -685,49 +685,57 @@
 .gkp-page ::selection { color: #fff; background: #0d5e98; }
 .gkp-page :focus-visible { outline: 3px solid #52a7e3; outline-offset: 3px; }
 @media (min-width: 1181px) {
-    .gkp-page .main {
+    .dashboard-page .app {
+        height: 100dvh;
+        min-height: 0;
+        overflow: hidden;
+    }
+    .dashboard-page .main {
         height: 100dvh;
         min-height: 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
     }
-    .gkp-page .topbar { flex: 0 0 auto; }
-    .gkp-content {
+    .dashboard-page .topbar { flex: 0 0 auto; }
+    .dashboard-page .gkp-content {
         min-height: 0;
-        flex: 1 1 auto;
+        flex: 1 1 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
     }
-    .gkp-toolbar { flex: 0 0 auto; }
-    .gkp-panels {
+    .dashboard-page .gkp-toolbar { flex: 0 0 auto; }
+    .dashboard-page .gkp-panels {
         min-height: 0;
-        flex: 1 1 auto;
+        flex: 1 1 0;
         align-items: stretch;
+        overflow: hidden;
     }
-    #alarmas {
+    .dashboard-page #alarmas {
         height: 100%;
         min-height: 0;
+        max-height: 100%;
         display: flex;
         flex-direction: column;
         overflow: hidden;
     }
 
-    #alarmas .gkp-panel-heading,
-    #alarmas #gkp-status,
-    #alarmas .gkp-panel-foot {
+    .dashboard-page #alarmas .gkp-panel-heading,
+    .dashboard-page #alarmas #gkp-status,
+    .dashboard-page #alarmas .gkp-panel-foot {
         flex: 0 0 auto;
     }
 
-    #alarmas #gkp-table-region {
+    .dashboard-page #alarmas #gkp-table-region {
+        height: 0;
         min-height: 0;
         flex: 1 1 auto;
         max-height: none;
         overflow-x: auto;
         overflow-y: auto;
     }
-    .gkp-page .footer { flex: 0 0 auto; }
+    .dashboard-page .footer { flex: 0 0 auto; }
 }
 
 @media (max-width: 1180px) {

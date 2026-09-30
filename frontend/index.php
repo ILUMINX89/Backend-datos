@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="assets/css/sidebar.css">
     <link rel="stylesheet" href="assets/css/gkp.css">
 </head>
-<body class="gkp-page">
+<body class="gkp-page dashboard-page">
 <div class="app">
     <?php require __DIR__ . '/components/sidebar.php'; ?>
     <main class="main">

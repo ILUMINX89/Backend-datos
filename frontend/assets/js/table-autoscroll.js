@@ -37,7 +37,6 @@
     });
 
     function frame(now) {
-        document.body.dataset.gkpAutoTick = `${Math.round(now)}:${enabled}`;
         const elapsed = Math.min(Math.max(now - lastFrame, 0), 100);
         lastFrame = now;
 
