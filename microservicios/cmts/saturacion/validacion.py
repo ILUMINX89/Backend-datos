@@ -45,7 +45,7 @@ def validar_calculo() -> None:
     for indice in range(99):
         agregar("1/1", "NODO A", indice, 200, 190)
 
-    # BW variable no altera el porcentaje real de utilizacion.
+    # Cada lectura usa su BW; el maximo historico detecta caidas.
     for indice in range(100):
         bw = 100 if indice % 2 == 0 else 200
         agregar("2/0", "NODO B", indice, bw, bw * 0.95)
@@ -56,7 +56,7 @@ def validar_calculo() -> None:
     for indice in range(30):
         agregar("3/0", "NODO C", indice + 120, 100, -10 if indice == 0 else 70)
 
-    # Utilizacion se evalua incluso sin BW valido en la misma lectura.
+    # Lecturas sin BW correspondiente o con BW cero no cuentan.
     filas.append({
         "cmts": "CMTS-1", "puerto": "2/0", "descripcion": "NODO B",
         "_field": "utilizacion", "_value": 95, "_time": fecha + timedelta(seconds=200),
@@ -85,11 +85,11 @@ def validar_calculo() -> None:
 
     assert len(datos) == 1
     puertos = datos[0]["puertos"]
-    assert [puerto["puerto_fisico"] for puerto in puertos] == ["2/0", "1/1", "1/0", "3/0"]
-    assert [puerto["puntos_sobre_80"] for puerto in puertos] == [102, 99, 99, 60]
-    assert [puerto["muestras_analizadas"] for puerto in puertos] == [102, 99, 99, 150]
-    assert [puerto["valor"] for puerto in puertos] == [97.45, 100.0, 95.0, 100.0]
-    assert all(puerto["tipo"] == "uso" for puerto in puertos)
+    assert [puerto["puerto_fisico"] for puerto in puertos] == ["2/0", "1/0", "1/1", "3/0"]
+    assert [puerto["puntos_sobre_80"] for puerto in puertos] == [100, 99, 99, 60]
+    assert [puerto["muestras_analizadas"] for puerto in puertos] == [100, 99, 99, 150]
+    assert [puerto["valor"] for puerto in puertos] == [95.0, 95.0, 95.0, 100.0]
+    assert [puerto["tipo"] for puerto in puertos] == ["degradacion", "uso", "uso", "uso"]
     assert all(0 <= puerto["valor"] <= 100 for puerto in puertos)
 
 
@@ -100,9 +100,9 @@ def validar_fuentes() -> None:
     uso = {**base, "_field": "utilizacion", "_value": 95}
     for filas, cantidad in (
         ([], 0),
-        ([uso], 1),
+        ([uso], 0),
         ([bw], 0),
-        ([bw, {**uso, "_time": fecha + timedelta(seconds=1)}], 1),
+        ([bw, {**uso, "_time": fecha + timedelta(seconds=1)}], 0),
     ):
         with ExitStack() as parches:
             parches.enter_context(patch.object(service, "obtener_muestras_flux", return_value="bloque"))
@@ -122,14 +122,17 @@ def validar_reglas() -> None:
                           "_time": fecha + timedelta(seconds=indice)})
 
     agregar("A", "utilizacion", [20, 30, 50, 70, 80])
+    agregar("A", "bw", [100] * 5)
     agregar("B", "utilizacion", [81, 82, 85, 90])
     agregar("C", "utilizacion", [30, 40, 99, 35])
+    agregar("C", "bw", [100] * 4)
     agregar("D", "utilizacion", [105, 110])
+    agregar("D", "bw", [100] * 2)
     agregar("E", "snr", [29] * 59 + [30, 35, None, "", "NaN", "error"])
     agregar("F", "snr", [29] * 60)
     agregar("B", "snr", [28] * 60)
     agregar("B", "portadoras", [8, None, "NaN", "", -1, 2.5])
-    agregar("B", "bw", [999])
+    agregar("B", "bw", [100] * 4)
     agregar("C", "utilizacion", [None, "", "NaN", "error", float("inf")])
     with ExitStack() as parches:
         parches.enter_context(patch.object(service, "consultar_flux_temp", side_effect=[filas] + [[]] * 23))
@@ -139,8 +142,9 @@ def validar_reglas() -> None:
     por_puerto = {p["puerto_fisico"]: p for p in puertos}
     assert por_puerto["B"]["puntos_sobre_80"] == 4
     assert por_puerto["B"]["valor"] == 84.5
-    assert por_puerto["B"]["bw"] == 240
-    assert por_puerto["B"]["estado"] == "Saturación / Degradación"
+    assert por_puerto["B"]["bw"] == 100
+    assert por_puerto["B"]["capacidad_nominal"] == 240
+    assert por_puerto["B"]["estado"] == "Saturación por degradación"
     assert por_puerto["D"]["valor"] == 100
     assert por_puerto["C"]["puntos_sobre_80"] == 1
     assert por_puerto["F"]["estado"] == "Degradación"
@@ -152,6 +156,62 @@ def validar_reglas() -> None:
         parches.enter_context(patch.object(service, "consultar_flux_temp", side_effect=[snr[:30], snr[30:]] + [[]] * 22))
         parches.enter_context(patch.object(service.time, "sleep", return_value=None))
         assert service.calcular_saturacion_actual()["datos"][0]["puertos"][0]["tipo"] == "degradacion"
+
+
+def validar_capacidad() -> None:
+    fecha = datetime.now(timezone.utc)
+    filas = []
+
+    def agregar(puerto: str, bw: list, trafico: list, portadoras: int | None = 4) -> None:
+        for indice, (ancho, uso) in enumerate(zip(bw, trafico)):
+            campos = [("bw", ancho), ("utilizacion", uso)]
+            if portadoras is not None:
+                campos.append(("portadoras", portadoras))
+            for campo, valor in campos:
+                filas.append({"cmts": "CMTS-1", "puerto": puerto, "descripcion": "MISMO NODO",
+                              "_time": fecha + timedelta(seconds=indice), "_field": campo, "_value": valor})
+
+    agregar("caida", [120, 120, 50, 50, 50, 50, 120], [70, 75, 48, 49, 47, 48, 70])
+    agregar("normal", [120], [110])
+    agregar("sin_saturacion", [50], [20])
+    agregar("81_mbps", [120], [81])
+    agregar("limite", [110], [119])
+    agregar("historico", [50, 50, 120], [48, 49, 70], None)
+    agregar("aislado", [50], [48], None)
+    agregar("umbral_capacidad", [96], [90])
+    agregar("umbral_uso", [120], [96])
+    # SNR confirmado es diagnostico adicional, sin cambiar la causa de saturacion.
+    for indice in range(60):
+        filas.append({"cmts": "CMTS-1", "puerto": "normal", "descripcion": "MISMO NODO",
+                      "_time": fecha + timedelta(seconds=indice), "_field": "snr", "_value": 29})
+    # El BW normal aparece en otro bloque: la referencia abarca los cuatro dias.
+    posteriores = [f for f in filas if f["puerto"] == "historico" and f["_time"] == fecha + timedelta(seconds=2)]
+    anteriores = [f for f in filas if f not in posteriores]
+    with ExitStack() as parches:
+        parches.enter_context(patch.object(service, "consultar_flux_temp", side_effect=[anteriores, posteriores] + [[]] * 22))
+        parches.enter_context(patch.object(service.time, "sleep", return_value=None))
+        puertos = service.calcular_saturacion_actual()["datos"][0]["puertos"]
+    datos = {p["puerto_fisico"]: p for p in puertos}
+    assert "81_mbps" not in datos and "umbral_uso" not in datos
+    assert datos["caida"]["estado"] == "Saturación por degradación"
+    assert datos["caida"]["tipo"] == "degradacion"
+    assert datos["caida"]["valor"] == 96
+    assert datos["caida"]["puntos_sobre_80"] == 4
+    assert datos["caida"]["puntos_saturacion_degradada"] == 4
+    assert datos["caida"]["bw"] == 120  # Recuperacion no borra el problema historico.
+    assert datos["normal"]["estado"] == "Saturación"
+    assert datos["normal"]["tipo"] == "uso"
+    assert datos["normal"]["valor"] == 91.67 and datos["normal"]["ruido"] == 29
+    assert datos["sin_saturacion"]["estado"] == "Degradación"
+    assert datos["sin_saturacion"]["puntos_sobre_80"] == 0
+    assert datos["sin_saturacion"]["bw"] == 50 and datos["sin_saturacion"]["capacidad_nominal"] == 120
+    assert datos["limite"]["valor"] == 100
+    assert datos["historico"]["estado"] == "Saturación por degradación"
+    assert datos["historico"]["capacidad_nominal"] is None
+    assert datos["historico"]["bw_maximo_historico"] == 120
+    assert datos["aislado"]["tipo"] == "uso"  # Sin mezclar BW de otros puertos.
+    assert datos["umbral_capacidad"]["tipo"] == "uso"
+    assert puertos[0]["puerto_fisico"] == "caida"
 
 
 def validar_cache_y_rutas(directorio: Path) -> None:
@@ -213,6 +273,7 @@ def main() -> None:
     validar_calculo()
     validar_fuentes()
     validar_reglas()
+    validar_capacidad()
     with TemporaryDirectory() as temporal:
         validar_cache_y_rutas(Path(temporal))
     print("Validación CMTS saturación: OK")

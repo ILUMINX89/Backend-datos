@@ -12,6 +12,7 @@ from microservicios.cmts.saturacion.queries import obtener_muestras_flux
 from microservicios.influx import consultar_flux_temp
 
 UMBRAL_UTILIZACION = 80.0
+UMBRAL_CAPACIDAD_DEGRADADA = 80.0
 UMBRAL_SNR_DEGRADADO_DB = 30.0
 MUESTRAS_CONFIRMACION_SNR = 60
 MBPS_POR_PORTADORA = 30
@@ -68,6 +69,8 @@ def calcular_saturacion_actual() -> dict[str, Any]:
                 "puntos_sobre_80": 0,
                 "suma_sobre_80": 0.0,
                 "ultimo_bw": None,
+                "bw_maximo_historico": 0.0,
+                "lecturas_capacidad": {},
                 "ultima_fecha_bw": None,
                 "portadoras": None,
                 "ultima_fecha_portadoras": None,
@@ -78,6 +81,7 @@ def calcular_saturacion_actual() -> dict[str, Any]:
             if campo == "bw":
                 if valor <= 0:
                     continue
+                acumulado["bw_maximo_historico"] = max(acumulado["bw_maximo_historico"], valor)
                 if acumulado["ultima_fecha_bw"] is None or fecha > acumulado["ultima_fecha_bw"]:
                     acumulado["ultima_fecha_bw"] = fecha
                     acumulado["ultimo_bw"] = valor
@@ -93,12 +97,25 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         del filas
         for (cmts, puerto, descripcion, _fecha), muestra in muestras.items():
             utilizacion = muestra.get("utilizacion")
+            bw_real = muestra.get("bw")
             acumulado = acumulados[(cmts, puerto, descripcion)]
-            if utilizacion is not None:
+            if utilizacion is not None and bw_real is not None and bw_real > 0:
+                porcentaje_uso = utilizacion / bw_real * 100.0
+                if not math.isfinite(porcentaje_uso):
+                    continue
                 acumulado["muestras_analizadas"] += 1
-                if utilizacion > UMBRAL_UTILIZACION:
+                saturado = porcentaje_uso > UMBRAL_UTILIZACION
+                if saturado:
                     acumulado["puntos_sobre_80"] += 1
-                    acumulado["suma_sobre_80"] += max(0.0, min(100.0, utilizacion))
+                    acumulado["suma_sobre_80"] += porcentaje_uso
+                # Agrupar BW equivalentes permite aplicar el maximo historico
+                # de toda la ventana sin retener las filas de cada bloque.
+                referencia_muestra = muestra.get("portadoras")
+                conteos = acumulado["lecturas_capacidad"].setdefault(
+                    (bw_real, referencia_muestra), [0, 0]
+                )
+                conteos[0] += 1
+                conteos[1] += int(saturado)
             snr = muestra.get("snr")
             if snr is not None:
                 acumulado["muestras_snr"] += 1
@@ -115,21 +132,39 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     for (cmts, puerto, descripcion), acumulado in acumulados.items():
         puntos = int(acumulado["puntos_sobre_80"])
         degradados = acumulado["muestras_snr_degradadas"]
-        degradado = degradados >= MUESTRAS_CONFIRMACION_SNR
-        if not puntos and not degradado:
+        degradacion_snr = degradados >= MUESTRAS_CONFIRMACION_SNR
+        portadoras = acumulado["portadoras"]
+        capacidad_nominal = portadoras * MBPS_POR_PORTADORA if portadoras is not None else None
+        referencia = capacidad_nominal or acumulado["bw_maximo_historico"]
+        puntos_degradados = 0
+        muestras_capacidad_degradada = 0
+        for (bw_real, portadoras_muestra), (total, criticos) in acumulado["lecturas_capacidad"].items():
+            capacidad = portadoras_muestra * MBPS_POR_PORTADORA if portadoras_muestra is not None else referencia
+            if capacidad > 0 and bw_real / capacidad * 100.0 < UMBRAL_CAPACIDAD_DEGRADADA:
+                muestras_capacidad_degradada += total
+                puntos_degradados += criticos
+        degradacion_capacidad = muestras_capacidad_degradada > 0
+        if not puntos and not degradacion_snr and not degradacion_capacidad:
             continue
         porcentaje = acumulado["suma_sobre_80"] / puntos if puntos else 0.0
-        portadoras = acumulado["portadoras"]
+        if puntos:
+            estado = "Saturación por degradación" if puntos_degradados else "Saturación"
+            tipo = "degradacion" if puntos_degradados else "uso"
+        else:
+            estado, tipo = "Degradación", "degradacion"
         resultado[cmts].append({
             "puerto": descripcion,
             "puerto_fisico": puerto,
-            "valor": round(porcentaje, 2),
-            "bw": portadoras * MBPS_POR_PORTADORA if portadoras is not None else acumulado["ultimo_bw"],
-            "estado": "Saturación / Degradación" if puntos and degradado else "Degradación" if degradado else "Saturación",
-            "tipo": "degradacion" if degradado else "uso",
+            "valor": round(max(0.0, min(100.0, porcentaje)), 2),
+            "bw": acumulado["ultimo_bw"],
+            "capacidad_nominal": capacidad_nominal,
+            "bw_maximo_historico": acumulado["bw_maximo_historico"],
+            "estado": estado,
+            "tipo": tipo,
             "puntos_sobre_80": puntos,
             "muestras_analizadas": int(acumulado["muestras_analizadas"]),
-            "ruido": round(acumulado["suma_snr_degradado"] / degradados, 2) if degradado else None,
+            "puntos_saturacion_degradada": puntos_degradados,
+            "ruido": round(acumulado["suma_snr_degradado"] / degradados, 2) if degradacion_snr else None,
         })
 
     def criticidad(item: dict[str, Any]) -> tuple[int, float]:

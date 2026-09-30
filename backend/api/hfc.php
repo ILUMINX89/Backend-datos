@@ -32,6 +32,7 @@ try {
                     ? sprintf('%d puntos superiores al 80%%; porcentaje mostrado = promedio de esos puntos', $points)
                     : '',
                 'bw' => $port['bw'] ?? null, 'ruido' => $port['ruido'] ?? null,
+                'capacidad_nominal' => $port['capacidad_nominal'] ?? null,
                 'puerto_fisico' => $port['puerto_fisico'] ?? null,
                 'puntos_sobre_80' => $points,
                 'muestras_analizadas' => is_numeric($port['muestras_analizadas'] ?? null)
