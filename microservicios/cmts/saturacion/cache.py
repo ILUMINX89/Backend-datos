@@ -19,7 +19,7 @@ ESTADO_INICIAL: dict[str, Any] = {
     "finalizado_en": None,
     "error": None,
     "bloque_actual": 0,
-    "bloques_totales": 24,
+    "bloques_totales": 0,
     "porcentaje": 0.0,
     "ultimo_bloque_en": None,
 }

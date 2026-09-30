@@ -24,19 +24,30 @@ try {
                 throw new RuntimeException('Puerto CMTS inválido');
             }
             $points = is_numeric($port['puntos_sobre_80'] ?? null) ? (int) $port['puntos_sobre_80'] : 0;
+            $detalle = sprintf('%d puntos >80%%; racha máxima %d/100', $points, (int) ($port['racha_uso_maxima'] ?? 0));
+            if ($port['degradacion_snr'] ?? false) {
+                $detalle .= sprintf('; SNR racha %d/60', (int) ($port['racha_snr_maxima'] ?? 0));
+            }
+            if ($port['degradacion_capacidad'] ?? false) {
+                $detalle .= sprintf('; capacidad racha %d/100', (int) ($port['racha_capacidad_maxima'] ?? 0));
+            }
             $rows[] = [
                 'equipo' => $group['cmts'], 'puerto' => $port['puerto'],
                 'valor' => max(0.0, min(100.0, (float) $port['valor'])), 'unidad' => '%',
                 'estado' => (string) ($port['estado'] ?? ''), 'tipo' => (string) ($port['tipo'] ?? ''),
-                'detalle' => $points > 0
-                    ? sprintf('%d puntos superiores al 80%%; porcentaje mostrado = promedio de esos puntos', $points)
-                    : '',
+                'detalle' => $detalle,
                 'bw' => $port['bw'] ?? null, 'ruido' => $port['ruido'] ?? null,
                 'capacidad_nominal' => $port['capacidad_nominal'] ?? null,
                 'puerto_fisico' => $port['puerto_fisico'] ?? null,
                 'puntos_sobre_80' => $points,
                 'muestras_analizadas' => is_numeric($port['muestras_analizadas'] ?? null)
                     ? (int) $port['muestras_analizadas'] : 0,
+                'portadoras' => $port['portadoras'] ?? null,
+                'racha_uso_maxima' => $port['racha_uso_maxima'] ?? null,
+                'racha_capacidad_maxima' => $port['racha_capacidad_maxima'] ?? null,
+                'racha_snr_maxima' => $port['racha_snr_maxima'] ?? null,
+                'degradacion_capacidad' => $port['degradacion_capacidad'] ?? null,
+                'degradacion_snr' => $port['degradacion_snr'] ?? null,
             ];
         }
     }

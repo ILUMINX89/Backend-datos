@@ -10,7 +10,7 @@ from microservicios.cmts.saturacion.cache import (
     leer_estado,
     leer_saturacion,
 )
-from microservicios.cmts.saturacion.service import actualizar_saturacion
+from microservicios.cmts.saturacion.service import TOTAL_BLOQUES, actualizar_saturacion
 
 router = APIRouter(tags=["CMTS - Saturación"])
 _actualizacion_lock = Lock()
@@ -45,10 +45,8 @@ def _ejecutar_actualizacion() -> None:
                 **estado_actual,
                 "estado": "listo",
                 "fase": "finalizado",
-                "bloque_actual": estado_actual.get(
-                    "bloques_totales",
-                    24,
-                ),
+                "bloque_actual": TOTAL_BLOQUES,
+                "bloques_totales": TOTAL_BLOQUES,
                 "porcentaje": 100.0,
                 "finalizado_en": _ahora(),
                 "error": None,
@@ -72,9 +70,14 @@ def saturacion_actualizar(background_tasks: BackgroundTasks) -> dict:
         guardar_estado(
             {
                 "estado": "procesando",
+                "fase": "consultando_influx",
                 "iniciado_en": _ahora(),
                 "finalizado_en": None,
                 "error": None,
+                "bloque_actual": 0,
+                "bloques_totales": TOTAL_BLOQUES,
+                "porcentaje": 0.0,
+                "ultimo_bloque_en": None,
             }
         )
     except Exception:
