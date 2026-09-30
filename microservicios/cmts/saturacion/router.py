@@ -21,27 +21,40 @@ def _ahora() -> str:
 
 
 def _ejecutar_actualizacion() -> None:
-    iniciado_en = leer_estado().get("iniciado_en")
     try:
         actualizar_saturacion()
+
     except Exception as exc:
+        estado_actual = leer_estado()
+
         guardar_estado(
             {
+                **estado_actual,
                 "estado": "error",
-                "iniciado_en": iniciado_en,
+                "fase": "error",
                 "finalizado_en": _ahora(),
                 "error": str(exc),
             }
         )
+
     else:
+        estado_actual = leer_estado()
+
         guardar_estado(
             {
+                **estado_actual,
                 "estado": "listo",
-                "iniciado_en": iniciado_en,
+                "fase": "finalizado",
+                "bloque_actual": estado_actual.get(
+                    "bloques_totales",
+                    24,
+                ),
+                "porcentaje": 100.0,
                 "finalizado_en": _ahora(),
                 "error": None,
             }
         )
+
     finally:
         _actualizacion_lock.release()
 

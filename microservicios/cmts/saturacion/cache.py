@@ -11,11 +11,17 @@ DIRECTORIO_CACHE = RAIZ_PROYECTO / "data" / "cache"
 ARCHIVO_SATURACION = DIRECTORIO_CACHE / "hfc_saturacion.json"
 ARCHIVO_ESTADO = DIRECTORIO_CACHE / "hfc_estado.json"
 
-SATURACION_INICIAL: dict[str, Any] = {
-    "generado_en": None, "ventana": "4d", "datos": []
-}
+SATURACION_INICIAL: dict[str, Any] = {"generado_en": None, "ventana": "4d", "datos": []}
 ESTADO_INICIAL: dict[str, Any] = {
-    "estado": "listo", "iniciado_en": None, "finalizado_en": None, "error": None
+    "estado": "listo",
+    "fase": None,
+    "iniciado_en": None,
+    "finalizado_en": None,
+    "error": None,
+    "bloque_actual": 0,
+    "bloques_totales": 24,
+    "porcentaje": 0.0,
+    "ultimo_bloque_en": None,
 }
 
 
@@ -32,8 +38,12 @@ def _guardar_atomico(ruta: Path, contenido: dict[str, Any]) -> None:
     temporal: Path | None = None
     try:
         with NamedTemporaryFile(
-            "w", encoding="utf-8", dir=ruta.parent, prefix=f".{ruta.name}.",
-            suffix=".tmp", delete=False
+            "w",
+            encoding="utf-8",
+            dir=ruta.parent,
+            prefix=f".{ruta.name}.",
+            suffix=".tmp",
+            delete=False,
         ) as archivo:
             json.dump(contenido, archivo, ensure_ascii=False, indent=2)
             archivo.write("\n")

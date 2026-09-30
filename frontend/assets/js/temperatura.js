@@ -67,7 +67,7 @@
 
     function temperatureGrafanaUrl(item) {
         const url = new URL(
-            'http://127.0.0.1:8002/d-solo/adqfqpc/olt'
+            `${window.location.protocol}//${window.location.hostname}:8002/d-solo/adqfqpc/olt`
         );
 
         url.searchParams.set('orgId', '1');

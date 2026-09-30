@@ -109,7 +109,7 @@
 
     function grafanaUrl(row) {
         const url = new URL(
-            'http://127.0.0.1:8002/d-solo/adsfhrn/cmts'
+            `${window.location.protocol}//${window.location.hostname}:8002/d-solo/adsfhrn/cmts`
         );
 
         url.searchParams.set('orgId', '1');
