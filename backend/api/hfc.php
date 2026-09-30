@@ -26,10 +26,10 @@ try {
             $points = is_numeric($port['puntos_sobre_80'] ?? null) ? (int) $port['puntos_sobre_80'] : 0;
             $rows[] = [
                 'equipo' => $group['cmts'], 'puerto' => $port['puerto'],
-                'valor' => (float) $port['valor'], 'unidad' => '%',
+                'valor' => max(0.0, min(100.0, (float) $port['valor'])), 'unidad' => '%',
                 'estado' => (string) ($port['estado'] ?? ''), 'tipo' => (string) ($port['tipo'] ?? ''),
                 'detalle' => $points > 0
-                    ? sprintf('%d puntos iguales o superiores al 80%%; porcentaje mostrado = promedio de esos puntos', $points)
+                    ? sprintf('%d puntos superiores al 80%%; porcentaje mostrado = promedio de esos puntos', $points)
                     : '',
                 'bw' => $port['bw'] ?? null, 'ruido' => $port['ruido'] ?? null,
                 'puerto_fisico' => $port['puerto_fisico'] ?? null,
