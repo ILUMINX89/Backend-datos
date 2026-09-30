@@ -7,7 +7,6 @@ import sys
 import time
 from pathlib import Path
 
-
 RAIZ = Path(__file__).resolve().parent
 
 SSH_HOST = "100.66.80.175"
@@ -21,7 +20,7 @@ MYSQL_REMOTO_PORT = 3306
 API_HOST = "127.0.0.1"
 API_PORT = 8000
 
-GRAFANA_HOST = "127.0.0.1"
+GRAFANA_HOST = "0.0.0.0"
 GRAFANA_PORT = 8002
 
 
@@ -76,7 +75,8 @@ def iniciar_tunel() -> subprocess.Popen:
     comando = [
         "ssh",
         "-N",
-        "-o", "ExitOnForwardFailure=yes",
+        "-o",
+        "ExitOnForwardFailure=yes",
         "-L",
         f"{MYSQL_LOCAL_PORT}:{MYSQL_REMOTO_HOST}:{MYSQL_REMOTO_PORT}",
         f"{SSH_USER}@{SSH_HOST}",
@@ -175,12 +175,8 @@ def main() -> int:
         print(f"API principal:  http://{API_HOST}:{API_PORT}")
         print(f"API health:     http://{API_HOST}:{API_PORT}/health")
         print(f"Grafana proxy:  http://{GRAFANA_HOST}:{GRAFANA_PORT}")
-        print(
-            f"Grafana health: http://{GRAFANA_HOST}:{GRAFANA_PORT}/__proxy_health"
-        )
-        print(
-            f"MySQL túnel:    {MYSQL_LOCAL_HOST}:{MYSQL_LOCAL_PORT}"
-        )
+        print(f"Grafana health: http://{GRAFANA_HOST}:{GRAFANA_PORT}/__proxy_health")
+        print(f"MySQL túnel:    {MYSQL_LOCAL_HOST}:{MYSQL_LOCAL_PORT}")
         print()
         print("XAMPP/frontend NO se inicia desde este script.")
         print("Presiona Ctrl+C aquí para cerrar los procesos iniciados.")

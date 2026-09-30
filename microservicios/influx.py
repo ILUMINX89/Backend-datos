@@ -81,3 +81,34 @@ def consultar_flux_temp(
 
     except InfluxDBError as exc:
         raise RuntimeError(f"La consulta a InfluxDB falló: {exc}") from exc
+
+
+def iterar_flux_temp(consulta: str, *, fuente: str = "temp"):
+    """Entrega registros sin materializar las tablas completas en memoria."""
+    if fuente == "temp":
+        cliente = crear_cliente_temp
+        org = settings.influx_temp_org
+    elif fuente == "red":
+        cliente = lambda: InfluxDBClient(
+            url=settings.influx_red_url,
+            token=settings.influx_red_token,
+            org=settings.influx_red_org,
+            timeout=settings.influx_red_timeout_ms,
+            verify_ssl=settings.influx_red_verify_ssl,
+        )
+        org = settings.influx_red_org
+    elif fuente == "cmts":
+        cliente = crear_cliente_cmts
+        org = settings.influx_cmts_org
+    else:
+        raise ValueError("Fuente InfluxDB no permitida")
+
+    try:
+        with cliente() as client:
+            for registro in client.query_api().query_stream(query=consulta, org=org):
+                valores = dict(registro.values)
+                valores.pop("result", None)
+                valores.pop("table", None)
+                yield valores
+    except InfluxDBError as exc:
+        raise RuntimeError(f"La consulta a InfluxDB falló: {exc}") from exc
