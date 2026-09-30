@@ -349,6 +349,9 @@ def limpiar_cache_expirada() -> None:
                 continue
             vigentes.append(registro)
             referenciadas.add(nombre)
+
+            if extension_origen in VISIO:
+                 referenciadas.add(f"{Path(nombre).stem}.jpg")
         if cambio:
             indice["topologias"] = vigentes
             guardar_indice(indice)
