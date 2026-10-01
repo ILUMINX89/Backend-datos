@@ -22,7 +22,7 @@ MUESTRAS_CONFIRMACION_SNR = 60
 BITS_POR_PORTADORA = 30_000_000
 VENTANA_DIAS = 4
 CHUNK_MINUTOS = 30
-MAX_GAP_MINUTOS = 15
+MAX_GAP_MINUTOS = 30
 TOTAL_BLOQUES = VENTANA_DIAS * 24 * 60 // CHUNK_MINUTOS
 
 logger = logging.getLogger(__name__)
@@ -61,8 +61,9 @@ def _nuevo_acumulado() -> dict[str, Any]:
     }
 
 
-def _procesar_muestra(acumulado: dict[str, Any], fecha: datetime,
-                      muestra: dict[str, float]) -> None:
+def _procesar_muestra(
+    acumulado: dict[str, Any], fecha: datetime, muestra: dict[str, float]
+) -> None:
     anterior = acumulado["ultima_fecha_muestra"]
     if anterior is not None and fecha - anterior > timedelta(minutes=MAX_GAP_MINUTOS):
         for criterio in ("uso", "capacidad", "snr"):
@@ -85,7 +86,9 @@ def _procesar_muestra(acumulado: dict[str, Any], fecha: datetime,
         acumulado["ultima_fecha_portadoras"] = fecha
 
     utilizacion = muestra.get("utilizacion")
-    porcentaje_uso = utilizacion / bw * 100.0 if bw_valido and utilizacion is not None else None
+    porcentaje_uso = (
+        utilizacion / bw * 100.0 if bw_valido and utilizacion is not None else None
+    )
     uso_alto = False
     if porcentaje_uso is not None and math.isfinite(porcentaje_uso):
         acumulado["muestras_analizadas"] += 1
@@ -97,7 +100,9 @@ def _procesar_muestra(acumulado: dict[str, Any], fecha: datetime,
     capacidad_degradada = False
     if bw_valido and portadoras_validas:
         capacidad_nominal = int(portadoras) * BITS_POR_PORTADORA
-        capacidad_degradada = bw / capacidad_nominal * 100.0 < UMBRAL_CAPACIDAD_DEGRADADA
+        capacidad_degradada = (
+            bw / capacidad_nominal * 100.0 < UMBRAL_CAPACIDAD_DEGRADADA
+        )
         if capacidad_degradada:
             acumulado["muestras_capacidad_degradada"] += 1
             acumulado["puntos_saturacion_degradada"] += int(uso_alto)
@@ -111,25 +116,33 @@ def _procesar_muestra(acumulado: dict[str, Any], fecha: datetime,
         snr_degradado = snr < UMBRAL_SNR_DEGRADADO_DB
 
     # Un dato insuficiente rompe solo la racha del criterio correspondiente.
-    for criterio, cumple in (("uso", uso_alto), ("capacidad", capacidad_degradada),
-                             ("snr", snr_degradado)):
+    for criterio, cumple in (
+        ("uso", uso_alto),
+        ("capacidad", capacidad_degradada),
+        ("snr", snr_degradado),
+    ):
         actual = f"racha_{criterio}_actual"
         maxima = f"racha_{criterio}_maxima"
         acumulado[actual] = acumulado[actual] + 1 if cumple else 0
         acumulado[maxima] = max(acumulado[maxima], acumulado[actual])
 
 
-def _resultado_puerto(puerto: str, descripcion: str,
-                      acumulado: dict[str, Any]) -> dict[str, Any] | None:
+def _resultado_puerto(
+    puerto: str, descripcion: str, acumulado: dict[str, Any]
+) -> dict[str, Any] | None:
     uso_confirmado = acumulado["racha_uso_maxima"] >= MUESTRAS_CONFIRMACION_USO
-    degradacion_capacidad = acumulado["racha_capacidad_maxima"] >= MUESTRAS_CONFIRMACION_CAPACIDAD
+    degradacion_capacidad = (
+        acumulado["racha_capacidad_maxima"] >= MUESTRAS_CONFIRMACION_CAPACIDAD
+    )
     degradacion_snr = acumulado["racha_snr_maxima"] >= MUESTRAS_CONFIRMACION_SNR
     degradacion_confirmada = degradacion_capacidad or degradacion_snr
     if not uso_confirmado and not degradacion_confirmada:
         return None
 
     if uso_confirmado:
-        estado = "Saturación por degradación" if degradacion_confirmada else "Saturación"
+        estado = (
+            "Saturación por degradación" if degradacion_confirmada else "Saturación"
+        )
     else:
         estado = "Degradación"
     puntos = acumulado["puntos_sobre_80"]
@@ -140,7 +153,9 @@ def _resultado_puerto(puerto: str, descripcion: str,
         "puerto_fisico": puerto,
         "valor": round(max(0.0, min(100.0, porcentaje)), 2),
         "bw": acumulado["ultimo_bw"],
-        "capacidad_nominal": portadoras * BITS_POR_PORTADORA if portadoras is not None else None,
+        "capacidad_nominal": (
+            portadoras * BITS_POR_PORTADORA if portadoras is not None else None
+        ),
         "bw_maximo_historico": acumulado["bw_maximo_historico"],
         "estado": estado,
         "tipo": "degradacion" if degradacion_confirmada else "uso",
@@ -161,13 +176,21 @@ def _procesar_bloque(registros, acumulados: dict) -> None:
     # Solo se retienen campos asociados por clave de negocio y timestamp exacto.
     muestras_bloque: dict = {}
     for fila in registros:
-        cmts, puerto, descripcion = (fila.get(campo) for campo in ("cmts", "puerto", "descripcion"))
+        cmts, puerto, descripcion = (
+            fila.get(campo) for campo in ("cmts", "puerto", "descripcion")
+        )
         fecha = fila.get("_time")
         campo = fila.get("_field")
         valor = _valor_numerico(fila)
-        if (not cmts or not puerto or not descripcion
-                or not isinstance(fecha, datetime) or fecha.utcoffset() is None
-                or campo not in ("bw", "utilizacion", "snr", "portadoras") or valor is None):
+        if (
+            not cmts
+            or not puerto
+            or not descripcion
+            or not isinstance(fecha, datetime)
+            or fecha.utcoffset() is None
+            or campo not in ("bw", "utilizacion", "snr", "portadoras")
+            or valor is None
+        ):
             continue
         clave = (str(cmts), str(puerto), str(descripcion))
         muestras_bloque.setdefault(clave, {}).setdefault(fecha, {})[campo] = valor
@@ -191,34 +214,47 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         bloque_inicio = inicio + timedelta(minutes=indice * CHUNK_MINUTOS)
         bloque_fin = min(bloque_inicio + timedelta(minutes=CHUNK_MINUTOS), fin)
         _procesar_bloque(
-            iterar_flux_temp(obtener_muestras_flux(bloque_inicio, bloque_fin), fuente="cmts"),
+            iterar_flux_temp(
+                obtener_muestras_flux(bloque_inicio, bloque_fin), fuente="cmts"
+            ),
             acumulados,
         )
         bloque_actual = indice + 1
         porcentaje = round(bloque_actual / TOTAL_BLOQUES * 100.0, 2)
-        guardar_estado({
-            **leer_estado(),
-            "estado": "procesando",
-            "fase": "consultando_influx",
-            "bloque_actual": bloque_actual,
-            "bloques_totales": TOTAL_BLOQUES,
-            "porcentaje": porcentaje,
-            "ultimo_bloque_en": datetime.now().astimezone().isoformat(timespec="seconds"),
-            "error": None,
-        })
-        logger.info("HFC: bloque %d/%d completado (%.2f%%)", bloque_actual, TOTAL_BLOQUES, porcentaje)
+        guardar_estado(
+            {
+                **leer_estado(),
+                "estado": "procesando",
+                "fase": "consultando_influx",
+                "bloque_actual": bloque_actual,
+                "bloques_totales": TOTAL_BLOQUES,
+                "porcentaje": porcentaje,
+                "ultimo_bloque_en": datetime.now()
+                .astimezone()
+                .isoformat(timespec="seconds"),
+                "error": None,
+            }
+        )
+        logger.info(
+            "HFC: bloque %d/%d completado (%.2f%%)",
+            bloque_actual,
+            TOTAL_BLOQUES,
+            porcentaje,
+        )
         if bloque_actual < TOTAL_BLOQUES:
             time.sleep(0.5)
 
-    guardar_estado({
-        **leer_estado(),
-        "estado": "procesando",
-        "fase": "analizando_resultados",
-        "porcentaje": 100.0,
-        "bloque_actual": TOTAL_BLOQUES,
-        "bloques_totales": TOTAL_BLOQUES,
-        "error": None,
-    })
+    guardar_estado(
+        {
+            **leer_estado(),
+            "estado": "procesando",
+            "fase": "analizando_resultados",
+            "porcentaje": 100.0,
+            "bloque_actual": TOTAL_BLOQUES,
+            "bloques_totales": TOTAL_BLOQUES,
+            "error": None,
+        }
+    )
     resultado: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for (cmts, puerto, descripcion), acumulado in acumulados.items():
         item = _resultado_puerto(puerto, descripcion, acumulado)
@@ -234,7 +270,9 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     ]
     datos.sort(key=lambda grupo: criticidad(grupo["puertos"][0]), reverse=True)
     logger.info("HFC: puertos evaluados=%d", len(acumulados))
-    logger.info("HFC: puertos confirmados=%d", sum(len(grupo["puertos"]) for grupo in datos))
+    logger.info(
+        "HFC: puertos confirmados=%d", sum(len(grupo["puertos"]) for grupo in datos)
+    )
     return {"datos": datos}
 
 
