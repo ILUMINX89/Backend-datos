@@ -1,5 +1,6 @@
 """Acceso bajo demanda a topologias OLT por SSH/SFTP."""
 
+import random
 import hashlib
 import json
 import os
@@ -454,3 +455,33 @@ def archivo_local(nombre: str) -> Path:
     if not any(r.get("archivo") == f"imagenes/{nombre}" for r in cargar_indice()["topologias"]):
         raise TopologiasError("Archivo no encontrado", 404)
     return destino
+
+def materializar_aleatoria() -> dict:
+    prefijo = random.choice(("ZAC", "HAC"))
+
+    resultado = buscar_global(prefijo, 200)
+
+    candidatos = [
+        item
+        for item in resultado["datos"]
+        if item["extension"] in VISIO
+    ]
+
+    if not candidatos:
+        raise TopologiasError(
+            f"No se encontraron topologias Visio para {prefijo}",
+            404,
+        )
+
+    elegido = random.choice(candidatos)
+
+    materializada = materializar_topologia(
+        elegido["categoria"],
+        elegido["ruta"],
+    )
+
+    return {
+        "prefijo": prefijo,
+        "seleccionada": elegido["nombre"],
+        **materializada,
+    }

@@ -1,9 +1,15 @@
 """Aplicacion FastAPI principal de Backend Datos."""
 
+import asyncio
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from microservicios.olt.topologias.router import router as topologias_router
+from microservicios.olt.topologias import service as topologias_service
 from microservicios.cmts.saturacion.router import router as cmts_saturacion_router
 from microservicios.cmts.intermitencias.router import (
     router as cmts_intermitencias_router,
@@ -25,8 +31,48 @@ from microservicios.olt.saturacion.router import router as saturacion_router
 from microservicios.olt.temperatura.router import router as temperatura_router
 from microservicios.olt.topologias.router import router as topologias_router
 
-app = FastAPI(title="Backend Datos API", version="1.0.0")
+async def worker_topologias() -> None:
+    while True:
+        try:
+            resultado = await asyncio.to_thread(
+                topologias_service.materializar_aleatoria
+            )
 
+            print(
+                "[TOPOLOGIAS AUTO] "
+                f"Prefijo: {resultado['prefijo']} | "
+                f"Archivo: {resultado['seleccionada']} | "
+                f"Cache: {resultado['desde_cache']}"
+            )
+
+        except Exception as exc:
+            print(f"[TOPOLOGIAS AUTO] ERROR: {exc}")
+
+        await asyncio.sleep(120)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    tarea = None
+
+    if os.environ.get("TOPOLOGIAS_AUTO") == "1":
+        print("[TOPOLOGIAS AUTO] Worker habilitado")
+        tarea = asyncio.create_task(worker_topologias())
+    else:
+        print("[TOPOLOGIAS AUTO] Worker deshabilitado")
+
+    try:
+        yield
+    finally:
+        if tarea:
+            tarea.cancel()
+
+            try:
+                await tarea
+            except asyncio.CancelledError:
+                pass
+
+app = FastAPI(title="Backend Datos API", version="1.0.0", lifespan=lifespan,)
 
 @app.exception_handler(Exception)
 async def error_no_controlado(_request: Request, _exc: Exception) -> JSONResponse:
