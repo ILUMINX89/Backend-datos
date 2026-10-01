@@ -13,15 +13,15 @@ from microservicios.cmts.saturacion.cache import (
 from microservicios.cmts.saturacion.queries import obtener_muestras_flux
 from microservicios.influx import iterar_flux_temp
 
-UMBRAL_UTILIZACION = 80.0
+UMBRAL_UTIL_SATURACION = 80.0
+MIN_PUNTOS_SATURADOS = 100
+MIN_UTIL_PROMEDIO = 50.0
+SNR_UMBRAL_FISICO = 30.0
+RATIO_MIN_DEGRADACION = 0.60
 UMBRAL_CAPACIDAD_DEGRADADA = 80.0
-UMBRAL_SNR_DEGRADADO_DB = 30.0
-MUESTRAS_CONFIRMACION_USO = 100
-MUESTRAS_CONFIRMACION_CAPACIDAD = 100
-MUESTRAS_CONFIRMACION_SNR = 60
 BITS_POR_PORTADORA = 30_000_000
 VENTANA_DIAS = 4
-CHUNK_MINUTOS = 30
+CHUNK_MINUTOS = 180
 MAX_GAP_MINUTOS = 30
 TOTAL_BLOQUES = VENTANA_DIAS * 24 * 60 // CHUNK_MINUTOS
 
@@ -39,14 +39,9 @@ def _valor_numerico(fila: dict[str, Any]) -> float | None:
 def _nuevo_acumulado() -> dict[str, Any]:
     return {
         "muestras_analizadas": 0,
-        "puntos_sobre_80": 0,
-        "suma_sobre_80": 0.0,
-        "racha_uso_actual": 0,
-        "racha_uso_maxima": 0,
-        "racha_capacidad_actual": 0,
-        "racha_capacidad_maxima": 0,
-        "racha_snr_actual": 0,
-        "racha_snr_maxima": 0,
+        "puntos_saturados": 0,
+        "suma_util_saturados": 0.0,
+        "puntos_con_falla": 0,
         "ultimo_bw": None,
         "ultima_fecha_bw": None,
         "bw_maximo_historico": 0.0,
@@ -55,19 +50,12 @@ def _nuevo_acumulado() -> dict[str, Any]:
         "ultimo_snr": None,
         "ultima_fecha_snr": None,
         "ultima_fecha_muestra": None,
-        "muestras_snr_validas": 0,
-        "muestras_capacidad_degradada": 0,
-        "puntos_saturacion_degradada": 0,
     }
 
 
 def _procesar_muestra(
     acumulado: dict[str, Any], fecha: datetime, muestra: dict[str, float]
 ) -> None:
-    anterior = acumulado["ultima_fecha_muestra"]
-    if anterior is not None and fecha - anterior > timedelta(minutes=MAX_GAP_MINUTOS):
-        for criterio in ("uso", "capacidad", "snr"):
-            acumulado[f"racha_{criterio}_actual"] = 0
     acumulado["ultima_fecha_muestra"] = fecha
 
     bw = muestra.get("bw")
@@ -85,90 +73,71 @@ def _procesar_muestra(
         acumulado["portadoras"] = int(portadoras)
         acumulado["ultima_fecha_portadoras"] = fecha
 
+    snr = muestra.get("snr")
+    if snr is not None and snr > 0:
+        acumulado["ultimo_snr"] = snr
+        acumulado["ultima_fecha_snr"] = fecha
+
     utilizacion = muestra.get("utilizacion")
     porcentaje_uso = (
         utilizacion / bw * 100.0 if bw_valido and utilizacion is not None else None
     )
-    uso_alto = False
+
     if porcentaje_uso is not None and math.isfinite(porcentaje_uso):
         acumulado["muestras_analizadas"] += 1
-        uso_alto = porcentaje_uso > UMBRAL_UTILIZACION
-        if uso_alto:
-            acumulado["puntos_sobre_80"] += 1
-            acumulado["suma_sobre_80"] += porcentaje_uso
+        if porcentaje_uso >= UMBRAL_UTIL_SATURACION:
+            acumulado["puntos_saturados"] += 1
+            acumulado["suma_util_saturados"] += porcentaje_uso
 
-    capacidad_degradada = False
-    if bw_valido and portadoras_validas:
-        capacidad_nominal = int(portadoras) * BITS_POR_PORTADORA
-        capacidad_degradada = (
-            bw / capacidad_nominal * 100.0 < UMBRAL_CAPACIDAD_DEGRADADA
-        )
-        if capacidad_degradada:
-            acumulado["muestras_capacidad_degradada"] += 1
-            acumulado["puntos_saturacion_degradada"] += int(uso_alto)
+            falla = False
+            if snr is not None and snr > 0 and snr < SNR_UMBRAL_FISICO:
+                falla = True
+            elif bw_valido and portadoras_validas:
+                capacidad_nominal = int(portadoras) * BITS_POR_PORTADORA
+                if (bw / capacidad_nominal * 100.0) < UMBRAL_CAPACIDAD_DEGRADADA:
+                    falla = True
 
-    snr = muestra.get("snr")
-    snr_degradado = False
-    if snr is not None and snr > 0:
-        acumulado["muestras_snr_validas"] += 1
-        acumulado["ultimo_snr"] = snr
-        acumulado["ultima_fecha_snr"] = fecha
-        snr_degradado = snr < UMBRAL_SNR_DEGRADADO_DB
-
-    # Un dato insuficiente rompe solo la racha del criterio correspondiente.
-    for criterio, cumple in (
-        ("uso", uso_alto),
-        ("capacidad", capacidad_degradada),
-        ("snr", snr_degradado),
-    ):
-        actual = f"racha_{criterio}_actual"
-        maxima = f"racha_{criterio}_maxima"
-        acumulado[actual] = acumulado[actual] + 1 if cumple else 0
-        acumulado[maxima] = max(acumulado[maxima], acumulado[actual])
+            if falla:
+                acumulado["puntos_con_falla"] += 1
 
 
 def _resultado_puerto(
     puerto: str, descripcion: str, acumulado: dict[str, Any]
 ) -> dict[str, Any] | None:
-    uso_confirmado = acumulado["racha_uso_maxima"] >= MUESTRAS_CONFIRMACION_USO
-    degradacion_capacidad = (
-        acumulado["racha_capacidad_maxima"] >= MUESTRAS_CONFIRMACION_CAPACIDAD
-    )
-    degradacion_snr = acumulado["racha_snr_maxima"] >= MUESTRAS_CONFIRMACION_SNR
-    degradacion_confirmada = degradacion_capacidad or degradacion_snr
-    if not uso_confirmado and not degradacion_confirmada:
+    puntos_saturados = acumulado["puntos_saturados"]
+    if puntos_saturados < MIN_PUNTOS_SATURADOS:
         return None
 
-    if uso_confirmado:
-        estado = (
-            "Saturación por degradación" if degradacion_confirmada else "Saturación"
-        )
-    else:
-        estado = "Degradación"
-    puntos = acumulado["puntos_sobre_80"]
-    porcentaje = acumulado["suma_sobre_80"] / puntos if puntos else 0.0
+    util_promedio = acumulado["suma_util_saturados"] / puntos_saturados
+    if util_promedio < MIN_UTIL_PROMEDIO:
+        return None
+
+    puntos_con_falla = acumulado["puntos_con_falla"]
+    ratio_degradacion = puntos_con_falla / puntos_saturados
+
+    estado = (
+        "Degradación"
+        if ratio_degradacion >= RATIO_MIN_DEGRADACION
+        else "Saturación normal"
+    )
+
     portadoras = acumulado["portadoras"]
     return {
         "puerto": descripcion,
         "puerto_fisico": puerto,
-        "valor": round(max(0.0, min(100.0, porcentaje)), 2),
+        "valor": round(max(0.0, min(100.0, util_promedio)), 2),
         "bw": acumulado["ultimo_bw"],
         "capacidad_nominal": (
             portadoras * BITS_POR_PORTADORA if portadoras is not None else None
         ),
         "bw_maximo_historico": acumulado["bw_maximo_historico"],
         "estado": estado,
-        "tipo": "degradacion" if degradacion_confirmada else "uso",
-        "puntos_sobre_80": puntos,
+        "tipo": "degradacion" if estado == "Degradación" else "uso",
+        "puntos_sobre_80": puntos_saturados,
         "muestras_analizadas": acumulado["muestras_analizadas"],
-        "puntos_saturacion_degradada": acumulado["puntos_saturacion_degradada"],
         "ruido": acumulado["ultimo_snr"],
         "portadoras": portadoras,
-        "racha_uso_maxima": acumulado["racha_uso_maxima"],
-        "racha_capacidad_maxima": acumulado["racha_capacidad_maxima"],
-        "racha_snr_maxima": acumulado["racha_snr_maxima"],
-        "degradacion_capacidad": degradacion_capacidad,
-        "degradacion_snr": degradacion_snr,
+        "ratio_degradacion": round(ratio_degradacion, 2),
     }
 
 
@@ -242,7 +211,7 @@ def calcular_saturacion_actual() -> dict[str, Any]:
             porcentaje,
         )
         if bloque_actual < TOTAL_BLOQUES:
-            time.sleep(0.5)
+            time.sleep(0.05)
 
     guardar_estado(
         {
