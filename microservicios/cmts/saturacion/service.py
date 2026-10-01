@@ -4,11 +4,11 @@ import logging
 import math
 import time
 from typing import Any
+from uuid import uuid4
 
 from microservicios.cmts.saturacion.cache import (
     guardar_estado,
     guardar_saturacion,
-    leer_estado,
 )
 from microservicios.cmts.saturacion.queries import obtener_muestras_flux
 from microservicios.influx import iterar_flux_temp
@@ -24,8 +24,42 @@ VENTANA_DIAS = 4
 CHUNK_MINUTOS = 180
 MAX_GAP_MINUTOS = 30
 TOTAL_BLOQUES = VENTANA_DIAS * 24 * 60 // CHUNK_MINUTOS
+VERSION_SATURACION = "2026-10-01-v2"
 
 logger = logging.getLogger(__name__)
+
+
+def _ahora() -> str:
+    return datetime.now().astimezone().isoformat(timespec="seconds")
+
+
+def _estado_base_ejecucion(ejecucion_id: str, iniciado_en: str) -> dict[str, Any]:
+    return {
+        "estado": "procesando",
+        "ejecucion_id": ejecucion_id,
+        "iniciado_en": iniciado_en,
+        "finalizado_en": None,
+        "error": None,
+        "bloques_totales": TOTAL_BLOQUES,
+        "chunk_minutos": CHUNK_MINUTOS,
+        "ventana_dias": VENTANA_DIAS,
+        "version_saturacion": VERSION_SATURACION,
+    }
+
+
+def iniciar_ejecucion_saturacion() -> dict[str, Any]:
+    """Crea y publica el estado inicial aislado de una nueva ejecucion."""
+    estado_base = _estado_base_ejecucion(uuid4().hex, _ahora())
+    guardar_estado(
+        {
+            **estado_base,
+            "fase": "iniciando",
+            "bloque_actual": 0,
+            "porcentaje": 0.0,
+            "ultimo_bloque_en": None,
+        }
+    )
+    return estado_base
 
 
 def _valor_numerico(fila: dict[str, Any]) -> float | None:
@@ -172,8 +206,17 @@ def _procesar_bloque(registros, acumulados: dict) -> None:
     # Todas las referencias al bloque se liberan al retornar, antes de consultar otro.
 
 
-def calcular_saturacion_actual() -> dict[str, Any]:
-    """Evalúa cuatro días cronológicamente mediante 192 bloques secuenciales."""
+def calcular_saturacion_actual(estado_base: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Evalua la ventana configurada mediante bloques secuenciales."""
+    estado_base = estado_base or iniciar_ejecucion_saturacion()
+    logger.info(
+        "HFC: inicio ejecucion=%s ventana=%sd chunk=%smin bloques=%s version=%s",
+        estado_base["ejecucion_id"],
+        VENTANA_DIAS,
+        CHUNK_MINUTOS,
+        TOTAL_BLOQUES,
+        VERSION_SATURACION,
+    )
     logger.info("HFC: iniciando actualización")
     fin = datetime.now(timezone.utc)
     inicio = fin - timedelta(days=VENTANA_DIAS)
@@ -192,7 +235,7 @@ def calcular_saturacion_actual() -> dict[str, Any]:
         porcentaje = round(bloque_actual / TOTAL_BLOQUES * 100.0, 2)
         guardar_estado(
             {
-                **leer_estado(),
+                **estado_base,
                 "estado": "procesando",
                 "fase": "consultando_influx",
                 "bloque_actual": bloque_actual,
@@ -215,7 +258,7 @@ def calcular_saturacion_actual() -> dict[str, Any]:
 
     guardar_estado(
         {
-            **leer_estado(),
+            **estado_base,
             "estado": "procesando",
             "fase": "analizando_resultados",
             "porcentaje": 100.0,
@@ -245,14 +288,26 @@ def calcular_saturacion_actual() -> dict[str, Any]:
     return {"datos": datos}
 
 
-def actualizar_saturacion() -> dict[str, Any]:
+def actualizar_saturacion(estado_base: dict[str, Any] | None = None) -> dict[str, Any]:
     """Reemplaza el cache solamente después de finalizar correctamente."""
-    resultado = calcular_saturacion_actual()
+    estado_base = estado_base or iniciar_ejecucion_saturacion()
+    resultado = calcular_saturacion_actual(estado_base)
     cache = {
         "generado_en": datetime.now().astimezone().isoformat(timespec="seconds"),
         "ventana": "4d",
         "datos": resultado["datos"],
     }
     guardar_saturacion(cache)
+    guardar_estado(
+        {
+            **estado_base,
+            "estado": "listo",
+            "fase": "finalizado",
+            "bloque_actual": TOTAL_BLOQUES,
+            "porcentaje": 100.0,
+            "ultimo_bloque_en": _ahora(),
+            "finalizado_en": _ahora(),
+        }
+    )
     logger.info("HFC: cache actualizado")
     return cache

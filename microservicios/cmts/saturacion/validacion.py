@@ -3,6 +3,9 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+from fastapi import BackgroundTasks
+
+from microservicios.cmts.saturacion import router
 from microservicios.cmts.saturacion import service
 from microservicios.cmts.saturacion.queries import obtener_muestras_flux
 
@@ -93,9 +96,17 @@ def validar_streaming():
         elif numero == 2:
             yield from registros([90] * 27, inicio=FECHA + timedelta(seconds=73))
 
-    estado = {}
+    estado = {
+        "estado": "procesando",
+        "bloque_actual": 96,
+        "bloques_totales": 192,
+        "porcentaje": 50.0,
+        "chunk_minutos": 30,
+    }
+    escrituras = []
 
     def guardar(nuevo):
+        escrituras.append(dict(nuevo))
         estado.update(nuevo)
 
     with patch.object(
@@ -104,8 +115,6 @@ def validar_streaming():
         service, "iterar_flux_temp", side_effect=stream
     ) as streaming, patch.object(
         service, "guardar_estado", side_effect=guardar
-    ), patch.object(
-        service, "leer_estado", side_effect=lambda: dict(estado)
     ), patch.object(
         service.time, "sleep"
     ):
@@ -117,15 +126,66 @@ def validar_streaming():
     assert resultado["datos"][0]["puertos"][0]["puntos_sobre_80"] == 100
     assert estado["fase"] == "analizando_resultados" and estado["porcentaje"] == 100
     assert estado["bloque_actual"] == estado["bloques_totales"] == 32
+    assert service.CHUNK_MINUTOS == 180
+    assert service.TOTAL_BLOQUES == 32
+    for campo in (
+        "ejecucion_id",
+        "chunk_minutos",
+        "ventana_dias",
+        "bloques_totales",
+        "version_saturacion",
+    ):
+        assert campo in escrituras[0]
+    assert escrituras[0]["bloque_actual"] == 0
+    assert escrituras[0]["bloques_totales"] == 32
+    assert escrituras[0]["porcentaje"] == 0.0
+    assert escrituras[0]["chunk_minutos"] == 180
     assert not hasattr(service, "consultar_flux_temp")
+
+
+def validar_bloqueo_actualizacion():
+    assert router._actualizacion_lock.acquire(blocking=False)
+    try:
+        tareas = BackgroundTasks()
+        with patch.object(router, "iniciar_ejecucion_saturacion") as iniciar:
+            respuesta = router.saturacion_actualizar(tareas)
+        assert respuesta == {"ok": True, "estado": "procesando"}
+        assert not tareas.tasks
+        iniciar.assert_not_called()
+    finally:
+        router._actualizacion_lock.release()
+
+
+def validar_estado_final():
+    estado = {}
+
+    def guardar(nuevo):
+        estado.update(nuevo)
+
+    with patch.object(service, "guardar_estado", side_effect=guardar), patch.object(
+        service, "guardar_saturacion"
+    ), patch.object(
+        service, "calcular_saturacion_actual", return_value={"datos": []}
+    ):
+        service.actualizar_saturacion()
+    assert estado["estado"] == "listo"
+    assert estado["fase"] == "finalizado"
+    assert estado["bloque_actual"] == estado["bloques_totales"] == 32
+    assert estado["porcentaje"] == 100.0
+    assert estado["error"] is None
+    assert estado["ejecucion_id"]
+    assert estado["chunk_minutos"] == 180
+    assert estado["version_saturacion"] == service.VERSION_SATURACION
 
 
 def main():
     validar_reglas()
     validar_consulta()
     validar_streaming()
+    validar_bloqueo_actualizacion()
+    validar_estado_final()
     print(
-        "Validación HFC: OK (rachas, clasificación, SNR, capacidad, query y 192 bloques simulados)"
+        "Validacion HFC: OK (estado por ejecucion, lock y 32 bloques simulados)"
     )
 
 

@@ -1,0 +1,554 @@
+{
+  ".agents/skills/impeccable/scripts/command-metadata.json": {
+    "mtime": 1789570184.0637016,
+    "seen": 1790870357.1180649,
+    "ast_hash": "86266801588636b11e00372754118529",
+    "semantic_hash": "86266801588636b11e00372754118529"
+  },
+  ".agents/skills/impeccable/scripts/data/font-index-failures.json": {
+    "mtime": 1789570184.066782,
+    "seen": 1790870357.1180708,
+    "ast_hash": "c14048ea4e2b4a062933664822bc0399",
+    "semantic_hash": "c14048ea4e2b4a062933664822bc0399"
+  },
+  ".agents/skills/impeccable/scripts/impeccable": {
+    "mtime": 1789570184.0727923,
+    "seen": 1790870357.1180727,
+    "ast_hash": "955cbafd2f055911adc7f56cab0efc47",
+    "semantic_hash": "955cbafd2f055911adc7f56cab0efc47"
+  },
+  ".agents/skills/impeccable/scripts/live-browser-dom.js": {
+    "mtime": 1789570184.0761142,
+    "seen": 1790870357.118074,
+    "ast_hash": "c5da6b95a6184ec6f76d5acbaea98c50",
+    "semantic_hash": "c5da6b95a6184ec6f76d5acbaea98c50"
+  },
+  ".agents/skills/impeccable/scripts/live-browser-ignores.js": {
+    "mtime": 1789570184.0781195,
+    "seen": 1790870357.118075,
+    "ast_hash": "dd05503f92e1cf9b3feedbb19070f59e",
+    "semantic_hash": "dd05503f92e1cf9b3feedbb19070f59e"
+  },
+  ".agents/skills/impeccable/scripts/live-browser-session.js": {
+    "mtime": 1789570184.0801158,
+    "seen": 1790870357.1180756,
+    "ast_hash": "80cb9fcfb1b1810473d830b13db73d40",
+    "semantic_hash": "80cb9fcfb1b1810473d830b13db73d40"
+  },
+  ".agents/skills/impeccable/scripts/live-browser.js": {
+    "mtime": 1789570184.0831175,
+    "seen": 1790870357.1180766,
+    "ast_hash": "8c528987ab91769a29c08e6c38e5ce21",
+    "semantic_hash": "8c528987ab91769a29c08e6c38e5ce21"
+  },
+  ".agents/skills/impeccable/scripts/modern-screenshot.umd.js": {
+    "mtime": 1789570184.0841105,
+    "seen": 1790870357.1180775,
+    "ast_hash": "4fe5f9e490ab4f107afc707d7eafc819",
+    "semantic_hash": "4fe5f9e490ab4f107afc707d7eafc819"
+  },
+  ".codex/hooks.json": {
+    "mtime": 1789570184.0896368,
+    "seen": 1790870357.1180782,
+    "ast_hash": "d2b0eae898eca4785225fd60b5918a69",
+    "semantic_hash": "d2b0eae898eca4785225fd60b5918a69"
+  },
+  ".impeccable/config.json": {
+    "mtime": 1789571231.9323895,
+    "seen": 1790870357.118079,
+    "ast_hash": "f0e171bf8dad7043fef4c4d8b7890aec",
+    "semantic_hash": "f0e171bf8dad7043fef4c4d8b7890aec"
+  },
+  ".impeccable/design.json": {
+    "mtime": 1789576714.2948778,
+    "seen": 1790870357.1180797,
+    "ast_hash": "f6c05a3ef3b6d760caaf13e951220a83",
+    "semantic_hash": "f6c05a3ef3b6d760caaf13e951220a83"
+  },
+  "backend/api/gkp.php": {
+    "mtime": 1790774611.2755206,
+    "seen": 1790870357.1180809,
+    "ast_hash": "b644f448b258a8d9918a64ce15cc8c66",
+    "semantic_hash": "b644f448b258a8d9918a64ce15cc8c66"
+  },
+  "backend/api/health.php": {
+    "mtime": 1790711974.059067,
+    "seen": 1790870357.1180818,
+    "ast_hash": "5239fabeb1f40e60a0c8c4fe6536cae0",
+    "semantic_hash": "5239fabeb1f40e60a0c8c4fe6536cae0"
+  },
+  "backend/api/hfc.php": {
+    "mtime": 1790803173.2647207,
+    "seen": 1790870357.1180823,
+    "ast_hash": "c45dd94e6b2446e9c942d556080e0034",
+    "semantic_hash": "c45dd94e6b2446e9c942d556080e0034"
+  },
+  "backend/api/hfc_actualizar.php": {
+    "mtime": 1789767540.7702644,
+    "seen": 1790870357.118083,
+    "ast_hash": "84a4604029d74e20173d263f12a6140f",
+    "semantic_hash": "84a4604029d74e20173d263f12a6140f"
+  },
+  "backend/api/hfc_estado.php": {
+    "mtime": 1789767543.9672327,
+    "seen": 1790870357.118084,
+    "ast_hash": "56f2fcc2a57ce66972c437b7c4e87d23",
+    "semantic_hash": "56f2fcc2a57ce66972c437b7c4e87d23"
+  },
+  "backend/api/intermitencias.php": {
+    "mtime": 1789742238.7308002,
+    "seen": 1790870357.1180847,
+    "ast_hash": "9ce8a6974a9e8d07f1d5fd428360e0f1",
+    "semantic_hash": "9ce8a6974a9e8d07f1d5fd428360e0f1"
+  },
+  "backend/api/intermitencias_ftth.php": {
+    "mtime": 1790364634.0351028,
+    "seen": 1790870357.1180856,
+    "ast_hash": "0b20e7172d627e56f0fe1c60b5fdeb2e",
+    "semantic_hash": "0b20e7172d627e56f0fe1c60b5fdeb2e"
+  },
+  "backend/api/perdida_latencia.php": {
+    "mtime": 1789596492.7651339,
+    "seen": 1790870357.1180863,
+    "ast_hash": "9ab68c4361a2c10813bcdcf9ac5cfafd",
+    "semantic_hash": "9ab68c4361a2c10813bcdcf9ac5cfafd"
+  },
+  "backend/api/puertos_docsis.php": {
+    "mtime": 1789742236.3033817,
+    "seen": 1790870357.1180875,
+    "ast_hash": "90d269b26f5e07eeabec1c7e7955319d",
+    "semantic_hash": "90d269b26f5e07eeabec1c7e7955319d"
+  },
+  "backend/api/puertos_duplicados.php": {
+    "mtime": 1789761583.9005044,
+    "seen": 1790870357.118088,
+    "ast_hash": "7438e6bfeb035b3387fe595156c3ab2b",
+    "semantic_hash": "7438e6bfeb035b3387fe595156c3ab2b"
+  },
+  "backend/api/temperatura.php": {
+    "mtime": 1789587608.6431603,
+    "seen": 1790870357.1180887,
+    "ast_hash": "761baa421807dac58e463fc9cde4ef15",
+    "semantic_hash": "761baa421807dac58e463fc9cde4ef15"
+  },
+  "backend/cache/gkp_alertas_estado.json": {
+    "mtime": 1790715833.6200645,
+    "seen": 1790870357.11809,
+    "ast_hash": "139ddc17944f7179d635028d84ecda68",
+    "semantic_hash": "139ddc17944f7179d635028d84ecda68"
+  },
+  "backend/config/microservices.php": {
+    "mtime": 1790711974.5351558,
+    "seen": 1790870357.1180904,
+    "ast_hash": "6fa976389b4651769790339157041e67",
+    "semantic_hash": "6fa976389b4651769790339157041e67"
+  },
+  "backend/lib/MicroserviceClient.php": {
+    "mtime": 1790260690.7179296,
+    "seen": 1790870357.1180916,
+    "ast_hash": "09aecf021e85378b72617aabc71d2e1d",
+    "semantic_hash": "09aecf021e85378b72617aabc71d2e1d"
+  },
+  "backend/lib/bootstrap.php": {
+    "mtime": 1790711975.0466192,
+    "seen": 1790870357.118092,
+    "ast_hash": "3f391b13f72b90b88ea475436f209fbd",
+    "semantic_hash": "3f391b13f72b90b88ea475436f209fbd"
+  },
+  "frontend/agotamiento-ip.php": {
+    "mtime": 1790364571.3359616,
+    "seen": 1790870357.1180928,
+    "ast_hash": "7cf2533b5a79ee33f4afa81197870259",
+    "semantic_hash": "7cf2533b5a79ee33f4afa81197870259"
+  },
+  "frontend/assets/js/agotamiento-ip.js": {
+    "mtime": 1790364635.1990056,
+    "seen": 1790870357.1180935,
+    "ast_hash": "0168fb27e710961274bde72956bda911",
+    "semantic_hash": "0168fb27e710961274bde72956bda911"
+  },
+  "frontend/assets/js/gkp.js": {
+    "mtime": 1790796494.3314803,
+    "seen": 1790870357.1180944,
+    "ast_hash": "873cbab51a223b95ed2de7fd19e43c51",
+    "semantic_hash": "873cbab51a223b95ed2de7fd19e43c51"
+  },
+  "frontend/assets/js/hfc.js": {
+    "mtime": 1790796532.455118,
+    "seen": 1790870357.1180952,
+    "ast_hash": "8ba0aa70cd119dc7778a03772d641b16",
+    "semantic_hash": "8ba0aa70cd119dc7778a03772d641b16"
+  },
+  "frontend/assets/js/intermitencias.js": {
+    "mtime": 1789762763.421342,
+    "seen": 1790870357.1180959,
+    "ast_hash": "f2bb28db744f341a61029363c9f8deba",
+    "semantic_hash": "f2bb28db744f341a61029363c9f8deba"
+  },
+  "frontend/assets/js/perdida_latencia.js": {
+    "mtime": 1790775095.8427236,
+    "seen": 1790870357.1180966,
+    "ast_hash": "6f3f41bf551327faebb9f7d234d9f727",
+    "semantic_hash": "6f3f41bf551327faebb9f7d234d9f727"
+  },
+  "frontend/assets/js/puertos-docsis.js": {
+    "mtime": 1789742276.2091544,
+    "seen": 1790870357.1180973,
+    "ast_hash": "0b30311b37450e0bc0eee8e29e263ae0",
+    "semantic_hash": "0b30311b37450e0bc0eee8e29e263ae0"
+  },
+  "frontend/assets/js/sidebar.js": {
+    "mtime": 1789594585.5230703,
+    "seen": 1790870357.1180983,
+    "ast_hash": "337949abb6fba81c72eb6198ea8df37e",
+    "semantic_hash": "337949abb6fba81c72eb6198ea8df37e"
+  },
+  "frontend/assets/js/table-autoscroll.js": {
+    "mtime": 1790777702.3639152,
+    "seen": 1790870357.118099,
+    "ast_hash": "9959b3c8e9240b9b9d0463cf173f37e1",
+    "semantic_hash": "9959b3c8e9240b9b9d0463cf173f37e1"
+  },
+  "frontend/assets/js/temperatura.js": {
+    "mtime": 1790796515.0225,
+    "seen": 1790870357.1180997,
+    "ast_hash": "1141e074f03755838a6055d8f46bde0d",
+    "semantic_hash": "1141e074f03755838a6055d8f46bde0d"
+  },
+  "frontend/autofind-hw.php": {
+    "mtime": 1789652476.4471402,
+    "seen": 1790870357.1181002,
+    "ast_hash": "fc048757a5ca806d433a5d22f04bed01",
+    "semantic_hash": "fc048757a5ca806d433a5d22f04bed01"
+  },
+  "frontend/components/footer.php": {
+    "mtime": 1789593078.284479,
+    "seen": 1790870357.118101,
+    "ast_hash": "a885c9d380cfcdc8ac89bc1cd36e54ac",
+    "semantic_hash": "a885c9d380cfcdc8ac89bc1cd36e54ac"
+  },
+  "frontend/components/header.php": {
+    "mtime": 1790357884.0851707,
+    "seen": 1790870357.118102,
+    "ast_hash": "82995df505ac3ea6cae862d56ab98147",
+    "semantic_hash": "82995df505ac3ea6cae862d56ab98147"
+  },
+  "frontend/components/module-page.php": {
+    "mtime": 1789652871.0371802,
+    "seen": 1790870357.1181026,
+    "ast_hash": "df02ef1bf001376bb586cfd280d55bd6",
+    "semantic_hash": "df02ef1bf001376bb586cfd280d55bd6"
+  },
+  "frontend/components/sidebar.php": {
+    "mtime": 1790711975.677452,
+    "seen": 1790870357.1181035,
+    "ast_hash": "164390b2405f109dfa438cfba5eabc35",
+    "semantic_hash": "164390b2405f109dfa438cfba5eabc35"
+  },
+  "frontend/configuracion.php": {
+    "mtime": 1789395382.971575,
+    "seen": 1790870357.1181042,
+    "ast_hash": "53f58a0d836886e80c2fd1c8dd9dcdea",
+    "semantic_hash": "53f58a0d836886e80c2fd1c8dd9dcdea"
+  },
+  "frontend/hfc.php": {
+    "mtime": 1790356737.4064953,
+    "seen": 1790870357.118105,
+    "ast_hash": "d27794247d385d068a3c8e04148b3bcf",
+    "semantic_hash": "d27794247d385d068a3c8e04148b3bcf"
+  },
+  "frontend/index.php": {
+    "mtime": 1790777699.8803115,
+    "seen": 1790870357.1181061,
+    "ast_hash": "9bf0ed8513ebeb68ec1a0bfe48225226",
+    "semantic_hash": "9bf0ed8513ebeb68ec1a0bfe48225226"
+  },
+  "frontend/intermitencias.php": {
+    "mtime": 1789762882.5011342,
+    "seen": 1790870357.1181068,
+    "ast_hash": "c3598999364e0f8029101153872e4c56",
+    "semantic_hash": "c3598999364e0f8029101153872e4c56"
+  },
+  "frontend/onts.php": {
+    "mtime": 1789652480.87572,
+    "seen": 1790870357.1181073,
+    "ast_hash": "44a2203a20a1d4b8abd920f0ca4f7d06",
+    "semantic_hash": "44a2203a20a1d4b8abd920f0ca4f7d06"
+  },
+  "frontend/puertos-docsis.php": {
+    "mtime": 1789742208.4763927,
+    "seen": 1790870357.1181083,
+    "ast_hash": "ef3553b5b88e8d93da4c377d5aea4522",
+    "semantic_hash": "ef3553b5b88e8d93da4c377d5aea4522"
+  },
+  "frontend/recursos-zte.php": {
+    "mtime": 1789652473.6418123,
+    "seen": 1790870357.118109,
+    "ast_hash": "7e8277a8cd8cd0c630775c72672858ec",
+    "semantic_hash": "7e8277a8cd8cd0c630775c72672858ec"
+  },
+  "frontend/troncales-pon.php": {
+    "mtime": 1789652483.315131,
+    "seen": 1790870357.1181097,
+    "ast_hash": "e5007c13e9b1cea6b7daeb256b328eb2",
+    "semantic_hash": "e5007c13e9b1cea6b7daeb256b328eb2"
+  },
+  "iniciar_microserviciosypuente.py": {
+    "mtime": 1790796441.1468842,
+    "seen": 1790870357.1181104,
+    "ast_hash": "e7710852d791ca7d85af1c71e679438c",
+    "semantic_hash": "e7710852d791ca7d85af1c71e679438c"
+  },
+  "microservicios/app.py": {
+    "mtime": 1790711947.5352075,
+    "seen": 1790870357.1181111,
+    "ast_hash": "b8855047a9a73bc9efa77f2397f34ad8",
+    "semantic_hash": "b8855047a9a73bc9efa77f2397f34ad8"
+  },
+  "microservicios/cmts/intermitencias/queries.py": {
+    "mtime": 1789751484.1309938,
+    "seen": 1790870357.118112,
+    "ast_hash": "cef4035502f48ed9a09f4df53d8f126a",
+    "semantic_hash": "cef4035502f48ed9a09f4df53d8f126a"
+  },
+  "microservicios/cmts/intermitencias/router.py": {
+    "mtime": 1789742154.7727792,
+    "seen": 1790870357.1181128,
+    "ast_hash": "8070a014a4107f8e024e3d9be7af3bb4",
+    "semantic_hash": "8070a014a4107f8e024e3d9be7af3bb4"
+  },
+  "microservicios/cmts/intermitencias/service.py": {
+    "mtime": 1789762783.1656673,
+    "seen": 1790870357.1181135,
+    "ast_hash": "eadc6a55cdf1322ba7d3ff289f01c395",
+    "semantic_hash": "eadc6a55cdf1322ba7d3ff289f01c395"
+  },
+  "microservicios/cmts/puertos_docsis/queries.py": {
+    "mtime": 1789742132.7331684,
+    "seen": 1790870357.1181142,
+    "ast_hash": "3b2cacd55858a354d76ca75ce9346309",
+    "semantic_hash": "3b2cacd55858a354d76ca75ce9346309"
+  },
+  "microservicios/cmts/puertos_docsis/router.py": {
+    "mtime": 1789742139.689826,
+    "seen": 1790870357.1181147,
+    "ast_hash": "18349d0049ba8aa793290236b247c0fd",
+    "semantic_hash": "18349d0049ba8aa793290236b247c0fd"
+  },
+  "microservicios/cmts/puertos_docsis/service.py": {
+    "mtime": 1789742136.885051,
+    "seen": 1790870357.1181157,
+    "ast_hash": "a02db419bb96cbdfb3b344b92743d650",
+    "semantic_hash": "a02db419bb96cbdfb3b344b92743d650"
+  },
+  "microservicios/cmts/puertos_duplicados/queries.py": {
+    "mtime": 1789761569.786458,
+    "seen": 1790870357.1181164,
+    "ast_hash": "7e035aae0e2b68c4815855cbb78a112f",
+    "semantic_hash": "7e035aae0e2b68c4815855cbb78a112f"
+  },
+  "microservicios/cmts/puertos_duplicados/router.py": {
+    "mtime": 1789761576.856122,
+    "seen": 1790870357.1181173,
+    "ast_hash": "97f8ef8bbfee835842e8c0f0a07529fb",
+    "semantic_hash": "97f8ef8bbfee835842e8c0f0a07529fb"
+  },
+  "microservicios/cmts/puertos_duplicados/service.py": {
+    "mtime": 1789761573.1306198,
+    "seen": 1790870357.1181178,
+    "ast_hash": "da3c2db40c34e335b162bab524025a48",
+    "semantic_hash": "da3c2db40c34e335b162bab524025a48"
+  },
+  "microservicios/cmts/saturacion/cache.py": {
+    "mtime": 1790868740.2232893,
+    "seen": 1790870357.118119,
+    "ast_hash": "7a6f7845a63460ee571b644d0a689240",
+    "semantic_hash": "7a6f7845a63460ee571b644d0a689240"
+  },
+  "microservicios/cmts/saturacion/queries.py": {
+    "mtime": 1790803173.2657163,
+    "seen": 1790870357.1181195,
+    "ast_hash": "11c668272a39177d27c4182909c1744a",
+    "semantic_hash": "11c668272a39177d27c4182909c1744a"
+  },
+  "microservicios/cmts/saturacion/router.py": {
+    "mtime": 1790868851.1631207,
+    "seen": 1790870357.1181202,
+    "ast_hash": "a32ea3e5a9b8b1fb0af63d2275a210eb",
+    "semantic_hash": "a32ea3e5a9b8b1fb0af63d2275a210eb"
+  },
+  "microservicios/cmts/saturacion/service.py": {
+    "mtime": 1790868850.189184,
+    "seen": 1790870357.118121,
+    "ast_hash": "54b5e499a96116aafa036a175e673e6b",
+    "semantic_hash": "54b5e499a96116aafa036a175e673e6b"
+  },
+  "microservicios/cmts/saturacion/validacion.py": {
+    "mtime": 1790868852.1517787,
+    "seen": 1790870357.1181214,
+    "ast_hash": "cce176d97b682800d20e126032c4be3d",
+    "semantic_hash": "cce176d97b682800d20e126032c4be3d"
+  },
+  "microservicios/config.py": {
+    "mtime": 1790711943.7818308,
+    "seen": 1790870357.1181226,
+    "ast_hash": "9ad1771cc8236745cdc5dd87b629b90c",
+    "semantic_hash": "9ad1771cc8236745cdc5dd87b629b90c"
+  },
+  "microservicios/consultar_influx.py": {
+    "mtime": 1789492219.364642,
+    "seen": 1790870357.1181233,
+    "ast_hash": "a5248c08cf48d716de2e66a03ffc9d61",
+    "semantic_hash": "a5248c08cf48d716de2e66a03ffc9d61"
+  },
+  "microservicios/grafana_proxy/app.py": {
+    "mtime": 1789671825.2811902,
+    "seen": 1790870357.118124,
+    "ast_hash": "3fe978c652ac4c66994b29979495d603",
+    "semantic_hash": "3fe978c652ac4c66994b29979495d603"
+  },
+  "microservicios/influx.py": {
+    "mtime": 1790792244.3539536,
+    "seen": 1790870357.1181247,
+    "ast_hash": "1f47daa577d39e015d359742784d3290",
+    "semantic_hash": "1f47daa577d39e015d359742784d3290"
+  },
+  "microservicios/mysql.py": {
+    "mtime": 1790711945.137263,
+    "seen": 1790870357.1181257,
+    "ast_hash": "3e3a36331aed3bd3fbe988cd57726499",
+    "semantic_hash": "3e3a36331aed3bd3fbe988cd57726499"
+  },
+  "microservicios/olt/caidas/queries.py": {
+    "mtime": 1789489371.3411434,
+    "seen": 1790870357.1181264,
+    "ast_hash": "f34b72b6fc27387a801dc23b95f5ba8e",
+    "semantic_hash": "f34b72b6fc27387a801dc23b95f5ba8e"
+  },
+  "microservicios/olt/caidas/router.py": {
+    "mtime": 1789495037.9312358,
+    "seen": 1790870357.118127,
+    "ast_hash": "0bee5a89172925f67f0ee2dcaeba6bb4",
+    "semantic_hash": "0bee5a89172925f67f0ee2dcaeba6bb4"
+  },
+  "microservicios/olt/caidas/service.py": {
+    "mtime": 1789597111.0057452,
+    "seen": 1790870357.1181276,
+    "ast_hash": "232e793f012c6d92598b2b575702aaca",
+    "semantic_hash": "232e793f012c6d92598b2b575702aaca"
+  },
+  "microservicios/olt/correlacion/router.py": {
+    "mtime": 1789483785.913067,
+    "seen": 1790870357.1181283,
+    "ast_hash": "3c6f034c3bf3b5286ce859ba4c355399",
+    "semantic_hash": "3c6f034c3bf3b5286ce859ba4c355399"
+  },
+  "microservicios/olt/correlacion/service.py": {
+    "mtime": 1789483892.0053372,
+    "seen": 1790870357.1181293,
+    "ast_hash": "cbf4dea82cf75c9a2be005b909bfa9fc",
+    "semantic_hash": "cbf4dea82cf75c9a2be005b909bfa9fc"
+  },
+  "microservicios/olt/crc/queries.py": {
+    "mtime": 1789507894.7651024,
+    "seen": 1790870357.11813,
+    "ast_hash": "34d3c189a633d9d62dc536465e7aea96",
+    "semantic_hash": "34d3c189a633d9d62dc536465e7aea96"
+  },
+  "microservicios/olt/crc/router.py": {
+    "mtime": 1789507894.7665954,
+    "seen": 1790870357.118131,
+    "ast_hash": "ee97979c5623ebfe6bcc3403a9e85f5b",
+    "semantic_hash": "ee97979c5623ebfe6bcc3403a9e85f5b"
+  },
+  "microservicios/olt/crc/service.py": {
+    "mtime": 1790774610.8348422,
+    "seen": 1790870357.1181316,
+    "ast_hash": "819ef8e8db884eec4be2a044177bc65d",
+    "semantic_hash": "819ef8e8db884eec4be2a044177bc65d"
+  },
+  "microservicios/olt/perdida_latencia/queries.py": {
+    "mtime": 1790711941.0978956,
+    "seen": 1790870357.1181326,
+    "ast_hash": "18f7b99e588725f8bdd12f5b2fc5b9c2",
+    "semantic_hash": "18f7b99e588725f8bdd12f5b2fc5b9c2"
+  },
+  "microservicios/olt/perdida_latencia/router.py": {
+    "mtime": 1790712077.5453694,
+    "seen": 1790870357.1181333,
+    "ast_hash": "2579a2a5dc138dc9c17d9c80257f1ca0",
+    "semantic_hash": "2579a2a5dc138dc9c17d9c80257f1ca0"
+  },
+  "microservicios/olt/perdida_latencia/service.py": {
+    "mtime": 1790711941.574782,
+    "seen": 1790870357.1181343,
+    "ast_hash": "2a2b1473e418dd1c5765282bca5f99ce",
+    "semantic_hash": "2a2b1473e418dd1c5765282bca5f99ce"
+  },
+  "microservicios/olt/saturacion/queries.py": {
+    "mtime": 1789507894.7639923,
+    "seen": 1790870357.118135,
+    "ast_hash": "14b697564bac0742560d406ce4d1a69b",
+    "semantic_hash": "14b697564bac0742560d406ce4d1a69b"
+  },
+  "microservicios/olt/saturacion/router.py": {
+    "mtime": 1789507894.7651024,
+    "seen": 1790870357.1181357,
+    "ast_hash": "dbe5d84b571bd8910e9318016905ccc9",
+    "semantic_hash": "dbe5d84b571bd8910e9318016905ccc9"
+  },
+  "microservicios/olt/saturacion/service.py": {
+    "mtime": 1790774610.4011967,
+    "seen": 1790870357.1181366,
+    "ast_hash": "33868a0b063baeb87a70c3205b27c387",
+    "semantic_hash": "33868a0b063baeb87a70c3205b27c387"
+  },
+  "microservicios/olt/temperatura/queries.py": {
+    "mtime": 1789510664.339444,
+    "seen": 1790870357.1181374,
+    "ast_hash": "9027f45fec434802856c291befbe2ea8",
+    "semantic_hash": "9027f45fec434802856c291befbe2ea8"
+  },
+  "microservicios/olt/temperatura/router.py": {
+    "mtime": 1789510668.3659813,
+    "seen": 1790870357.118138,
+    "ast_hash": "95154c639ebdd7b2fbf6ff3bacf8e391",
+    "semantic_hash": "95154c639ebdd7b2fbf6ff3bacf8e391"
+  },
+  "microservicios/olt/temperatura/service.py": {
+    "mtime": 1789587658.8315344,
+    "seen": 1790870357.1181407,
+    "ast_hash": "1f2064c46d05d03af8afad51e690e9f8",
+    "semantic_hash": "1f2064c46d05d03af8afad51e690e9f8"
+  },
+  "microservicios/olt/topologias/router.py": {
+    "mtime": 1790700605.1400106,
+    "seen": 1790870357.1181414,
+    "ast_hash": "485dd2523d74e6728830298f637f1095",
+    "semantic_hash": "485dd2523d74e6728830298f637f1095"
+  },
+  "microservicios/olt/topologias/service.py": {
+    "mtime": 1790803173.2335458,
+    "seen": 1790870357.1181421,
+    "ast_hash": "0bbbb176f29461e1be7c71aa49136f5a",
+    "semantic_hash": "0bbbb176f29461e1be7c71aa49136f5a"
+  },
+  "probar_cmts.py": {
+    "mtime": 1789679273.8716683,
+    "seen": 1790870357.1181433,
+    "ast_hash": "0db1d9e77a59187ea1953fb5dfb544e4",
+    "semantic_hash": "0db1d9e77a59187ea1953fb5dfb544e4"
+  },
+  "probar_topologias.py": {
+    "mtime": 1790803173.2335458,
+    "seen": 1790870357.118144,
+    "ast_hash": "7af1de9157ec7e2fe4afebd29a96666b",
+    "semantic_hash": "7af1de9157ec7e2fe4afebd29a96666b"
+  },
+  "probar_vsd_jpg.py": {
+    "mtime": 1790803173.234546,
+    "seen": 1790870357.118145,
+    "ast_hash": "9d9d99a5a7968164563ff572fa188a5b",
+    "semantic_hash": "9d9d99a5a7968164563ff572fa188a5b"
+  }
+}

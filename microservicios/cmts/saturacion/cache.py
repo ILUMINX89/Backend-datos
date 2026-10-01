@@ -15,11 +15,15 @@ SATURACION_INICIAL: dict[str, Any] = {"generado_en": None, "ventana": "4d", "dat
 ESTADO_INICIAL: dict[str, Any] = {
     "estado": "listo",
     "fase": None,
+    "ejecucion_id": None,
     "iniciado_en": None,
     "finalizado_en": None,
     "error": None,
     "bloque_actual": 0,
     "bloques_totales": 0,
+    "chunk_minutos": None,
+    "ventana_dias": None,
+    "version_saturacion": None,
     "porcentaje": 0.0,
     "ultimo_bloque_en": None,
 }
