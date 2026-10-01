@@ -20,6 +20,7 @@ from microservicios.olt.crc.router import router as crc_router
 from microservicios.olt.perdida_latencia.router import (
     router as perdida_latencia_router,
 )
+from microservicios.olt.recursos_zte.router import router as recursos_zte_router
 from microservicios.olt.saturacion.router import router as saturacion_router
 from microservicios.olt.temperatura.router import router as temperatura_router
 from microservicios.olt.topologias.router import router as topologias_router
@@ -65,6 +66,7 @@ app.include_router(correlacion_router, prefix="/api/olt")
 app.include_router(temperatura_router, prefix="/api/olt")
 app.include_router(topologias_router, prefix="/api/olt")
 app.include_router(perdida_latencia_router, prefix="/api/olt")
+app.include_router(recursos_zte_router, prefix="/api/olt")
 app.include_router(cmts_saturacion_router, prefix="/api/cmts")
 app.include_router(cmts_puertos_docsis_router, prefix="/api/cmts")
 app.include_router(cmts_intermitencias_router, prefix="/api/cmts")
