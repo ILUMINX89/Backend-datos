@@ -35,6 +35,7 @@
         rows.replaceChildren(fragment);
         table.hidden = licencias.length === 0;
         status.style.display = licencias.length > 0 ? 'none' : '';
+        status.dataset.state = licencias.length ? '' : 'empty';
         status.textContent = licencias.length ? '' : 'No hay licencias ZTE con menos del 15% disponible.';
         summary.textContent = licencias.length === 1
             ? '1 licencia con baja disponibilidad'
@@ -48,6 +49,7 @@
         panel.setAttribute('aria-busy', 'true');
         table.hidden = true;
         status.style.display = '';
+        status.dataset.state = 'loading';
         status.textContent = 'Cargando…';
         summary.textContent = 'Consultando disponibilidad…';
         try {
@@ -61,6 +63,7 @@
             rows.replaceChildren();
             table.hidden = true;
             status.style.display = '';
+            status.dataset.state = 'error';
             status.textContent = 'No se pudo consultar la disponibilidad de licencias ZTE.';
             summary.textContent = 'Error de consulta';
         } finally {

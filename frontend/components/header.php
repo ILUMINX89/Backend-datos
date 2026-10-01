@@ -1,3 +1,7 @@
+<?php
+$resolvedHeaderTitle = $headerTitle ?? 'Estado operacional de red';
+$resolvedHeaderDescription = $headerDescription ?? 'Excepciones activas y temperatura OLT';
+?>
 <header class="topbar">
     <div class="topbar__main">
         <div class="topbar__left">
@@ -9,8 +13,8 @@
             </button>
             <span class="topbar__collapsed-brand">RKP</span>
             <div class="topbar__title-group">
-                <h1>Estado operacional de red</h1>
-                <p>Excepciones activas y temperatura OLT</p>
+                <h1><?= htmlspecialchars($resolvedHeaderTitle, ENT_QUOTES, 'UTF-8') ?></h1>
+                <p><?= htmlspecialchars($resolvedHeaderDescription, ENT_QUOTES, 'UTF-8') ?></p>
             </div>
         </div>
 

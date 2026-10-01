@@ -20,6 +20,10 @@ if (!isset($pageTitle, $pageDescription, $pageSections) || !is_array($pageSectio
 <div class="app">
     <?php require __DIR__ . '/sidebar.php'; ?>
     <main class="main">
+        <?php
+        $headerTitle = $pageTitle;
+        $headerDescription = $pageDescription;
+        ?>
         <?php require __DIR__ . '/header.php'; ?>
         <div class="module-content">
             <header class="module-heading">

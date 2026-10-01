@@ -21,6 +21,7 @@
 
         <main class="main">
 
+            <?php $headerTitle = 'Intermitencias y puertos duplicados'; $headerDescription = 'Excepciones HFC que requieren revisión operacional.'; ?>
             <?php require __DIR__ . '/components/header.php'; ?>
 
             <div class="module-content">
@@ -54,15 +55,15 @@
 
                         </div>
 
-                        <div id="intermitencias-table" class="gkp-table-wrap" hidden>
+                        <div id="intermitencias-table" class="gkp-table-wrap" hidden tabindex="0" role="region" aria-label="Intermitencias; tabla desplazable">
                             <table class="gkp-table">
 
                                 <thead>
                                     <tr>
-                                        <th>CMTS</th>
-                                        <th>Puerto</th>
-                                        <th>Nodo</th>
-                                        <th>Cantidad</th>
+                                        <th scope="col">CMTS</th>
+                                        <th scope="col">Puerto</th>
+                                        <th scope="col">Nodo</th>
+                                        <th scope="col">Cantidad</th>
                                     </tr>
                                 </thead>
 
@@ -88,14 +89,14 @@
                             <button id="duplicados-refresh" type="button">Actualizar</button>
                         </div>
 
-                        <div id="duplicados-table" class="gkp-table-wrap" hidden>
+                        <div id="duplicados-table" class="gkp-table-wrap" hidden tabindex="0" role="region" aria-label="Puertos duplicados; tabla desplazable">
                             <table class="gkp-table">
                                 <thead>
                                     <tr>
-                                        <th>Nodo</th>
-                                        <th>Ubicaciones</th>
-                                        <th>CMTS</th>
-                                        <th>Puerto</th>
+                                        <th scope="col">Nodo</th>
+                                        <th scope="col">Ubicaciones</th>
+                                        <th scope="col">CMTS</th>
+                                        <th scope="col">Puerto</th>
                                     </tr>
                                 </thead>
                                 <tbody id="duplicados-rows"></tbody>

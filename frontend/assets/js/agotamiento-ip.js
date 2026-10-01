@@ -20,17 +20,18 @@
         return td;
     };
 
-    const mostrarEstado = (mensaje, resumen) => {
+    const mostrarEstado = (mensaje, resumen, state) => {
         rows.replaceChildren();
         table.hidden = true;
         status.style.display = '';
+        status.dataset.state = state;
         status.textContent = mensaje;
         summary.textContent = resumen;
     };
 
     const render = (items) => {
         if (!items.length) {
-            mostrarEstado('No se detectaron intermitencias FTTH en los últimos 2 días.', '0 intermitencias detectadas');
+            mostrarEstado('No se detectaron intermitencias FTTH en los últimos 2 días.', '0 intermitencias detectadas', 'empty');
             return;
         }
 
@@ -73,7 +74,7 @@
         busy = true;
         refresh.disabled = true;
         panel.setAttribute('aria-busy', 'true');
-        mostrarEstado('Cargando…', 'Consultando información disponible…');
+        mostrarEstado('Cargando…', 'Consultando información disponible…', 'loading');
 
         try {
             const response = await fetch('../backend/api/intermitencias_ftth.php', { cache: 'no-store' });
@@ -86,7 +87,7 @@
             render(items);
         } catch (error) {
             console.error('Error consultando intermitencias FTTH:', error);
-            mostrarEstado('No se pudo consultar la información. Intente actualizar nuevamente.', 'Error de consulta');
+            mostrarEstado('No se pudo consultar la información. Intente actualizar nuevamente.', 'Error de consulta', 'error');
         } finally {
             busy = false;
             refresh.disabled = false;

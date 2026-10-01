@@ -1,7 +1,7 @@
 # Graph Report - Backend-datos  (2026-10-01)
 
 ## Corpus Check
-- 141 files · ~155,774 words
+- 142 files · ~156,032 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 13 file(s) not represented in the graph (top: .toml 4, .css 4, (none) 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9227fd36`
+- Built from commit: `8bbf31e4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -47,18 +47,18 @@
 - Design System: NOC BOA
 - gkp.js
 - temperatura.js
-- positionParamsPanel
 - temperatura/service.py
-- MicroserviceClient
 - consultar_flux_temp
+- MicroserviceClient
+- iniciar_microserviciosypuente.py
 - SKILL.md
 - scheduleAcceptCleanup
 - onboard.md
 - syncEditBadgeHitProxies
-- iniciar_microserviciosypuente.py
-- new-work.md
 - probar_topologias.py
+- new-work.md
 - probar_vsd_jpg.py
+- positionParamsPanel
 - live-browser-ignores.js
 - impeccable
 - scrollToTop
@@ -263,21 +263,21 @@ Nodes (13): alertIdentity(), closeFtthModal(), connection(), formatValue(), ftth
 Cohesion: 0.33
 Nodes (11): badgeClass(), closeTemperatureModal(), formatTemperature(), loadTemperature(), loadTemperatureChart(), openTemperatureModal(), renderTemperature(), setTemperatureRange() (+3 more)
 
-### Community 31 - "positionParamsPanel"
-Cohesion: 0.47
-Nodes (6): closedClipPath(), hideParamsPanel(), popoverDirection(), positionParamsPanel(), setClipPath(), showParamsPanel()
-
-### Community 32 - "temperatura/service.py"
+### Community 31 - "temperatura/service.py"
 Cohesion: 0.24
 Nodes (9): obtener_temperatura_actual_flux(), Consulta de temperatura actual por tarjeta OLT., get, Rutas HTTP de temperatura OLT., temperatura_actual(), clasificar_temperatura(), obtener_temperatura_actual(), Any (+1 more)
+
+### Community 32 - "consultar_flux_temp"
+Cohesion: 0.35
+Nodes (10): InfluxDBClient, consultar_flux_temp(), crear_cliente_cmts(), crear_cliente_temp(), iterar_flux_temp(), probar_conexion_temp(), Any, Cliente InfluxDB para Trafico Temperatura OLTs. (+2 more)
 
 ### Community 33 - "MicroserviceClient"
 Cohesion: 0.27
 Nodes (4): datosClient(), jsonResponse(), requireMethod(), MicroserviceClient
 
-### Community 34 - "consultar_flux_temp"
-Cohesion: 0.35
-Nodes (10): InfluxDBClient, consultar_flux_temp(), crear_cliente_cmts(), crear_cliente_temp(), iterar_flux_temp(), probar_conexion_temp(), Any, Cliente InfluxDB para Trafico Temperatura OLTs. (+2 more)
+### Community 34 - "iniciar_microserviciosypuente.py"
+Cohesion: 0.53
+Nodes (8): esperar_puerto(), iniciar_tunel(), iniciar_uvicorn(), main(), matar(), nueva_consola_kwargs(), puerto_abierto(), Popen
 
 ### Community 35 - "SKILL.md"
 Cohesion: 0.15
@@ -295,21 +295,21 @@ Nodes (22): Assess Onboarding Needs, Context Over Ceremony, Contextual Help, Des
 Cohesion: 0.27
 Nodes (10): bindEditBadgeProxy(), editBadgeProxyTargets(), initEditBadge(), initEditBadgeHitProxies(), positionEditBadge(), proxyMouseEvent(), setImportantStyle(), styleEditBadgeProxy() (+2 more)
 
-### Community 39 - "iniciar_microserviciosypuente.py"
-Cohesion: 0.53
-Nodes (8): esperar_puerto(), iniciar_tunel(), iniciar_uvicorn(), main(), matar(), nueva_consola_kwargs(), puerto_abierto(), Popen
+### Community 39 - "probar_topologias.py"
+Cohesion: 0.43
+Nodes (7): consultar(), convertir_visio_a_jpg(), main(), obtener_ruta_local(), procesar_mensajes(), Prueba manual de la API de topologías OLT con conversión VSD/VSDX -> JPG., recortar_imagen()
 
 ### Community 40 - "new-work.md"
 Cohesion: 0.13
 Nodes (14): Recommended Actions, Craft (deprecated alias), Apply, Live-mode signature params, Set the spatial thesis, Two isolated assessments, Verify, Visitor mode (+6 more)
 
-### Community 41 - "probar_topologias.py"
-Cohesion: 0.43
-Nodes (7): consultar(), convertir_visio_a_jpg(), main(), obtener_ruta_local(), procesar_mensajes(), Prueba manual de la API de topologías OLT con conversión VSD/VSDX -> JPG., recortar_imagen()
-
-### Community 42 - "probar_vsd_jpg.py"
+### Community 41 - "probar_vsd_jpg.py"
 Cohesion: 0.50
 Nodes (7): convertir_individual(), convertir_masivo(), convertir_visio_a_jpg(), main(), obtener_archivos_visio(), procesar_mensajes(), recortar_imagen()
+
+### Community 42 - "positionParamsPanel"
+Cohesion: 0.47
+Nodes (6): closedClipPath(), hideParamsPanel(), popoverDirection(), positionParamsPanel(), setClipPath(), showParamsPanel()
 
 ### Community 43 - "live-browser-ignores.js"
 Cohesion: 0.52
@@ -513,7 +513,7 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Reference Material` connect `Heuristics Scoring Guide` to `critique.md`, `Cognitive Load Assessment`, `Persona-Based Design Testing`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `consultar_flux_temp()` connect `consultar_flux_temp` to `temperatura/service.py`, `caidas/service.py`, `crc/service.py`, `intermitencias/service.py`, `puertos_duplicados/service.py`?**
+- **Why does `consultar_flux_temp()` connect `consultar_flux_temp` to `caidas/service.py`, `crc/service.py`, `intermitencias/service.py`, `puertos_duplicados/service.py`, `temperatura/service.py`?**
   _High betweenness centrality (0.009) - this node is a cross-community bridge._
 - **Why does `New visual work` connect `New visual work` to `new-work.md`?**
   _High betweenness centrality (0.008) - this node is a cross-community bridge._

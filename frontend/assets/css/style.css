@@ -3101,6 +3101,14 @@ svg.topbar-card__icon {
     outline: none;
 }
 
+.alarm-search input:focus-visible,
+.alarm-toolbar select:focus-visible,
+.reports-filter-group input:focus-visible,
+.reports-filter-group select:focus-visible {
+    outline: 2px solid #128cff;
+    outline-offset: 2px;
+}
+
 .alarm-search input {
     width: 100%;
     padding: 0 13px 0 37px;

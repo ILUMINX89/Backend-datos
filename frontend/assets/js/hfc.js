@@ -240,6 +240,7 @@
         busy = true;
         refresh.disabled = true;
         panel.setAttribute('aria-busy', 'true');
+        status.dataset.state = 'loading';
         status.textContent = 'Cargando último estado HFC…';
         try {
             const endpoint = new URL('../backend/api/hfc.php', window.location.href);
@@ -291,7 +292,9 @@
             status.textContent = !payload.data?.actualizado_en
                 ? 'No hay datos HFC almacenados. Pulsa Actualizar para generar el primer estado.'
                 : currentRows.length ? '' : 'Sin afectaciones CMTS confirmadas';
+            status.dataset.state = currentRows.length ? '' : 'empty';
         } catch (_error) {
+            status.dataset.state = 'error';
             status.textContent = 'No se pudo consultar el estado HFC.';
         } finally {
             busy = false;
@@ -316,6 +319,7 @@
             if (state === 'listo') {
                 await load();
             } else if (state === 'error') {
+                status.dataset.state = 'error';
                 status.textContent = payload.data?.error || 'Falló la actualización HFC; se conservan los últimos datos.';
             } else {
                 throw new Error('Estado de actualización HFC no reconocido.');
@@ -331,6 +335,7 @@
         if (updating || busy) return;
         updating = true;
         refresh.disabled = true;
+        status.dataset.state = 'loading';
         status.textContent = 'Actualizando datos HFC de los últimos 4 días...';
         try {
             const endpoint = new URL('../backend/api/hfc_actualizar.php', window.location.href);
@@ -343,6 +348,7 @@
         } catch (error) {
             updating = false;
             refresh.disabled = false;
+            status.dataset.state = 'error';
             status.textContent = error.message || 'No se pudo iniciar la actualización HFC.';
         }
     }

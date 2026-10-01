@@ -14,6 +14,7 @@
 <div class="app">
     <?php require __DIR__ . '/components/sidebar.php'; ?>
     <main class="main">
+        <?php $headerTitle = 'Recursos ZTE'; $headerDescription = 'Disponibilidad de licencias y recursos con atención prioritaria.'; ?>
         <?php require __DIR__ . '/components/header.php'; ?>
         <div class="module-content">
             <header class="module-heading">
@@ -28,9 +29,9 @@
                     </div>
                     <button id="recursos-zte-refresh" type="button">Actualizar</button>
                 </div>
-                <div id="recursos-zte-table" class="gkp-table-wrap" hidden>
+                <div id="recursos-zte-table" class="gkp-table-wrap" hidden tabindex="0" role="region" aria-label="Licencias ZTE con baja disponibilidad; tabla desplazable">
                     <table class="gkp-table">
-                        <thead><tr><th>OLT</th><th>Recurso</th><th>Usado</th><th>Disponible</th><th>Total</th><th>Disponible %</th><th>Actualizado</th></tr></thead>
+                        <thead><tr><th scope="col">OLT</th><th scope="col">Recurso</th><th scope="col">Usado</th><th scope="col">Disponible</th><th scope="col">Total</th><th scope="col">Disponible %</th><th scope="col">Actualizado</th></tr></thead>
                         <tbody id="recursos-zte-rows"></tbody>
                     </table>
                 </div>

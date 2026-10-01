@@ -31,10 +31,11 @@
 
         let busy = false;
 
-        const mostrarEstado = (mensaje, resumen) => {
+        const mostrarEstado = (mensaje, resumen, state) => {
             rows.replaceChildren();
             table.hidden = true;
             status.style.display = '';
+            status.dataset.state = state;
             status.textContent = mensaje;
             summary.textContent = resumen;
         };
@@ -43,7 +44,7 @@
             rows.replaceChildren();
 
             if (!items.length) {
-                mostrarEstado(mensajeVacio, `0 ${etiquetaPlural}`);
+                mostrarEstado(mensajeVacio, `0 ${etiquetaPlural}`, 'empty');
                 return;
             }
 
@@ -67,7 +68,7 @@
             busy = true;
             refresh.disabled = true;
             panel.setAttribute('aria-busy', 'true');
-            mostrarEstado('Cargando…', 'Consultando información disponible…');
+            mostrarEstado('Cargando…', 'Consultando información disponible…', 'loading');
 
             try {
                 const response = await fetch(endpoint, { cache: 'no-store' });
@@ -83,7 +84,8 @@
                 console.error(`Error consultando ${etiquetaPlural}:`, error);
                 mostrarEstado(
                     'No se pudo consultar la información. Intente actualizar nuevamente.',
-                    'Error de consulta'
+                    'Error de consulta',
+                    'error'
                 );
             } finally {
                 busy = false;

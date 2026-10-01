@@ -14,6 +14,7 @@
     <div class="app">
         <?php require __DIR__ . '/components/sidebar.php'; ?>
         <main class="main">
+            <?php $headerTitle = 'Agotamiento IP e intermitencias'; $headerDescription = 'Disponibilidad de direcciones e intermitencias FTTH detectadas.'; ?>
             <?php require __DIR__ . '/components/header.php'; ?>
             <div class="module-content">
                 <header class="module-heading">
@@ -37,15 +38,15 @@
                             </div>
                             <button id="intermitencias-ftth-refresh" type="button">Actualizar</button>
                         </div>
-                        <div id="intermitencias-ftth-table" class="gkp-table-wrap" hidden>
+                        <div id="intermitencias-ftth-table" class="gkp-table-wrap" hidden tabindex="0" role="region" aria-label="Intermitencias FTTH; tabla desplazable">
                             <table class="gkp-table">
                                 <thead>
                                     <tr>
-                                        <th>OLT</th>
-                                        <th>Puerto</th>
-                                        <th>Día</th>
-                                        <th>Caídas</th>
-                                        <th>Tiempo caído</th>
+                                        <th scope="col">OLT</th>
+                                        <th scope="col">Puerto</th>
+                                        <th scope="col">Día</th>
+                                        <th scope="col">Caídas</th>
+                                        <th scope="col">Tiempo caído</th>
                                     </tr>
                                 </thead>
                                 <tbody id="intermitencias-ftth-rows"></tbody>

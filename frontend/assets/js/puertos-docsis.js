@@ -22,6 +22,7 @@
         rows.replaceChildren(...resultRows);
         table.hidden = items.length === 0;
         status.style.display = items.length > 0 ? 'none' : '';
+        status.dataset.state = items.length ? '' : 'empty';
         status.textContent = items.length ? '' : 'Sin datos disponibles';
         summary.textContent = items.length === 1 ? '1 resultado disponible' : `${items.length} resultados disponibles`;
     };
@@ -33,6 +34,7 @@
         panel.setAttribute('aria-busy', 'true');
         table.hidden = true;
         status.style.display = '';
+        status.dataset.state = 'loading';
         status.textContent = 'Cargando…';
         summary.textContent = 'Consultando información disponible…';
         try {
@@ -45,6 +47,7 @@
         } catch (_error) {
             rows.replaceChildren();
             status.style.display = '';
+            status.dataset.state = 'error';
             status.textContent = 'No se pudo consultar la información de puertos DOCSIS.';
             summary.textContent = 'Error de consulta';
         } finally {

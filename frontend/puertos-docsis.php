@@ -14,6 +14,7 @@
 <div class="app">
     <?php require __DIR__ . '/components/sidebar.php'; ?>
     <main class="main">
+        <?php $headerTitle = 'Puertos DOCSIS'; $headerDescription = 'Consulta operacional del estado de puertos HFC.'; ?>
         <?php require __DIR__ . '/components/header.php'; ?>
         <div class="module-content">
             <header class="module-heading">
@@ -28,9 +29,9 @@
                     </div>
                     <button id="puertos-docsis-refresh" type="button">Actualizar</button>
                 </div>
-                <div id="puertos-docsis-table" class="gkp-table-wrap" hidden>
+                <div id="puertos-docsis-table" class="gkp-table-wrap" hidden tabindex="0" role="region" aria-label="Estado de puertos DOCSIS; tabla desplazable">
                     <table class="gkp-table">
-                        <thead><tr><th>Resultado</th></tr></thead>
+                        <thead><tr><th scope="col">Resultado</th></tr></thead>
                         <tbody id="puertos-docsis-rows"></tbody>
                     </table>
                 </div>

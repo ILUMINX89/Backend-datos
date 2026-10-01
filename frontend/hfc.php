@@ -16,6 +16,7 @@
     <div class="app">
         <?php require __DIR__ . '/components/sidebar.php'; ?>
         <main class="main">
+            <?php $headerTitle = 'Vista general HFC'; $headerDescription = 'Excepciones operacionales por utilización o degradación de señal.'; ?>
             <?php require __DIR__ . '/components/header.php'; ?>
             <div class="module-content">
                 <header class="module-heading">
@@ -30,14 +31,14 @@
                         </div>
                         <button id="hfc-refresh" type="button">Actualizar</button>
                     </div>
-                    <div id="hfc-table" class="gkp-table-wrap">
+                    <div id="hfc-table" class="gkp-table-wrap" tabindex="0" role="region" aria-label="Excepciones HFC; tabla desplazable">
                         <table class="gkp-table">
                             <thead>
                                 <tr>
-                                    <th>CMTS</th>
-                                    <th>Nodo / puerto</th>
-                                    <th>Utilización promedio</th>
-                                    <th>Estado</th>
+                                    <th scope="col">CMTS</th>
+                                    <th scope="col">Nodo / puerto</th>
+                                    <th scope="col">Utilización promedio</th>
+                                    <th scope="col">Estado</th>
                                 </tr>
                             </thead>
                             <tbody id="hfc-rows"></tbody>
@@ -78,20 +79,20 @@
                         </div>
 
                         <div class="hfc-chart-switch hfc-range" aria-label="Tipo de gráfica">
-                            <button type="button" data-panel="panel-15" class="is-active">
+                            <button type="button" data-panel="panel-15" class="is-active" aria-pressed="true">
                                 Tráfico
                             </button>
 
-                            <button type="button" data-panel="panel-20">
+                            <button type="button" data-panel="panel-20" aria-pressed="false">
                                 SNR UP
                             </button>
                         </div>
 
                         <div class="hfc-time-range hfc-range" aria-label="Rango de tiempo">
-                            <button type="button" data-days="1">1D</button>
-                            <button type="button" data-days="3" class="is-active">3D</button>
-                            <button type="button" data-days="7">7D</button>
-                            <button type="button" data-days="30">30D</button>
+                            <button type="button" data-days="1" aria-pressed="false">1D</button>
+                            <button type="button" data-days="3" class="is-active" aria-pressed="true">3D</button>
+                            <button type="button" data-days="7" aria-pressed="false">7D</button>
+                            <button type="button" data-days="30" aria-pressed="false">30D</button>
                         </div>
                     </div>
                     <div class="hfc-chart-frame">

@@ -6149,7 +6149,7 @@
       "file_type": "code",
       "norm_label": "changedays()",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L360"
+      "source_location": "L366"
     },
     {
       "id": "frontend_assets_js_hfc_changepanel",
@@ -6161,7 +6161,7 @@
       "file_type": "code",
       "norm_label": "changepanel()",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L380"
+      "source_location": "L386"
     },
     {
       "id": "frontend_assets_js_hfc_checkupdatestatus",
@@ -6173,7 +6173,7 @@
       "file_type": "code",
       "norm_label": "checkupdatestatus()",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L303"
+      "source_location": "L306"
     },
     {
       "id": "frontend_assets_js_hfc_closemodal",
@@ -6329,7 +6329,7 @@
       "file_type": "code",
       "norm_label": "startupdate()",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L330"
+      "source_location": "L334"
     },
     {
       "id": "frontend_assets_js_hfc_updateheaderstatus",
@@ -7988,83 +7988,11 @@
       "source_location": "L93"
     },
     {
-      "id": "agents_skills_impeccable_scripts_live_browser_closedclippath",
-      "label": "closedClipPath()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "closedclippath()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4802"
-    },
-    {
-      "id": "agents_skills_impeccable_scripts_live_browser_hideparamspanel",
-      "label": "hideParamsPanel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "hideparamspanel()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4858"
-    },
-    {
-      "id": "agents_skills_impeccable_scripts_live_browser_popoverdirection",
-      "label": "popoverDirection()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "popoverdirection()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4786"
-    },
-    {
-      "id": "agents_skills_impeccable_scripts_live_browser_positionparamspanel",
-      "label": "positionParamsPanel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "positionparamspanel()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4816"
-    },
-    {
-      "id": "agents_skills_impeccable_scripts_live_browser_setclippath",
-      "label": "setClipPath()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "setclippath()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4806"
-    },
-    {
-      "id": "agents_skills_impeccable_scripts_live_browser_showparamspanel",
-      "label": "showParamsPanel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 31,
-      "community_name": "positionParamsPanel",
-      "file_type": "code",
-      "norm_label": "showparamspanel()",
-      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
-      "source_location": "L4848"
-    },
-    {
       "id": "microservicios_olt_temperatura_queries_obtener_temperatura_actual_flux",
       "label": "obtener_temperatura_actual_flux()",
       "_callable": true,
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "obtener_temperatura_actual_flux()",
@@ -8076,7 +8004,7 @@
       "label": "temperatura_actual()",
       "_callable": true,
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "temperatura_actual()",
@@ -8088,7 +8016,7 @@
       "label": "clasificar_temperatura()",
       "_callable": true,
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "clasificar_temperatura()",
@@ -8100,12 +8028,72 @@
       "label": "obtener_temperatura_actual()",
       "_callable": true,
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "obtener_temperatura_actual()",
       "source_file": "microservicios/olt/temperatura/service.py",
       "source_location": "L28"
+    },
+    {
+      "id": "microservicios_influx_consultar_flux_temp",
+      "label": "consultar_flux_temp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "consultar_flux_temp()",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "microservicios_influx_crear_cliente_cmts",
+      "label": "crear_cliente_cmts()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "crear_cliente_cmts()",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "microservicios_influx_crear_cliente_temp",
+      "label": "crear_cliente_temp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "crear_cliente_temp()",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "microservicios_influx_iterar_flux_temp",
+      "label": "iterar_flux_temp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "iterar_flux_temp()",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L86"
+    },
+    {
+      "id": "microservicios_influx_probar_conexion_temp",
+      "label": "probar_conexion_temp()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "probar_conexion_temp()",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L34"
     },
     {
       "id": "backend_lib_bootstrap_datosclient",
@@ -8204,64 +8192,88 @@
       "source_location": "L34"
     },
     {
-      "id": "microservicios_influx_consultar_flux_temp",
-      "label": "consultar_flux_temp()",
+      "id": "iniciar_microserviciosypuente_esperar_puerto",
+      "label": "esperar_puerto()",
       "_callable": true,
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "consultar_flux_temp()",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L39"
+      "norm_label": "esperar_puerto()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L35"
     },
     {
-      "id": "microservicios_influx_crear_cliente_cmts",
-      "label": "crear_cliente_cmts()",
+      "id": "iniciar_microserviciosypuente_iniciar_tunel",
+      "label": "iniciar_tunel()",
       "_callable": true,
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "crear_cliente_cmts()",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L24"
+      "norm_label": "iniciar_tunel()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L64"
     },
     {
-      "id": "microservicios_influx_crear_cliente_temp",
-      "label": "crear_cliente_temp()",
+      "id": "iniciar_microserviciosypuente_iniciar_uvicorn",
+      "label": "iniciar_uvicorn()",
       "_callable": true,
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "crear_cliente_temp()",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L14"
+      "norm_label": "iniciar_uvicorn()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L109"
     },
     {
-      "id": "microservicios_influx_iterar_flux_temp",
-      "label": "iterar_flux_temp()",
+      "id": "iniciar_microserviciosypuente_main",
+      "label": "main()",
       "_callable": true,
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "iterar_flux_temp()",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L86"
+      "norm_label": "main()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L142"
     },
     {
-      "id": "microservicios_influx_probar_conexion_temp",
-      "label": "probar_conexion_temp()",
+      "id": "iniciar_microserviciosypuente_matar",
+      "label": "matar()",
       "_callable": true,
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "probar_conexion_temp()",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L34"
+      "norm_label": "matar()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "iniciar_microserviciosypuente_nueva_consola_kwargs",
+      "label": "nueva_consola_kwargs()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 34,
+      "community_name": "iniciar_microserviciosypuente.py",
+      "file_type": "code",
+      "norm_label": "nueva_consola_kwargs()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "iniciar_microserviciosypuente_puerto_abierto",
+      "label": "puerto_abierto()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 34,
+      "community_name": "iniciar_microserviciosypuente.py",
+      "file_type": "code",
+      "norm_label": "puerto_abierto()",
+      "source_file": "iniciar_microserviciosypuente.py",
+      "source_location": "L27"
     },
     {
       "id": "agents_skills_impeccable_scripts_live_browser_accepteddomalreadyclean",
@@ -8516,88 +8528,76 @@
       "source_location": "L4493"
     },
     {
-      "id": "iniciar_microserviciosypuente_esperar_puerto",
-      "label": "esperar_puerto()",
+      "id": "probar_topologias_consultar",
+      "label": "consultar()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "esperar_puerto()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L35"
+      "norm_label": "consultar()",
+      "source_file": "probar_topologias.py",
+      "source_location": "L40"
     },
     {
-      "id": "iniciar_microserviciosypuente_iniciar_tunel",
-      "label": "iniciar_tunel()",
+      "id": "probar_topologias_convertir_visio_a_jpg",
+      "label": "convertir_visio_a_jpg()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "iniciar_tunel()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L64"
+      "norm_label": "convertir_visio_a_jpg()",
+      "source_file": "probar_topologias.py",
+      "source_location": "L78"
     },
     {
-      "id": "iniciar_microserviciosypuente_iniciar_uvicorn",
-      "label": "iniciar_uvicorn()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
-      "file_type": "code",
-      "norm_label": "iniciar_uvicorn()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L109"
-    },
-    {
-      "id": "iniciar_microserviciosypuente_main",
+      "id": "probar_topologias_main",
       "label": "main()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
       "norm_label": "main()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L142"
+      "source_file": "probar_topologias.py",
+      "source_location": "L211"
     },
     {
-      "id": "iniciar_microserviciosypuente_matar",
-      "label": "matar()",
+      "id": "probar_topologias_obtener_ruta_local",
+      "label": "obtener_ruta_local()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "matar()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L44"
+      "norm_label": "obtener_ruta_local()",
+      "source_file": "probar_topologias.py",
+      "source_location": "L206"
     },
     {
-      "id": "iniciar_microserviciosypuente_nueva_consola_kwargs",
-      "label": "nueva_consola_kwargs()",
+      "id": "probar_topologias_procesar_mensajes",
+      "label": "procesar_mensajes()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "nueva_consola_kwargs()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L58"
+      "norm_label": "procesar_mensajes()",
+      "source_file": "probar_topologias.py",
+      "source_location": "L53"
     },
     {
-      "id": "iniciar_microserviciosypuente_puerto_abierto",
-      "label": "puerto_abierto()",
+      "id": "probar_topologias_recortar_imagen",
+      "label": "recortar_imagen()",
       "_callable": true,
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "puerto_abierto()",
-      "source_file": "iniciar_microserviciosypuente.py",
-      "source_location": "L27"
+      "norm_label": "recortar_imagen()",
+      "source_file": "probar_topologias.py",
+      "source_location": "L63"
     },
     {
       "id": "microservicios_cmts_saturacion_cache_guardar_atomico",
@@ -9020,83 +9020,11 @@
       "source_location": "L92"
     },
     {
-      "id": "probar_topologias_consultar",
-      "label": "consultar()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "consultar()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L40"
-    },
-    {
-      "id": "probar_topologias_convertir_visio_a_jpg",
-      "label": "convertir_visio_a_jpg()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "convertir_visio_a_jpg()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L78"
-    },
-    {
-      "id": "probar_topologias_main",
-      "label": "main()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "main()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L211"
-    },
-    {
-      "id": "probar_topologias_obtener_ruta_local",
-      "label": "obtener_ruta_local()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "obtener_ruta_local()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L206"
-    },
-    {
-      "id": "probar_topologias_procesar_mensajes",
-      "label": "procesar_mensajes()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "procesar_mensajes()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L53"
-    },
-    {
-      "id": "probar_topologias_recortar_imagen",
-      "label": "recortar_imagen()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "recortar_imagen()",
-      "source_file": "probar_topologias.py",
-      "source_location": "L63"
-    },
-    {
       "id": "probar_vsd_jpg_convertir_individual",
       "label": "convertir_individual()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "convertir_individual()",
@@ -9108,7 +9036,7 @@
       "label": "convertir_masivo()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "convertir_masivo()",
@@ -9120,7 +9048,7 @@
       "label": "convertir_visio_a_jpg()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "convertir_visio_a_jpg()",
@@ -9132,7 +9060,7 @@
       "label": "main()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "main()",
@@ -9144,7 +9072,7 @@
       "label": "obtener_archivos_visio()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "obtener_archivos_visio()",
@@ -9156,7 +9084,7 @@
       "label": "procesar_mensajes()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "procesar_mensajes()",
@@ -9168,12 +9096,84 @@
       "label": "recortar_imagen()",
       "_callable": true,
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "recortar_imagen()",
       "source_file": "probar_vsd_jpg.py",
       "source_location": "L60"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_closedclippath",
+      "label": "closedClipPath()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "closedclippath()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4802"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_hideparamspanel",
+      "label": "hideParamsPanel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "hideparamspanel()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4858"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_popoverdirection",
+      "label": "popoverDirection()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "popoverdirection()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4786"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_positionparamspanel",
+      "label": "positionParamsPanel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "positionparamspanel()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4816"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_setclippath",
+      "label": "setClipPath()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "setclippath()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4806"
+    },
+    {
+      "id": "agents_skills_impeccable_scripts_live_browser_showparamspanel",
+      "label": "showParamsPanel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 42,
+      "community_name": "positionParamsPanel",
+      "file_type": "code",
+      "norm_label": "showparamspanel()",
+      "source_file": ".agents/skills/impeccable/scripts/live-browser.js",
+      "source_location": "L4848"
     },
     {
       "id": "agents_skills_impeccable_scripts_live_browser_ignores_globtoregex",
@@ -9257,7 +9257,7 @@
       "file_type": "code",
       "norm_label": "frame()",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L39"
+      "source_location": "L40"
     },
     {
       "id": "frontend_assets_js_table_autoscroll_hold",
@@ -9269,7 +9269,7 @@
       "file_type": "code",
       "norm_label": "hold()",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L22"
+      "source_location": "L23"
     },
     {
       "id": "frontend_assets_js_table_autoscroll_resetall",
@@ -9281,7 +9281,7 @@
       "file_type": "code",
       "norm_label": "resetall()",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L72"
+      "source_location": "L73"
     },
     {
       "id": "frontend_assets_js_table_autoscroll_scrolltotop",
@@ -9293,7 +9293,7 @@
       "file_type": "code",
       "norm_label": "scrolltotop()",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L27"
+      "source_location": "L28"
     },
     {
       "id": "frontend_assets_js_table_autoscroll_setenabled",
@@ -9305,7 +9305,7 @@
       "file_type": "code",
       "norm_label": "setenabled()",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L68"
+      "source_location": "L69"
     },
     {
       "id": "frontend_assets_js_perdida_latencia_formatnumber",
@@ -14720,7 +14720,7 @@
       "id": "microservicios_olt_temperatura_queries",
       "label": "temperatura/queries.py",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "temperatura/queries.py",
@@ -14731,7 +14731,7 @@
       "id": "microservicios_olt_temperatura_router",
       "label": "temperatura/router.py",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "temperatura/router.py",
@@ -14742,7 +14742,7 @@
       "id": "microservicios_olt_temperatura_router_py_get",
       "label": "get",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "get",
@@ -14753,7 +14753,7 @@
       "id": "microservicios_olt_temperatura_service",
       "label": "temperatura/service.py",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "temperatura/service.py",
@@ -14764,7 +14764,7 @@
       "id": "microservicios_olt_temperatura_service_py_any",
       "label": "Any",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "code",
       "norm_label": "any",
@@ -14775,7 +14775,7 @@
       "id": "microservicios_olt_temperatura_queries_rationale_1",
       "label": "Consulta de temperatura actual por tarjeta OLT.",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "rationale",
       "norm_label": "consulta de temperatura actual por tarjeta olt.",
@@ -14786,7 +14786,7 @@
       "id": "microservicios_olt_temperatura_router_rationale_1",
       "label": "Rutas HTTP de temperatura OLT.",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "rationale",
       "norm_label": "rutas http de temperatura olt.",
@@ -14797,12 +14797,78 @@
       "id": "microservicios_olt_temperatura_service_rationale_1",
       "label": "Lecturas de temperatura m\u00e1xima actual por equipo OLT.",
       "_origin": "ast",
-      "community": 32,
+      "community": 31,
       "community_name": "temperatura/service.py",
       "file_type": "rationale",
       "norm_label": "lecturas de temperatura maxima actual por equipo olt.",
       "source_file": "microservicios/olt/temperatura/service.py",
       "source_location": "L1"
+    },
+    {
+      "id": "influxdbclient",
+      "label": "InfluxDBClient",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "influxdbclient",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "microservicios_influx",
+      "label": "influx.py",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "influx.py",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "microservicios_influx_py_any",
+      "label": "Any",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "any",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "runtimeerror",
+      "label": "RuntimeError",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "code",
+      "norm_label": "runtimeerror",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "microservicios_influx_rationale_1",
+      "label": "Cliente InfluxDB para Trafico Temperatura OLTs.",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "rationale",
+      "norm_label": "cliente influxdb para trafico temperatura olts.",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "microservicios_influx_rationale_87",
+      "label": "Entrega registros sin materializar las tablas completas en memoria.",
+      "_origin": "ast",
+      "community": 32,
+      "community_name": "consultar_flux_temp",
+      "file_type": "rationale",
+      "norm_label": "entrega registros sin materializar las tablas completas en memoria.",
+      "source_file": "microservicios/influx.py",
+      "source_location": "L87"
     },
     {
       "id": "backend_lib_bootstrap",
@@ -14827,70 +14893,26 @@
       "source_location": "L1"
     },
     {
-      "id": "influxdbclient",
-      "label": "InfluxDBClient",
+      "id": "iniciar_microserviciosypuente",
+      "label": "iniciar_microserviciosypuente.py",
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "influxdbclient",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "microservicios_influx",
-      "label": "influx.py",
-      "_origin": "ast",
-      "community": 34,
-      "community_name": "consultar_flux_temp",
-      "file_type": "code",
-      "norm_label": "influx.py",
-      "source_file": "microservicios/influx.py",
+      "norm_label": "iniciar_microserviciosypuente.py",
+      "source_file": "iniciar_microserviciosypuente.py",
       "source_location": "L1"
     },
     {
-      "id": "microservicios_influx_py_any",
-      "label": "Any",
+      "id": "popen",
+      "label": "Popen",
       "_origin": "ast",
       "community": 34,
-      "community_name": "consultar_flux_temp",
+      "community_name": "iniciar_microserviciosypuente.py",
       "file_type": "code",
-      "norm_label": "any",
+      "norm_label": "popen",
       "source_file": "",
       "source_location": ""
-    },
-    {
-      "id": "runtimeerror",
-      "label": "RuntimeError",
-      "_origin": "ast",
-      "community": 34,
-      "community_name": "consultar_flux_temp",
-      "file_type": "code",
-      "norm_label": "runtimeerror",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "microservicios_influx_rationale_1",
-      "label": "Cliente InfluxDB para Trafico Temperatura OLTs.",
-      "_origin": "ast",
-      "community": 34,
-      "community_name": "consultar_flux_temp",
-      "file_type": "rationale",
-      "norm_label": "cliente influxdb para trafico temperatura olts.",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "microservicios_influx_rationale_87",
-      "label": "Entrega registros sin materializar las tablas completas en memoria.",
-      "_origin": "ast",
-      "community": 34,
-      "community_name": "consultar_flux_temp",
-      "file_type": "rationale",
-      "norm_label": "entrega registros sin materializar las tablas completas en memoria.",
-      "source_file": "microservicios/influx.py",
-      "source_location": "L87"
     },
     {
       "id": "agents_skills_impeccable_skill",
@@ -15356,26 +15378,26 @@
       "source_location": "L175"
     },
     {
-      "id": "iniciar_microserviciosypuente",
-      "label": "iniciar_microserviciosypuente.py",
+      "id": "probar_topologias",
+      "label": "probar_topologias.py",
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
+      "community_name": "probar_topologias.py",
       "file_type": "code",
-      "norm_label": "iniciar_microserviciosypuente.py",
-      "source_file": "iniciar_microserviciosypuente.py",
+      "norm_label": "probar_topologias.py",
+      "source_file": "probar_topologias.py",
       "source_location": "L1"
     },
     {
-      "id": "popen",
-      "label": "Popen",
+      "id": "probar_topologias_rationale_1",
+      "label": "Prueba manual de la API de topolog\u00edas OLT con conversi\u00f3n VSD/VSDX -> JPG.",
       "_origin": "ast",
       "community": 39,
-      "community_name": "iniciar_microserviciosypuente.py",
-      "file_type": "code",
-      "norm_label": "popen",
-      "source_file": "",
-      "source_location": ""
+      "community_name": "probar_topologias.py",
+      "file_type": "rationale",
+      "norm_label": "prueba manual de la api de topologias olt con conversion vsd/vsdx -> jpg.",
+      "source_file": "probar_topologias.py",
+      "source_location": "L1"
     },
     {
       "id": "backgroundtasks",
@@ -15862,32 +15884,10 @@
       "source_location": "L5"
     },
     {
-      "id": "probar_topologias",
-      "label": "probar_topologias.py",
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "code",
-      "norm_label": "probar_topologias.py",
-      "source_file": "probar_topologias.py",
-      "source_location": "L1"
-    },
-    {
-      "id": "probar_topologias_rationale_1",
-      "label": "Prueba manual de la API de topolog\u00edas OLT con conversi\u00f3n VSD/VSDX -> JPG.",
-      "_origin": "ast",
-      "community": 41,
-      "community_name": "probar_topologias.py",
-      "file_type": "rationale",
-      "norm_label": "prueba manual de la api de topologias olt con conversion vsd/vsdx -> jpg.",
-      "source_file": "probar_topologias.py",
-      "source_location": "L1"
-    },
-    {
       "id": "probar_vsd_jpg",
       "label": "probar_vsd_jpg.py",
       "_origin": "ast",
-      "community": 42,
+      "community": 41,
       "community_name": "probar_vsd_jpg.py",
       "file_type": "code",
       "norm_label": "probar_vsd_jpg.py",
@@ -37358,7 +37358,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L377",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -37370,7 +37370,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L391",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -37382,7 +37382,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L317",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -37418,7 +37418,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L253",
+      "source_location": "L254",
       "weight": 1.0
     },
     {
@@ -37430,7 +37430,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L255",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -37574,7 +37574,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -37586,7 +37586,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -37598,7 +37598,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -37610,7 +37610,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L77",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -56221,7 +56221,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L303",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -56232,7 +56232,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L330",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -56254,7 +56254,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L360",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -56265,7 +56265,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L380",
+      "source_location": "L386",
       "weight": 1.0
     },
     {
@@ -56309,7 +56309,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -56320,7 +56320,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -56331,7 +56331,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L68",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -56342,7 +56342,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -56353,7 +56353,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/assets/js/table-autoscroll.js",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -60929,7 +60929,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L252",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -60965,7 +60965,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "frontend/assets/js/hfc.js",
-      "source_location": "L342",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -61714,5 +61714,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9227fd36674e64f36acc1a0139b843859a19d536"
+  "built_at_commit": "8bbf31e4018ea8850f270347560432f310753f7a"
 }

@@ -156,16 +156,16 @@
     "semantic_hash": "3f391b13f72b90b88ea475436f209fbd"
   },
   "frontend/agotamiento-ip.php": {
-    "mtime": 1790364571.3359616,
-    "seen": 1790870357.1180928,
-    "ast_hash": "7cf2533b5a79ee33f4afa81197870259",
-    "semantic_hash": "7cf2533b5a79ee33f4afa81197870259"
+    "mtime": 1790873062.5977867,
+    "seen": 1790873158.8453872,
+    "ast_hash": "8576fc2299269684b1969973cd7684a4",
+    "semantic_hash": ""
   },
   "frontend/assets/js/agotamiento-ip.js": {
-    "mtime": 1790364635.1990056,
-    "seen": 1790870357.1180935,
-    "ast_hash": "0168fb27e710961274bde72956bda911",
-    "semantic_hash": "0168fb27e710961274bde72956bda911"
+    "mtime": 1790873095.781708,
+    "seen": 1790873158.8453887,
+    "ast_hash": "9698b8dddb7cffb81bb7f2c5e906050a",
+    "semantic_hash": ""
   },
   "frontend/assets/js/gkp.js": {
     "mtime": 1790796494.3314803,
@@ -174,16 +174,16 @@
     "semantic_hash": "873cbab51a223b95ed2de7fd19e43c51"
   },
   "frontend/assets/js/hfc.js": {
-    "mtime": 1790796532.455118,
-    "seen": 1790870357.1180952,
-    "ast_hash": "8ba0aa70cd119dc7778a03772d641b16",
-    "semantic_hash": "8ba0aa70cd119dc7778a03772d641b16"
+    "mtime": 1790873135.4121702,
+    "seen": 1790873158.8454986,
+    "ast_hash": "91403b2a6ad8fbb5c374e08a405cd737",
+    "semantic_hash": ""
   },
   "frontend/assets/js/intermitencias.js": {
-    "mtime": 1789762763.421342,
-    "seen": 1790870357.1180959,
-    "ast_hash": "f2bb28db744f341a61029363c9f8deba",
-    "semantic_hash": "f2bb28db744f341a61029363c9f8deba"
+    "mtime": 1790873094.8845603,
+    "seen": 1790873158.8455,
+    "ast_hash": "5350a8a182c1af118d00f42dfebbb40a",
+    "semantic_hash": ""
   },
   "frontend/assets/js/perdida_latencia.js": {
     "mtime": 1790775095.8427236,
@@ -192,10 +192,10 @@
     "semantic_hash": "6f3f41bf551327faebb9f7d234d9f727"
   },
   "frontend/assets/js/puertos-docsis.js": {
-    "mtime": 1789742276.2091544,
-    "seen": 1790870357.1180973,
-    "ast_hash": "0b30311b37450e0bc0eee8e29e263ae0",
-    "semantic_hash": "0b30311b37450e0bc0eee8e29e263ae0"
+    "mtime": 1790873093.9233015,
+    "seen": 1790873158.845605,
+    "ast_hash": "00b98af54e669863604747f65a49e345",
+    "semantic_hash": ""
   },
   "frontend/assets/js/sidebar.js": {
     "mtime": 1789594585.5230703,
@@ -204,10 +204,10 @@
     "semantic_hash": "337949abb6fba81c72eb6198ea8df37e"
   },
   "frontend/assets/js/table-autoscroll.js": {
-    "mtime": 1790777702.3639152,
-    "seen": 1790870357.118099,
-    "ast_hash": "9959b3c8e9240b9b9d0463cf173f37e1",
-    "semantic_hash": "9959b3c8e9240b9b9d0463cf173f37e1"
+    "mtime": 1790873064.2407517,
+    "seen": 1790873158.8457084,
+    "ast_hash": "c517a5a5cd815bbc2eb75b75764835b0",
+    "semantic_hash": ""
   },
   "frontend/assets/js/temperatura.js": {
     "mtime": 1790796515.0225,
@@ -228,16 +228,16 @@
     "semantic_hash": "a885c9d380cfcdc8ac89bc1cd36e54ac"
   },
   "frontend/components/header.php": {
-    "mtime": 1790357884.0851707,
-    "seen": 1790870357.118102,
-    "ast_hash": "82995df505ac3ea6cae862d56ab98147",
-    "semantic_hash": "82995df505ac3ea6cae862d56ab98147"
+    "mtime": 1790873032.633908,
+    "seen": 1790873158.846028,
+    "ast_hash": "c7403123f76d6442e4366b7aba504b18",
+    "semantic_hash": ""
   },
   "frontend/components/module-page.php": {
-    "mtime": 1789652871.0371802,
-    "seen": 1790870357.1181026,
-    "ast_hash": "df02ef1bf001376bb586cfd280d55bd6",
-    "semantic_hash": "df02ef1bf001376bb586cfd280d55bd6"
+    "mtime": 1790873033.367401,
+    "seen": 1790873158.846029,
+    "ast_hash": "e23058257789c5faa6cb5638a6fa1415",
+    "semantic_hash": ""
   },
   "frontend/components/sidebar.php": {
     "mtime": 1790711975.677452,
@@ -252,10 +252,10 @@
     "semantic_hash": "53f58a0d836886e80c2fd1c8dd9dcdea"
   },
   "frontend/hfc.php": {
-    "mtime": 1790356737.4064953,
-    "seen": 1790870357.118105,
-    "ast_hash": "d27794247d385d068a3c8e04148b3bcf",
-    "semantic_hash": "d27794247d385d068a3c8e04148b3bcf"
+    "mtime": 1790873035.619834,
+    "seen": 1790873158.8462296,
+    "ast_hash": "258df614a191b16c5ac4985d87205013",
+    "semantic_hash": ""
   },
   "frontend/index.php": {
     "mtime": 1790777699.8803115,
@@ -264,10 +264,10 @@
     "semantic_hash": "9bf0ed8513ebeb68ec1a0bfe48225226"
   },
   "frontend/intermitencias.php": {
-    "mtime": 1789762882.5011342,
-    "seen": 1790870357.1181068,
-    "ast_hash": "c3598999364e0f8029101153872e4c56",
-    "semantic_hash": "c3598999364e0f8029101153872e4c56"
+    "mtime": 1790873062.0008025,
+    "seen": 1790873158.8463273,
+    "ast_hash": "a45fcc8e1262f9bae9c0ffe28a7bf21c",
+    "semantic_hash": ""
   },
   "frontend/onts.php": {
     "mtime": 1789652480.87572,
@@ -276,15 +276,15 @@
     "semantic_hash": "44a2203a20a1d4b8abd920f0ca4f7d06"
   },
   "frontend/puertos-docsis.php": {
-    "mtime": 1789742208.4763927,
-    "seen": 1790870357.1181083,
-    "ast_hash": "ef3553b5b88e8d93da4c377d5aea4522",
-    "semantic_hash": "ef3553b5b88e8d93da4c377d5aea4522"
+    "mtime": 1790873063.3923323,
+    "seen": 1790873158.8464348,
+    "ast_hash": "f82b09b6f6a96f3932194222c00b7f1b",
+    "semantic_hash": ""
   },
   "frontend/recursos-zte.php": {
-    "mtime": 1790871783.2537112,
-    "seen": 1790871856.7614515,
-    "ast_hash": "e7ed317817250990a82e69514c36852e",
+    "mtime": 1790873034.5205622,
+    "seen": 1790873158.846436,
+    "ast_hash": "d5ef4a60bdef7b42e3e21d942b0eb96f",
     "semantic_hash": ""
   },
   "frontend/troncales-pon.php": {
@@ -840,9 +840,9 @@
     "semantic_hash": ""
   },
   "frontend/assets/js/recursos-zte.js": {
-    "mtime": 1790871771.1421726,
-    "seen": 1790871856.75956,
-    "ast_hash": "4ec8b1cee5327100f3b5dffa6c355fa3",
+    "mtime": 1790873092.997179,
+    "seen": 1790873158.8456059,
+    "ast_hash": "620ddd0856c213cd2a886a1a80be491a",
     "semantic_hash": ""
   },
   "microservicios/olt/recursos_zte/queries.py": {
@@ -861,6 +861,18 @@
     "mtime": 1790871764.578644,
     "seen": 1790871856.7659044,
     "ast_hash": "f5b8603da36e12d18089deda5d45dbd6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/impeccable/scripts/data/font-index.json": {
+    "mtime": 1789570184.0707963,
+    "seen": 1790871961.2819355,
+    "ast_hash": "",
+    "semantic_hash": ""
+  },
+  ".impeccable/live/server.json": {
+    "mtime": 1790872785.950732,
+    "seen": 1790873158.843688,
+    "ast_hash": "337512916524c78a27155fd7b363cade",
     "semantic_hash": ""
   }
 }

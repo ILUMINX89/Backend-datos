@@ -18,6 +18,7 @@
     })).filter((state) => state.region);
     let enabled = false;
     let lastFrame = performance.now();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     function hold(state, duration) {
         state.resumeAt = performance.now() + duration;
@@ -40,7 +41,7 @@
         const elapsed = Math.min(Math.max(now - lastFrame, 0), 100);
         lastFrame = now;
 
-        if (enabled && !document.hidden) {
+        if (enabled && !reducedMotion.matches && !document.hidden) {
             states.forEach((state) => {
                 const region = state.region;
                 const maxScroll = region.scrollHeight - region.clientHeight;
@@ -77,6 +78,10 @@
             if (state) scrollToTop(state);
         },
     };
+
+    reducedMotion.addEventListener?.('change', () => {
+        lastFrame = performance.now();
+    });
 
     requestAnimationFrame(frame);
 })();
