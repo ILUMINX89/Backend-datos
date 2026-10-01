@@ -17,7 +17,7 @@
     let ftthPowerVisible = false;
     let ftthCrcVisible = false;
     let ftthReturnFocus = null;
-    let currentNewestAlert = null;
+    let currentAlertIds = null;
     let monitorMode = false;
 
     const app = document.querySelector('.app');
@@ -207,7 +207,70 @@
     }
 
     function alertIdentity(row) {
-        return [row.equipo, row.puerto, row.estado, row.fecha_evento].join('|');
+        return [row.equipo ?? '', row.puerto ?? '', row.estado ?? '']
+            .map((value) => String(value).trim())
+            .join('|');
+    }
+
+    function speakText(text) {
+        if (
+            !('speechSynthesis' in window)
+            || typeof SpeechSynthesisUtterance === 'undefined'
+        ) {
+            return;
+        }
+
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        utterance.lang = 'es-CO';
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        utterance.onerror = (event) => {
+            if (event.error === 'not-allowed') {
+                console.warn(
+                    'Dictado de alertas bloqueado hasta que exista interacción del usuario.'
+                );
+            }
+        };
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function formatAlertTime(row) {
+        if (!row.fecha_evento) {
+            return 'hora no disponible';
+        }
+
+        const raw = String(row.fecha_evento).trim();
+        const normalized = raw.includes('T')
+            ? raw
+            : raw.replace(' ', 'T');
+        const date = new Date(normalized);
+
+        if (Number.isNaN(date.getTime())) {
+            return 'hora no disponible';
+        }
+
+        return date.toLocaleTimeString('es-CO', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'America/Bogota'
+        });
+    }
+
+    function speakAlert(row) {
+        speakText(
+            `OLT ${row.equipo}. `
+            + `Tiempo ${formatAlertTime(row)}. `
+            + `Estado ${row.estado}.`
+        );
     }
 
     function render(rows) {
@@ -411,15 +474,31 @@
             const rows =
                 payload.data.estado_actual_red;
 
-            const newest = rows[0] ? alertIdentity(rows[0]) : null;
-            const changed = currentNewestAlert !== null
-                && newest !== currentNewestAlert;
-            currentNewestAlert = newest;
+            const nextAlertIds = new Set(rows.map(alertIdentity));
+            let newRows = [];
+
+            if (currentAlertIds !== null) {
+                newRows = rows.filter(
+                    (row) => !currentAlertIds.has(alertIdentity(row))
+                );
+            }
+
+            currentAlertIds = nextAlertIds;
 
             render(rows);
 
-            if (changed && monitorMode) {
+            if (newRows.length > 0 && monitorMode) {
                 window.GKPTableAutoScroll?.scrollToTop('gkp-table-region');
+            }
+
+            if (newRows.length > 0) {
+                newRows.slice(0, 3).forEach(speakAlert);
+
+                if (newRows.length > 3) {
+                    speakText(
+                        `Y ${newRows.length - 3} alertas nuevas adicionales.`
+                    );
+                }
             }
 
             hasValidData = true;
