@@ -797,3 +797,30 @@
         transition: none;
     }
 }
+
+/* Acentos verdes para integrar la navegación con el área operacional clara. */
+.gkp-page .sidebar-brand__icon { color: #77e0af; background: #063b2c; border-color: #0d6b4e; }
+.gkp-page .brand-signal__core { background: #77e0af; }
+.gkp-page .nav__item:hover { color: #ecfff5; background: #0a2018; border-color: #18553d; }
+.gkp-page .nav__item.active,
+.gkp-page .nav__subitem.active { color: #effff7; background: #07543d; border-color: #16986b; }
+.gkp-page .nav__subitem:hover { color: #d8f8e8; background: #091b14; }
+.gkp-page .sidebar-user__avatar { color: #bdf4d5; background: #103c2d; border-color: #2b7d5c; }
+
+/* Logo institucional proporcionado por RKP. */
+.gkp-page .sidebar-brand {
+    min-height: 72px;
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    padding: 6px 8px 14px;
+}
+.gkp-page .sidebar-brand__logo {
+    width: min(158px, 100%);
+    height: auto;
+    display: block;
+    object-fit: contain;
+    object-position: left center;
+}
+.gkp-page .sidebar-brand__text--logo { display: block; }
+.gkp-page .sidebar-brand__text--logo span { margin-top: 0; color: #9bb7a9; font-size: 10px; }

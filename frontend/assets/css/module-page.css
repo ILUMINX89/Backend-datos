@@ -301,6 +301,95 @@
     }
 }
 
+/* Módulos FTTH y HFC: misma superficie clara del tablero operativo. */
+.gkp-page .module-content {
+    gap: 20px;
+    padding: 20px 18px;
+}
+
+.gkp-page .module-heading {
+    padding: 2px 2px 0;
+}
+
+.gkp-page .module-heading h2 {
+    color: var(--gkp-ink);
+    font-size: clamp(24px, 2.2vw, 30px);
+    font-weight: 800;
+    letter-spacing: -.028em;
+}
+
+.gkp-page .module-heading p { color: var(--gkp-muted); font-size: 13px; }
+.gkp-page .module-sections,
+.gkp-page .intermitencias-grid { gap: 14px; }
+
+.gkp-page .module-panel {
+    min-height: 176px;
+    padding: 18px;
+    background: #ffffff;
+    border-color: #dce9e2;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(23, 67, 48, .06);
+}
+
+.gkp-page .module-panel h3 { color: var(--gkp-ink); font-size: 17px; font-weight: 800; }
+.gkp-page .module-panel p { color: var(--gkp-muted); }
+.gkp-page .module-empty {
+    min-height: 100px;
+    color: var(--gkp-muted);
+    background: #f1faf5;
+    border-color: #d4eadc;
+    border-radius: 10px;
+}
+.gkp-page .module-empty strong { color: var(--gkp-green-strong); }
+.gkp-page .module-empty[data-state="loading"] { background: #f3f7f5; }
+.gkp-page .module-empty[data-state="empty"] { background: #f1faf5; }
+.gkp-page .module-empty[data-state="error"] { color: #972338; background: #fff3f4; border-color: #f5c6ce; }
+.gkp-page .module-empty[data-state="empty"] {
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 18px;
+    color: var(--gkp-green-strong);
+    font-weight: 650;
+}
+.gkp-page .module-empty[data-state="empty"]::before {
+    content: "";
+    width: 88px;
+    height: 88px;
+    flex: 0 0 88px;
+    background: url("../img/panda-review.png") center / contain no-repeat;
+}
+
+.gkp-page .module-panel th { color: #496073; background: #f3f7f5; border-bottom-color: #dce8e2; }
+.gkp-page .module-panel td { color: var(--gkp-ink-2); border-bottom-color: #e7efeb; }
+.gkp-page .module-panel tbody tr:hover { background: #f2faf6; }
+.gkp-page .module-panel button,
+.gkp-page .module-panel .button {
+    color: var(--gkp-green-strong);
+    background: #ffffff;
+    border-color: #a9d9c0;
+    border-radius: 8px;
+    font-weight: 700;
+}
+.gkp-page .module-panel button:hover,
+.gkp-page .module-panel .button:hover { background: #effaf5; border-color: #65bd91; }
+.gkp-page .module-panel button:focus-visible,
+.gkp-page .module-panel .button:focus-visible { outline-color: #079867; }
+.gkp-page .module-panel input,
+.gkp-page .module-panel select,
+.gkp-page .module-panel textarea { border-color: #cbded4; border-radius: 8px; }
+.gkp-page .module-panel input:focus,
+.gkp-page .module-panel select:focus,
+.gkp-page .module-panel textarea:focus { outline-color: #079867; border-color: #6fc59a; }
+
+@media (max-width: 700px) {
+    .gkp-page .module-content { gap: 14px; padding: 14px 10px; }
+    .gkp-page .module-panel { padding: 14px; }
+    .gkp-page .module-empty[data-state="empty"] { flex-direction: column; text-align: center; }
+}
+
 
 /* ==========================================================
    HFC

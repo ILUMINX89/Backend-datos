@@ -4,9 +4,9 @@ declare(strict_types=1);
 final class MicroserviceClient
 {
     public function __construct(
-        private string $baseUrl,
-        private int $timeout = 8,
-        private int $connectTimeout = 3,
+        private readonly string $baseUrl,
+        private readonly int $timeout = 8,
+        private readonly int $connectTimeout = 3,
     ) {
         if (!extension_loaded('curl')) {
             throw new RuntimeException('La extension cURL de PHP no esta disponible');

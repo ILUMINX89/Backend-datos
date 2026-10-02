@@ -35,7 +35,7 @@ if (!isset($pageTitle, $pageDescription, $pageSections) || !is_array($pageSectio
                     <section class="card module-panel" aria-labelledby="<?= htmlspecialchars($section['id'], ENT_QUOTES, 'UTF-8') ?>">
                         <h3 id="<?= htmlspecialchars($section['id'], ENT_QUOTES, 'UTF-8') ?>"><?= htmlspecialchars($section['title'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <?php if (!empty($section['description'])): ?><p><?= htmlspecialchars($section['description'], ENT_QUOTES, 'UTF-8') ?></p><?php endif; ?>
-                        <div class="module-empty" role="status">Sin datos disponibles</div>
+                        <div class="module-empty" data-state="empty" role="status">No hay excepciones para mostrar.</div>
                     </section>
                 <?php endforeach; ?>
             </div>

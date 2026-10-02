@@ -57,7 +57,8 @@
                     </table>
                 </div>
                 <div id="perdida-latencia-empty" class="panel-ok-state" hidden>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                    <img src="assets/img/panda-ok.png" alt="" aria-hidden="true">
+                    <div><strong>Sin eventos</strong><span>Todos los equipos responden correctamente.</span></div>
                     <span class="sr-only">Sin excepciones de pérdida o latencia</span>
                 </div>
                 <p class="gkp-panel-foot"><span>Solo pérdida &gt; 10% y latencia &gt; 50 ms</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
@@ -82,7 +83,8 @@
                     </table>
                 </div>
                 <div id="temperatura-empty" class="panel-ok-state" hidden>
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                    <img src="assets/img/panda-bamboo.png" alt="" aria-hidden="true">
+                    <div><strong>Sin excepciones</strong><span>La temperatura de las OLT está dentro del rango esperado.</span></div>
                     <span class="sr-only">Sin excepciones de temperatura OLT</span>
                 </div>
                 <p class="gkp-panel-foot"><span>Escala contextual de temperatura OLT</span><span class="gkp-scroll-hint">Desliza para ver más →</span></p>
